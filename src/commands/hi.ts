@@ -1,11 +1,11 @@
 import { WAMessage } from "@whiskeysockets/baileys";
 import { SenderType } from "../botTypes";
-import type { Command, MsgType } from "../botTypes";
+import type { ICommand, MsgType } from "../botTypes";
 import Bot from "../bot";
 
 const l = console.log;
 
-export default class implements Command {
+export default class implements ICommand {
   commandName: string = "hola";
 
   public async onMsgReceived(

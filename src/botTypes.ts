@@ -8,7 +8,7 @@ export type BaileysOnMessageObj = {
   requestId?: string;
 };
 
-export interface Command {
+export interface ICommand {
   commandName: string;
   onMsgReceived: (
     bot: Bot,

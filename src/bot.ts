@@ -4,7 +4,7 @@ import { Boom } from "@hapi/boom";
 
 import AllCommands from "./commands/AIndex";
 
-import type { BaileysWASocket, Command } from "./botTypes";
+import type { BaileysWASocket, ICommand } from "./botTypes";
 import { MsgType, SenderType } from "./botTypes";
 
 import fs from "fs";
@@ -15,7 +15,7 @@ type BotArgs = {
 
 export default class Bot {
   private prefix: string;
-  private Commands: Record<string, Command>;
+  private Commands: Record<string, ICommand>;
   private socket: BaileysWASocket;
   private credentialsStoragePath: string;
   private thisBot: Bot;
@@ -73,6 +73,7 @@ export default class Bot {
       if (!messageUpdate.messages) return;
 
       messageUpdate.messages.forEach((msg) => {
+        console.log(msg);
         if (!msg.message && !msg.key.fromMe) return;
 
         let msgType: MsgType;
@@ -82,7 +83,10 @@ export default class Bot {
         if (jid && jid.endsWith("@g.us")) senderType = SenderType.Group;
 
         //---------------- is it a text msg with a command inside?
-        const msgWords = msg.message?.extendedTextMessage?.text?.split(" ")
+        const objMsg = msg.message!;
+
+        ///This can be undefined for some reason
+        const msgWords: string[] = objMsg.extendedTextMessage ? objMsg.extendedTextMessage.text?.split(" ")! : objMsg.conversation?.split(" ")!; 
         if (msgWords && msgWords[0].startsWith(this.prefix)) {
           msgType = MsgType.text;
           const isACommand = this.Commands[msgWords[0].slice(1)];
@@ -109,7 +113,14 @@ export default class Bot {
     });
   }
 
-  public async SendMsg(msgIdJSR: string, textToSend) {
+  public async SendMsg(msgIdJSR: string, textToSend: string) {
     await this.socket.sendMessage(msgIdJSR, { text: textToSend });
+  }
+
+  public async SendImg(msgIdJSR: string, imgPath: string, captionTxt?:string) {
+    await this.socket.sendMessage(msgIdJSR, {
+      image: fs.readFileSync(imgPath),
+      caption: captionTxt || ''
+    })
   }
 }
