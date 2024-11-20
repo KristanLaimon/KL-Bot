@@ -3,7 +3,6 @@ import { useMultiFileAuthState } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 
 import AllCommands from "./commands/AIndex";
-const AllBotCommands = AllCommands as unknown as Command[];
 
 import type { BaileysWASocket, Command } from "./botTypes";
 import { MsgType, SenderType } from "./botTypes";
@@ -32,8 +31,9 @@ export default class Bot {
     this.Commands = {};
     this.thisBot = this;
 
-    AllBotCommands.forEach((com) => {
-      this.Commands[com.commandName] = com;
+    AllCommands.forEach((command) => {
+      const commandInstance = new command();
+      this.Commands[commandInstance.commandName] = commandInstance;
     });
   }
 
@@ -81,13 +81,13 @@ export default class Bot {
         let senderType: SenderType = SenderType.Individual;
         if (jid && jid.endsWith("@g.us")) senderType = SenderType.Group;
 
-        //---------------- It is a text msg with a command inside?
+        //---------------- is it a text msg with a command inside?
         const msgWords = msg.message?.conversation?.split(" ");
         if (msgWords) {
           msgType = MsgType.text;
           const isACommand = this.Commands[this.prefix + msgWords[0]];
           if (isACommand) {
-            isACommand.onMsgReceived(
+            isACommand.onMsgReceived( ///This is async, returns a promise!
               this.thisBot,
               msg,
               senderType,

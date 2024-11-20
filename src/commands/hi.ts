@@ -8,7 +8,7 @@ const l = console.log;
 export default class implements Command {
   commandName: string = "hola";
 
-  async onMsgReceived(
+  public async onMsgReceived(
     bot: Bot,
     msg: WAMessage,
     sender: SenderType,
@@ -16,7 +16,7 @@ export default class implements Command {
   ) {
     if (sender === SenderType.Individual) l("Viene de un chat individual!!!");
     else if (sender === SenderType.Group) l("Viene de un chat de grupo!!!!!");
-
+    
     console.log(msg);
   }
 }

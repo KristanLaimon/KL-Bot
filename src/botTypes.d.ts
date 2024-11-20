@@ -15,7 +15,7 @@ export interface Command {
     msg: WAMessage,
     sender: SenderType,
     type: MsgType
-  ) => void;
+  ) => Promise<void>;
 }
 
 export enum SenderType {
