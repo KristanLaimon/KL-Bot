@@ -61,7 +61,7 @@ export default class Bot {
           // reconnect if not logged out
           if (shouldReconnect) this.StartBot(); ///This is async, returns a promise!
         }
-
+ 
         case "open": {
           console.log("Opened connection");
         }
@@ -82,10 +82,10 @@ export default class Bot {
         if (jid && jid.endsWith("@g.us")) senderType = SenderType.Group;
 
         //---------------- is it a text msg with a command inside?
-        const msgWords = msg.message?.conversation?.split(" ");
-        if (msgWords) {
+        const msgWords = msg.message?.extendedTextMessage?.text?.split(" ")
+        if (msgWords && msgWords[0].startsWith(this.prefix)) {
           msgType = MsgType.text;
-          const isACommand = this.Commands[this.prefix + msgWords[0]];
+          const isACommand = this.Commands[msgWords[0].slice(1)];
           if (isACommand) {
             isACommand.onMsgReceived( ///This is async, returns a promise!
               this.thisBot,

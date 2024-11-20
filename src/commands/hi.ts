@@ -17,6 +17,7 @@ export default class implements Command {
     if (sender === SenderType.Individual) l("Viene de un chat individual!!!");
     else if (sender === SenderType.Group) l("Viene de un chat de grupo!!!!!");
     
+    await bot.SendMsg(msg.key.remoteJid!, "Hola, soy el bot");
     console.log(msg);
   }
 }
