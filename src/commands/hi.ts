@@ -5,7 +5,7 @@ import Bot from "../bot";
 
 const l = console.log;
 
-export default class implements ICommand {
+export default class HiCommand implements ICommand {
   commandName: string = "hola";
 
   public async onMsgReceived(

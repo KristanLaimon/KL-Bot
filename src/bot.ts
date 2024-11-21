@@ -2,7 +2,7 @@ import makeWASocket, { DisconnectReason, proto } from "@whiskeysockets/baileys";
 import { useMultiFileAuthState } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 
-import AllCommands from "./commands/AIndex";
+import AllCommands from "./commands/A_Index";
 
 import type { BaileysWASocket, ICommand } from "./botTypes";
 import { MsgType, SenderType } from "./botTypes";
@@ -72,6 +72,7 @@ export default class Bot {
     this.socket.ev.on("messages.upsert", async (messageUpdate) => {
       if (!messageUpdate.messages) return;
 
+
       messageUpdate.messages.forEach((msg) => {
         console.log(msg);
         if (!msg.message && !msg.key.fromMe) return;
@@ -85,6 +86,19 @@ export default class Bot {
         //---------------- is it a text msg with a command inside?
         const objMsg = msg.message!;
 
+        if (objMsg.imageMessage)
+          msgType = MsgType.image;
+        else if (objMsg.videoMessage)
+          msgType = MsgType.video;
+        else if (objMsg.audioMessage)
+          msgType = MsgType.audio;
+        else if (objMsg.stickerMessage)
+          msgType = MsgType.sticker;
+        else if (objMsg.conversation || objMsg.extendedTextMessage)
+          msgType = MsgType.text;
+        else
+          msgType = MsgType.unknown;
+
         ///This can be undefined for some reason
         const msgWords: string[] = objMsg.extendedTextMessage ? objMsg.extendedTextMessage.text?.split(" ")! : objMsg.conversation?.split(" ")!; 
         if (msgWords && msgWords[0].startsWith(this.prefix)) {
@@ -95,7 +109,7 @@ export default class Bot {
               this.thisBot,
               msg,
               senderType,
-              MsgType.text
+              msgType
             );
           }
         }

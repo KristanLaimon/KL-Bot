@@ -30,6 +30,7 @@ export enum MsgType {
   video,
   audio,
   contact,
+  unknown
 }
 
 export type BaileysWASocket = ReturnType<typeof makeWASocket>;
