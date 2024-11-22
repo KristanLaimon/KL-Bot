@@ -11,6 +11,8 @@ import fs from "fs";
 
 type BotArgs = {
   prefix?: string;
+  /** CoolTime in seconds for every response */
+  coolDownTime?: number;
 };
 
 export default class Bot {
@@ -19,17 +21,21 @@ export default class Bot {
   private socket: BaileysWASocket;
   private credentialsStoragePath: string;
   private thisBot: Bot;
+  private coolDowns: Map<string, number>;
+  private coolDownTime: number;
 
   constructor(args: BotArgs | undefined) {
+    this.coolDownTime = 1000 * 1; // 1 Second
+    this.coolDowns = new Map<string, number>();
+    this.Commands = {};
+    this.thisBot = this;    
+    this.prefix = "!";
+    this.credentialsStoragePath = "./auth_info";
+
     if (args) {
       if (args.prefix) this.prefix = args.prefix;
-    } else {
-      this.prefix = "!";
-      this.credentialsStoragePath = "./auth_info";
-    }
-
-    this.Commands = {};
-    this.thisBot = this;
+      if (args.coolDownTime) this.coolDownTime = args.coolDownTime * 1000;
+    } 
 
     AllCommands.forEach((command) => {
       const commandInstance = new command();
@@ -78,10 +84,10 @@ export default class Bot {
         if (!msg.message && !msg.key.fromMe) return;
 
         let msgType: MsgType;
-        const jid = msg.key.remoteJid;
+        const chatId = msg.key.remoteJid!; // Can be null | undefined for some reason
 
         let senderType: SenderType = SenderType.Individual;
-        if (jid && jid.endsWith("@g.us")) senderType = SenderType.Group;
+        if (chatId && chatId.endsWith("@g.us")) senderType = SenderType.Group;
 
         //---------------- is it a text msg with a command inside?
         const objMsg = msg.message!;
@@ -103,6 +109,17 @@ export default class Bot {
         const msgWords: string[] = objMsg.extendedTextMessage ? objMsg.extendedTextMessage.text?.split(" ")! : objMsg.conversation?.split(" ")!; 
         if (msgWords && msgWords[0].startsWith(this.prefix)) {
           msgType = MsgType.text;
+
+          const now = Date.now();
+          
+          const lastCommandtime: number|undefined = this.coolDowns.get(chatId);
+          if (lastCommandtime && now - lastCommandtime < this.coolDownTime) {
+            // If enters here, the sender did not wait the cool down time
+            this.SendMsg(chatId, "Hay Cooldown mi compa...");
+            return;
+          }
+          this.coolDowns.set(chatId, now);
+
           const isACommand = this.Commands[msgWords[0].slice(1)];
           if (isACommand) {
             isACommand.onMsgReceived( ///This is async, returns a promise!
