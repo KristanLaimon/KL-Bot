@@ -1,4 +1,4 @@
-import makeWASocket, { DisconnectReason, proto } from "@whiskeysockets/baileys";
+import makeWASocket, { AnyMessageContent, DisconnectReason, MiscMessageGenerationOptions, proto } from "@whiskeysockets/baileys";
 import { useMultiFileAuthState } from "@whiskeysockets/baileys";
 import { Boom } from "@hapi/boom";
 
@@ -17,17 +17,21 @@ type BotArgs = {
 
 export default class Bot {
   private prefix: string;
-  private Commands: Record<string, ICommand>;
+  private _commands: Record<string, ICommand>;
   private socket: BaileysWASocket;
   private credentialsStoragePath: string;
   private thisBot: Bot;
   private coolDowns: Map<string, number>;
   private coolDownTime: number;
 
+  get Commands() {
+    return Object.entries(this._commands);
+  }
+
   constructor(args: BotArgs | undefined) {
     this.coolDownTime = 1000 * 1; // 1 Second
     this.coolDowns = new Map<string, number>();
-    this.Commands = {};
+    this._commands = {};
     this.thisBot = this;    
     this.prefix = "!";
     this.credentialsStoragePath = "./auth_info";
@@ -39,7 +43,7 @@ export default class Bot {
 
     AllCommands.forEach((command) => {
       const commandInstance = new command();
-      this.Commands[commandInstance.commandName] = commandInstance;
+      this._commands[commandInstance.commandName] = commandInstance;
     });
   }
 
@@ -89,6 +93,8 @@ export default class Bot {
         let senderType: SenderType = SenderType.Individual;
         if (chatId && chatId.endsWith("@g.us")) senderType = SenderType.Group;
 
+
+
         //---------------- is it a text msg with a command inside?
         const objMsg = msg.message!;
 
@@ -115,19 +121,24 @@ export default class Bot {
           const lastCommandtime: number|undefined = this.coolDowns.get(chatId);
           if (lastCommandtime && now - lastCommandtime < this.coolDownTime) {
             // If enters here, the sender did not wait the cool down time
-            this.SendMsg(chatId, "Hay Cooldown mi compa...");
+            this.SendText(chatId, "Hay Cooldown mi compa...");
             return;
           }
           this.coolDowns.set(chatId, now);
 
-          const isACommand = this.Commands[msgWords[0].slice(1)];
+          const isACommand = this._commands[msgWords[0].slice(1)]; ///Is removing the ! in the beginning of the word....
           if (isACommand) {
-            isACommand.onMsgReceived( ///This is async, returns a promise!
+
+            isACommand.onMsgReceived(
               this.thisBot,
-              msg,
-              senderType,
-              msgType
-            );
+              {
+                msgType: msgType,
+                msgObj: msg,
+                senderType: senderType,
+                senderId: chatId,
+                commandArgs: msgWords.slice(1)
+              }
+            )
           }
         }
       });
@@ -144,8 +155,12 @@ export default class Bot {
     });
   }
 
-  public async SendMsg(msgIdJSR: string, textToSend: string) {
+  public async SendText(msgIdJSR: string, textToSend: string) {
     await this.socket.sendMessage(msgIdJSR, { text: textToSend });
+  }
+
+  public async SendMsg(msgIdJSR: string, content:AnyMessageContent, misc?:MiscMessageGenerationOptions) {
+    await this.socket.sendMessage(msgIdJSR, content, misc);
   }
 
   public async SendImg(msgIdJSR: string, imgPath: string, captionTxt?:string) {

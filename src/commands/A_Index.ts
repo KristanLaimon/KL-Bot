@@ -1,4 +1,6 @@
-import HiCommand from "./hi";
-import WolfyCommand from './wolfy';
+import HolaCommand from "./test/hola";
+import SexoCommand from './test/sexo';
+import TestCommand from './test/test';
+import HelpCommand from './general/help';
 
-export default [HiCommand, WolfyCommand];
+export default [HolaCommand, SexoCommand, TestCommand, HelpCommand];

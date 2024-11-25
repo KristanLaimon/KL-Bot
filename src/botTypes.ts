@@ -8,14 +8,18 @@ export type BaileysOnMessageObj = {
   requestId?: string;
 };
 
+export type CommandArgs = {
+  msgObj: WAMessage,
+  senderId: string,
+  senderType: SenderType,
+  msgType: MsgType,
+  commandArgs: string[]
+}
+
 export interface ICommand {
   commandName: string;
-  onMsgReceived: (
-    bot: Bot,
-    msg: WAMessage,
-    sender: SenderType,
-    type: MsgType
-  ) => Promise<void>;
+  description: string;
+  onMsgReceived: (bot:Bot, args:CommandArgs) => Promise<void>;
 }
 
 export enum SenderType {
