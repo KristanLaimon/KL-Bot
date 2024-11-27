@@ -1,6 +1,6 @@
-import HolaCommand from "./test/hola";
+import ResponseCommand from "./test/response";
 import SexoCommand from './test/sexo';
 import TestCommand from './test/test';
 import HelpCommand from './general/help';
 
-export default [HolaCommand, SexoCommand, TestCommand, HelpCommand];
+export default [ResponseCommand, SexoCommand, TestCommand, HelpCommand];

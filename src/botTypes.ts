@@ -8,9 +8,12 @@ export type BaileysOnMessageObj = {
   requestId?: string;
 };
 
+
+
 export type CommandArgs = {
   msgObj: WAMessage,
-  senderId: string,
+  chatSenderId: string,
+  userSenderId: string,
   senderType: SenderType,
   msgType: MsgType,
   commandArgs: string[]
@@ -38,3 +41,12 @@ export enum MsgType {
 }
 
 export type BaileysWASocket = ReturnType<typeof makeWASocket>;
+
+export type BotWaitMessageError = {
+  errorMessage: string;
+  wasAbortedByUser: boolean;
+}
+
+export type TypedPromise<T, E> = Promise<T> & {
+    reject: (reason: E) => void;
+};

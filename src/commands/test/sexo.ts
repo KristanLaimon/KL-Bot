@@ -9,7 +9,7 @@ export default class SexoCommand implements ICommand {
   description: string = "Lo que tanto le quiero hacer al lobo";
   async onMsgReceived(bot:Bot, args:CommandArgs){
     if (args.senderType === SenderType.Group) {
-      await bot.SendImg(args.senderId, './resources/wolf.jpg', "Sex Sex Sex Sex")
+      await bot.SendImg(args.chatSenderId, './resources/wolf.jpg', "Sex Sex Sex Sex")
     }
   }
 }

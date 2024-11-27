@@ -13,6 +13,6 @@ export default class HelpCommand implements ICommand {
       strs.push(`${cmd[1].commandName} - ${cmd[1].description}`);
     }
 
-    await bot.SendText(args.senderId, strs.join('\n'));
+    await bot.SendText(args.chatSenderId, strs.join('\n'));
   }
 }

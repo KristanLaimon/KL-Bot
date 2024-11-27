@@ -9,7 +9,7 @@ export default class TestCommand implements ICommand {
   description: string = 'Por el momento solo manda una imagen del rango que tu le pidas'
   async onMsgReceived(bot: Bot, args: CommandArgs) {
     if (args.commandArgs.length != 1) {
-      await bot.SendText(args.senderId, "Tienes que mandar de que rango quieres la imagen");
+      await bot.SendText(args.chatSenderId, "Tienes que mandar de que rango quieres la imagen");
       return;
     }
 
@@ -31,10 +31,10 @@ export default class TestCommand implements ICommand {
       strs.push('');
       strs.push('Ejemplo de uso: !rango campeón   ó    !rango campeon');
 
-      await bot.SendText(args.senderId, strs.join('\n'));
+      await bot.SendText(args.chatSenderId, strs.join('\n'));
       return;
     }
 
-    await bot.SendMsg(args.senderId, {image: fs.readFileSync(rankPath), caption: "LoboKL"}); 
+    await bot.SendMsg(args.chatSenderId, {image: fs.readFileSync(rankPath), caption: "LoboKL"}); 
   }
 }
