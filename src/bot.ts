@@ -1,11 +1,10 @@
 import makeWASocket, { AnyMessageContent, DisconnectReason, MessageUpsertType, MiscMessageGenerationOptions, proto, WAMessage } from "@whiskeysockets/baileys";
-import { useMultiFileAuthState } from "@whiskeysockets/baileys";
-import { Boom } from "@hapi/boom";
-import AllCommands from "./commands/A_Index";
 import type { BaileysWASocket, BotWaitMessageError, ICommand } from "./botTypes";
+import { useMultiFileAuthState } from "@whiskeysockets/baileys";
 import { MsgType, SenderType } from "./botTypes";
-import fs from "fs";
 import { GetTextFromRawMsg } from './utils/Msg';
+import { Boom } from "@hapi/boom";
+import fs from "fs";
 
 type BaileysInsertArgs = {
     messages: WAMessage[];
@@ -47,12 +46,11 @@ export default class Bot {
       if (args.coolDownTime) this.coolDownTime = args.coolDownTime * 1000;
     } 
 
-    AllCommands.forEach((command) => {
-      const commandInstance = new command();
-      this._commands[commandInstance.commandName] = commandInstance;
-    });
-
     this.WaitMessageFrom.bind(this, 'NO ID THIS COMES FROM BIND()', 30000);
+  }
+
+  public AddCommand(commandObj: ICommand) {
+    this._commands[commandObj.commandName] = commandObj;
   }
 
   public async StartBot() {
@@ -113,7 +111,7 @@ export default class Bot {
           }
           this.coolDowns.set(chatId, now);
 
-          const isACommand = this._commands[msgWords[0].slice(1)]; ///Is removing the ! in the beginning of the word....
+          const isACommand = this._commands[msgWords[0].slice(this.prefix.length)]; ///Is removing the ! in the beginning of the word....
           if (isACommand) {
             isACommand.onMsgReceived(
               this.thisBot,
@@ -134,25 +132,27 @@ export default class Bot {
 
   public async WaitMessageFrom(chatSenderId: string, participantId: string,  timeout:number = 30000):Promise<WAMessage> {
     return new Promise((resolve, reject: (resason: BotWaitMessageError) => void) => {
-      const timeoutMsg = "User didn't respond in specified time: " + timeout / 1000 + " seconds";
       let isRedundantSenderMessage = true;
 
+      const timeoutMsg = "User didn't respond in specified time: " + timeout / 1000 + " seconds";
+      const originalChat = chatSenderId;
       const originalSender = participantId;
-
-      console.log("Original Sender: " + originalSender);
 
       const listener = (messageEvent: BaileysInsertArgs) => {
         messageEvent.messages.forEach(msg => {
-          if (!msg.key.fromMe && msg.key.participant! == originalSender && !isRedundantSenderMessage) {
-            console.log("IncomingSender: " + msg.key.remoteJid + " OriginalSender: " + originalSender);
-            this.socket.ev.off("messages.upsert", listener);
-            clearTimeout(timerOut);
-            if (GetTextFromRawMsg(messageEvent.messages[0]).includes('para')) {
-              reject({wasAbortedByUser: true, errorMessage: timeoutMsg});
-            } else {
-              resolve(msg);
-            }
-          }
+
+          if (isRedundantSenderMessage) return;
+          if (msg.key.fromMe) return;
+          if (msg.key.participant! != originalSender) return;
+          if (msg.key.remoteJid != originalChat) return;
+
+          this.socket.ev.off("messages.upsert", listener);
+          clearTimeout(timerOut);
+
+          if (GetTextFromRawMsg(msg).includes('cancelar')) 
+            reject({wasAbortedByUser: true, errorMessage: timeoutMsg});
+          else 
+            resolve(msg);
         })
         isRedundantSenderMessage = false
       }
@@ -189,6 +189,8 @@ export default class Bot {
       auth: state,
       printQRInTerminal: true, // Genera QR en la terminal
     });
+
+    this.socket.ev.on("creds.update", saveCreds);
   }
 }
 
