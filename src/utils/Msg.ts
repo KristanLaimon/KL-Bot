@@ -1,5 +1,5 @@
 import { WAMessage} from '@whiskeysockets/baileys'
-import { BotWaitMessageError, MsgType } from '../botTypes';
+import { BotWaitMessageError, MsgType } from '../typos';
 
 export function GetMsgTypeFromRawMsg(rawMsg: WAMessage): MsgType {
   if (!rawMsg.message) return MsgType.unknown;

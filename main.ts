@@ -6,7 +6,7 @@ import TestCommand from './src/commands/test/test';
 import HelpCommand from './src/commands/general/help';
 
 async function Main() {
-  const klBot = new Bot({ prefix: "!", coolDownTime: 2 });
+  const klBot = new Bot({ prefix: "!", coolDownTime: 1 });
   klBot.AddCommand(new ResponseCommand());
   klBot.AddCommand(new SexoCommand());
   klBot.AddCommand(new TestCommand());

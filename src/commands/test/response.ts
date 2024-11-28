@@ -1,4 +1,4 @@
-import { CommandArgs, ICommand, MsgType } from "../../botTypes";
+import { CommandArgs, ICommand, MsgType } from "../../typos";
 import { GetMsgTypeFromRawMsg, GetTextFromRawMsg, isBotWaitMessageError } from '../../utils/Msg'
 import Bot from "../../bot";
 

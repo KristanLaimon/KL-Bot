@@ -1,10 +1,11 @@
 import makeWASocket, { AnyMessageContent, DisconnectReason, MessageUpsertType, MiscMessageGenerationOptions, proto, WAMessage } from "@whiskeysockets/baileys";
-import type { BaileysWASocket, BotWaitMessageError, ICommand } from "./botTypes";
+import type { BaileysWASocket, BotWaitMessageError, ICommand } from "./typos";
 import { useMultiFileAuthState } from "@whiskeysockets/baileys";
-import { MsgType, SenderType } from "./botTypes";
+import { MsgType, SenderType } from "./typos";
 import { GetTextFromRawMsg } from './utils/Msg';
 import { Boom } from "@hapi/boom";
 import fs from "fs";
+import SocketMessageQueue from './msgqueue';
 
 type BaileysInsertArgs = {
     messages: WAMessage[];
@@ -16,36 +17,35 @@ type BotArgs = {
   prefix?: string;
   /** CoolTime in seconds for every response */
   coolDownTime?: number;
+  maxQueueMsgs?: number;
 };
 
-type FlowCallBack = (bot:Bot, message:WAMessage, waitMessage:(chatId:string, message:WAMessage)=>Promise<string>) => Promise<void>;
-
 export default class Bot {
+  private socket: BaileysWASocket;
   private prefix: string;
   private _commands: Record<string, ICommand>;
-  private socket: BaileysWASocket;
-  private credentialsStoragePath: string;
   private thisBot: Bot;
-  private coolDowns: Map<string, number>;
+  private credentialsStoragePath: string;
+
+  /** CoolDown between meesages in seconds */
   private coolDownTime: number;
+
+  /** Max quantity of msgs to handle at the same time */
+  private maxQueueMsgs: number;
+
+  private msgQueue: SocketMessageQueue;
   
   get Commands() {
     return Object.entries(this._commands);
   }
 
   constructor(args: BotArgs | undefined) {
-    this.coolDownTime = 1000 * 1; // 1 Second
-    this.coolDowns = new Map<string, number>();
+    this.coolDownTime = 1000 * (args?.coolDownTime || 1); // 1 Second
     this._commands = {};
     this.thisBot = this;    
-    this.prefix = "!";
+    this.prefix = args?.prefix || "!";
+    this.maxQueueMsgs = args?.maxQueueMsgs || 10;
     this.credentialsStoragePath = "./auth_info";
-
-    if (args) {
-      if (args.prefix) this.prefix = args.prefix;
-      if (args.coolDownTime) this.coolDownTime = args.coolDownTime * 1000;
-    } 
-
     this.WaitMessageFrom.bind(this, 'NO ID THIS COMES FROM BIND()', 30000);
   }
 
@@ -101,16 +101,6 @@ export default class Bot {
         const msgWords: string[] = objMsg.extendedTextMessage ? objMsg.extendedTextMessage.text?.split(" ")! : objMsg.conversation?.split(" ")!; 
         if (msgWords && msgWords[0].startsWith(this.prefix)) {
           msgType = MsgType.text;
-
-          const now = Date.now();
-          const lastCommandtime: number|undefined = this.coolDowns.get(chatId);
-          if (lastCommandtime && now - lastCommandtime < this.coolDownTime) {
-            // If enters here, the sender did not wait the cool down time
-            this.SendText(chatId, "Hay Cooldown mi compa...");
-            return;
-          }
-          this.coolDowns.set(chatId, now);
-
           const isACommand = this._commands[msgWords[0].slice(this.prefix.length)]; ///Is removing the ! in the beginning of the word....
           if (isACommand) {
             isACommand.onMsgReceived(
@@ -133,7 +123,6 @@ export default class Bot {
   public async WaitMessageFrom(chatSenderId: string, participantId: string,  timeout:number = 30000):Promise<WAMessage> {
     return new Promise((resolve, reject: (resason: BotWaitMessageError) => void) => {
       let isRedundantSenderMessage = true;
-
       const timeoutMsg = "User didn't respond in specified time: " + timeout / 1000 + " seconds";
       const originalChat = chatSenderId;
       const originalSender = participantId;
@@ -167,29 +156,27 @@ export default class Bot {
   }
 
   public async SendText(msgIdJSR: string, textToSend: string) {
-    await this.socket.sendMessage(msgIdJSR, { text: textToSend });
+    await this.SendObjMsg(msgIdJSR, { text: textToSend });
   }
 
-  public async SendMsg(msgIdJSR: string, content:AnyMessageContent, misc?:MiscMessageGenerationOptions) {
-    await this.socket.sendMessage(msgIdJSR, content, misc);
+  public async SendObjMsg(msgIdJSR: string, content:AnyMessageContent, misc?:MiscMessageGenerationOptions) {
+    this.msgQueue.AddMsg(msgIdJSR, content, misc);
   }
 
   public async SendImg(msgIdJSR: string, imgPath: string, captionTxt?:string) {
-    await this.socket.sendMessage(msgIdJSR, {
+    this.SendObjMsg(msgIdJSR, {
       image: fs.readFileSync(imgPath),
       caption: captionTxt || ''
-    })
+    });
   }
   
   private async innerStartupSocket() {
     const { state, saveCreds } = await useMultiFileAuthState("./auth_info");
-
-    // Crear socket
     this.socket = makeWASocket({
       auth: state,
       printQRInTerminal: true, // Genera QR en la terminal
     });
-
+    this.msgQueue = new SocketMessageQueue(this.socket, this.maxQueueMsgs, this.coolDownTime);
     this.socket.ev.on("creds.update", saveCreds);
   }
 }

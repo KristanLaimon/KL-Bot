@@ -2,13 +2,13 @@ import makeWASocket from "@whiskeysockets/baileys";
 import type { WAMessage, MessageUpsertType } from "@whiskeysockets/baileys";
 import Bot from "./bot";
 
+type FlowCallBack = (bot:Bot, message:WAMessage, waitMessage:(chatId:string, message:WAMessage)=>Promise<string>) => Promise<void>;
+
 export type BaileysOnMessageObj = {
   messages: WAMessage[];
   type: MessageUpsertType;
   requestId?: string;
 };
-
-
 
 export type CommandArgs = {
   msgObj: WAMessage,
