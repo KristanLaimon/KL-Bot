@@ -4,6 +4,7 @@ import ResponseCommand from './src/commands/test/response';
 import SexoCommand from "./src/commands/test/sexo";
 import TestCommand from './src/commands/test/test';
 import HelpCommand from './src/commands/general/help';
+import AgregarMiembroCommand from './src/commands/admin/AgregarJugador';
 
 async function Main() {
   const klBot = new Bot({ prefix: "!", coolDownTime: 1 });
@@ -11,6 +12,7 @@ async function Main() {
   klBot.AddCommand(new SexoCommand());
   klBot.AddCommand(new TestCommand());
   klBot.AddCommand(new HelpCommand());
+  klBot.AddCommand(new AgregarMiembroCommand());
 
   await klBot.StartBot();
 }

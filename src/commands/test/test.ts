@@ -1,6 +1,6 @@
 import { WAMessage } from '@whiskeysockets/baileys';
 import Bot from '../../bot';
-import { CommandArgs, ICommand, MsgType, SenderType } from '../../typos';
+import { CommandArgs, ICommand, MsgType, SenderType } from '../../types/bot_types';
 import fs from "fs";
 import RanksImgPaths from '../../types/ranks';
 
@@ -35,6 +35,6 @@ export default class TestCommand implements ICommand {
       return;
     }
 
-    await bot.SendObjMsg(args.chatSenderId, {image: fs.readFileSync(rankPath), caption: "LoboKL"}); 
+    await bot.SendObjMsg(args.chatSenderId, { image: fs.readFileSync(rankPath), caption: "LoboKL" });
   }
 }

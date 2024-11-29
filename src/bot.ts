@@ -1,16 +1,17 @@
 import makeWASocket, { AnyMessageContent, DisconnectReason, MessageUpsertType, MiscMessageGenerationOptions, proto, WAMessage } from "@whiskeysockets/baileys";
-import type { BaileysWASocket, BotWaitMessageError, ICommand } from "./typos";
+import type { BaileysWASocket, BotWaitMessageError, ICommand } from "./types/bot_types";
 import { useMultiFileAuthState } from "@whiskeysockets/baileys";
-import { MsgType, SenderType } from "./typos";
-import { GetTextFromRawMsg } from './utils/Msg';
+import { GetTextFromRawMsg } from './bot_utils';
+import { MsgType, SenderType } from "./types/bot_types";
+import SocketMessageQueue from './msgqueue';
+import * as botUtils from './bot_utils';
 import { Boom } from "@hapi/boom";
 import fs from "fs";
-import SocketMessageQueue from './msgqueue';
 
 type BaileysInsertArgs = {
-    messages: WAMessage[];
-    type: MessageUpsertType;
-    requestId?: string;
+  messages: WAMessage[];
+  type: MessageUpsertType;
+  requestId?: string;
 }
 
 type BotArgs = {
@@ -34,7 +35,7 @@ export default class Bot {
   private maxQueueMsgs: number;
 
   private msgQueue: SocketMessageQueue;
-  
+
   get Commands() {
     return Object.entries(this._commands);
   }
@@ -42,7 +43,7 @@ export default class Bot {
   constructor(args: BotArgs | undefined) {
     this.coolDownTime = 1000 * (args?.coolDownTime || 1); // 1 Second
     this._commands = {};
-    this.thisBot = this;    
+    this.thisBot = this;
     this.prefix = args?.prefix || "!";
     this.maxQueueMsgs = args?.maxQueueMsgs || 10;
     this.credentialsStoragePath = "./auth_info";
@@ -77,7 +78,7 @@ export default class Bot {
           // reconnect if not logged out
           if (shouldReconnect) this.StartBot(); ///This is async, returns a promise!
         }
- 
+
         case "open": {
           //console.log("Opened connection");
         }
@@ -98,10 +99,10 @@ export default class Bot {
         const objMsg = msg.message!; // Same as 3 lines above
 
         ///This can be undefined for some reason
-        const msgWords: string[] = objMsg.extendedTextMessage ? objMsg.extendedTextMessage.text?.split(" ")! : objMsg.conversation?.split(" ")!; 
+        const msgWords: string[] = objMsg.extendedTextMessage ? objMsg.extendedTextMessage.text?.split(" ")! : objMsg.conversation?.split(" ")!;
         if (msgWords && msgWords[0].startsWith(this.prefix)) {
           msgType = MsgType.text;
-          const isACommand = this._commands[msgWords[0].slice(this.prefix.length)]; ///Is removing the ! in the beginning of the word....
+          const isACommand = this._commands[msgWords[0].slice(this.prefix.length).toLowerCase()]; ///Is removing the ! in the beginning of the word....
           if (isACommand) {
             isACommand.onMsgReceived(
               this.thisBot,
@@ -112,7 +113,8 @@ export default class Bot {
                 chatSenderId: chatId,
                 commandArgs: msgWords.slice(1),
                 userSenderId: msg.key.participant || "There's no participant, strange error..."
-              }
+              },
+              botUtils
             )
           }
         }
@@ -120,7 +122,7 @@ export default class Bot {
     });
   }
 
-  public async WaitMessageFrom(chatSenderId: string, participantId: string,  timeout:number = 30000):Promise<WAMessage> {
+  public async WaitMessageFrom(chatSenderId: string, participantId: string, timeout: number = 30000): Promise<WAMessage> {
     return new Promise((resolve, reject: (resason: BotWaitMessageError) => void) => {
       let isRedundantSenderMessage = true;
       const timeoutMsg = "User didn't respond in specified time: " + timeout / 1000 + " seconds";
@@ -138,9 +140,9 @@ export default class Bot {
           this.socket.ev.off("messages.upsert", listener);
           clearTimeout(timerOut);
 
-          if (GetTextFromRawMsg(msg).includes('cancelar')) 
-            reject({wasAbortedByUser: true, errorMessage: timeoutMsg});
-          else 
+          if (GetTextFromRawMsg(msg).includes('cancelar'))
+            reject({ wasAbortedByUser: true, errorMessage: timeoutMsg });
+          else
             resolve(msg);
         })
         isRedundantSenderMessage = false
@@ -148,7 +150,7 @@ export default class Bot {
 
       const timerOut = setTimeout(() => {
         this.socket.ev.off("messages.upsert", listener)
-        reject({wasAbortedByUser: false, errorMessage: timeoutMsg});
+        reject({ wasAbortedByUser: false, errorMessage: timeoutMsg });
       }, timeout);
 
       this.socket.ev.on("messages.upsert", listener);
@@ -159,17 +161,17 @@ export default class Bot {
     await this.SendObjMsg(msgIdJSR, { text: textToSend });
   }
 
-  public async SendObjMsg(msgIdJSR: string, content:AnyMessageContent, misc?:MiscMessageGenerationOptions) {
+  public async SendObjMsg(msgIdJSR: string, content: AnyMessageContent, misc?: MiscMessageGenerationOptions) {
     this.msgQueue.AddMsg(msgIdJSR, content, misc);
   }
 
-  public async SendImg(msgIdJSR: string, imgPath: string, captionTxt?:string) {
+  public async SendImg(msgIdJSR: string, imgPath: string, captionTxt?: string) {
     this.SendObjMsg(msgIdJSR, {
       image: fs.readFileSync(imgPath),
       caption: captionTxt || ''
     });
   }
-  
+
   private async innerStartupSocket() {
     const { state, saveCreds } = await useMultiFileAuthState("./auth_info");
     this.socket = makeWASocket({

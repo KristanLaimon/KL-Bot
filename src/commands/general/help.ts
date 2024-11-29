@@ -1,5 +1,5 @@
 import Bot from '../../bot';
-import { CommandArgs, ICommand } from '../../typos';
+import { ICommand, CommandArgs } from '../../types/bot_types';
 
 export default class HelpCommand implements ICommand {
   commandName: string = 'help';

@@ -1,8 +1,9 @@
 import makeWASocket from "@whiskeysockets/baileys";
 import type { WAMessage, MessageUpsertType } from "@whiskeysockets/baileys";
-import Bot from "./bot";
+import Bot from "../bot";
+import { BotUtilsObj } from '../bot_utils';
 
-type FlowCallBack = (bot:Bot, message:WAMessage, waitMessage:(chatId:string, message:WAMessage)=>Promise<string>) => Promise<void>;
+type FlowCallBack = (bot: Bot, message: WAMessage, waitMessage: (chatId: string, message: WAMessage) => Promise<string>) => Promise<void>;
 
 export type BaileysOnMessageObj = {
   messages: WAMessage[];
@@ -22,7 +23,7 @@ export type CommandArgs = {
 export interface ICommand {
   commandName: string;
   description: string;
-  onMsgReceived: (bot:Bot, args:CommandArgs) => Promise<void>;
+  onMsgReceived: (bot: Bot, args: CommandArgs, utils: BotUtilsObj) => Promise<void>;
 }
 
 export enum SenderType {
@@ -48,5 +49,5 @@ export type BotWaitMessageError = {
 }
 
 export type TypedPromise<T, E> = Promise<T> & {
-    reject: (reason: E) => void;
+  reject: (reason: E) => void;
 };
