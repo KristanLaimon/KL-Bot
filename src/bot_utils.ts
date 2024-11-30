@@ -38,3 +38,14 @@ export function isBotWaitMessageError(error: unknown): error is BotWaitMessageEr
     "errorMessage" in error
   );
 }
+
+export function MsgTypeToString(msgType: MsgType): string {
+  if (msgType === MsgType.text) return "Mensaje de texto";
+  if (msgType === MsgType.image) return "Imagen";
+  if (msgType === MsgType.video) return "Video";
+  if (msgType === MsgType.audio) return "Audio";
+  if (msgType === MsgType.contact) return "Contacto";
+  if (msgType === MsgType.sticker) return "Sticker";
+
+  return "Tipo de mensaje desconocido";
+}

@@ -122,40 +122,68 @@ export default class Bot {
     });
   }
 
-  public async WaitMessageFrom(chatSenderId: string, participantId: string, timeout: number = 30000): Promise<WAMessage> {
-    return new Promise((resolve, reject: (resason: BotWaitMessageError) => void) => {
-      let isRedundantSenderMessage = true;
-      const timeoutMsg = "User didn't respond in specified time: " + timeout / 1000 + " seconds";
+  /**
+   * A useful answering handling to expect msg from the user
+   * @param chatSenderId Whatsapp ID to the chat the message should deliver
+   * @param participantId Whatsapp ID fromthe participant from the previous Chat ID this method should wait for
+   * @param expectedMsgType Expected msg, it will validate the message wil be from that type insisting to user to send the expected message type
+   * @param timeout Max time in seconds the user has to respond this message, if not, this will raise an error YOU MUST USE TRY CATCH
+   * @returns The message object sent by the user
+   */
+  public async WaitMessageFrom(chatSenderId: string, participantId: string, expectedMsgType: MsgType = MsgType.text, timeout: number = 30): Promise<WAMessage> {
+    return new Promise((resolve, reject: (reason: BotWaitMessageError) => void) => {
+      const timeoutMsg = "User didn't respond in specified time: " + timeout + " seconds";
       const originalChat = chatSenderId;
       const originalSender = participantId;
 
-      const listener = (messageEvent: BaileysInsertArgs) => {
-        messageEvent.messages.forEach(msg => {
+      let timerOut: NodeJS.Timeout;
 
-          if (isRedundantSenderMessage) return;
-          if (msg.key.fromMe) return;
-          if (msg.key.participant! != originalSender) return;
-          if (msg.key.remoteJid != originalChat) return;
+      const resetTimeout = () => {
+        clearTimeout(timerOut);
+        timerOut = setTimeout(() => {
+          this.socket.ev.off("messages.upsert", listener);
+          reject({ wasAbortedByUser: false, errorMessage: timeoutMsg });
+        }, timeout * 1000);
+      };
 
+      const listener = async (messageEvent: BaileysInsertArgs) => {
+        for (const msg of messageEvent.messages) {
+          if (msg.key.fromMe) continue;
+          if (msg.key.participant !== originalSender) continue;
+          if (msg.key.remoteJid !== originalChat) continue;
+
+          // Reset the timeout on any user response
+          resetTimeout();
+
+          const msgType = botUtils.GetMsgTypeFromRawMsg(msg);
+          if (msgType !== expectedMsgType) {
+            await this.SendText(chatSenderId, `Formato Incorrecto: Tienes que responder con ${botUtils.MsgTypeToString(expectedMsgType)}`);
+            continue; // Keep listening for the correct response
+          }
+
+          if (GetTextFromRawMsg(msg).includes('cancelar')) {
+            this.socket.ev.off("messages.upsert", listener);
+            clearTimeout(timerOut);
+            reject({ wasAbortedByUser: true, errorMessage: timeoutMsg });
+            return;
+          }
+
+          // Valid response
           this.socket.ev.off("messages.upsert", listener);
           clearTimeout(timerOut);
+          resolve(msg);
+          return;
+        }
+      };
 
-          if (GetTextFromRawMsg(msg).includes('cancelar'))
-            reject({ wasAbortedByUser: true, errorMessage: timeoutMsg });
-          else
-            resolve(msg);
-        })
-        isRedundantSenderMessage = false
-      }
+      // Set initial timeout
+      resetTimeout();
 
-      const timerOut = setTimeout(() => {
-        this.socket.ev.off("messages.upsert", listener)
-        reject({ wasAbortedByUser: false, errorMessage: timeoutMsg });
-      }, timeout);
-
+      // Start listening for messages
       this.socket.ev.on("messages.upsert", listener);
     });
   }
+
 
   public async SendText(msgIdJSR: string, textToSend: string) {
     await this.SendObjMsg(msgIdJSR, { text: textToSend });

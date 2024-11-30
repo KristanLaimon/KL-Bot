@@ -7,16 +7,7 @@ import HelpCommand from './src/commands/general/help';
 import AgregarMiembroCommand from './src/commands/admin/AgregarJugador';
 
 import { drizzle } from "drizzle-orm/libsql";
-import { player } from "./drizzle/schema"
-import { eq } from 'drizzle-orm';
-const db = drizzle("file:./db/klbotdb.db");
-
-async function DbTest() {
-  const deletedPlayer = await db
-    .delete(player)
-    .where(eq(player.username, "Kristansito"))
-    .returning();
-}
+export const KLDb = drizzle("file:./db/klbotdb.db");
 
 async function Main() {
   const klBot = new Bot({ prefix: "!", coolDownTime: 1 });
@@ -29,5 +20,4 @@ async function Main() {
   await klBot.StartBot();
 }
 
-DbTest();
 Main();
