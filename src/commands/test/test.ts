@@ -2,7 +2,7 @@ import { WAMessage } from '@whiskeysockets/baileys';
 import Bot from '../../bot';
 import { CommandArgs, ICommand, MsgType, SenderType } from '../../types/bot_types';
 import fs from "fs";
-import RanksImgPaths from '../../types/ranks';
+import RanksImgPaths from '../../../drizzle/helper_types';
 
 export default class TestCommand implements ICommand {
   commandName: string = 'rango';

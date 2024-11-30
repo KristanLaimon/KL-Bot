@@ -1,0 +1,399 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "",
+  "version": "6",
+  "dialect": "sqlite",
+  "tables": {
+    "Tournament_Rank_RanksAdmitted": {
+      "name": "Tournament_Rank_RanksAdmitted",
+      "columns": {
+        "tournamentID": {
+          "autoincrement": false,
+          "name": "tournamentID",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rankID": {
+          "autoincrement": false,
+          "name": "rankID",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {
+        "Tournament_Rank_RanksAdmitted_tournamentID_rankID_pk": {
+          "columns": [
+            "tournamentID",
+            "rankID"
+          ],
+          "name": "Tournament_Rank_RanksAdmitted_tournamentID_rankID_pk"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "Tournament_Rank_RanksAdmitted_check_1": {
+          "name": "Tournament_Rank_RanksAdmitted_check_1",
+          "value": "LENGTH(rankID"
+        },
+        "Role_check_2": {
+          "name": "Role_check_2",
+          "value": "LENGTH(\"ID\""
+        },
+        "Rank_check_3": {
+          "name": "Rank_check_3",
+          "value": "LENGTH(\"id\""
+        },
+        "Rank_check_4": {
+          "name": "Rank_check_4",
+          "value": "LENGTH(\"id\""
+        },
+        "Rank_check_5": {
+          "name": "Rank_check_5",
+          "value": "LENGTH(\"id\""
+        },
+        "Player_check_6": {
+          "name": "Player_check_6",
+          "value": "LENGTH(\"actualRank\""
+        },
+        "Player_check_7": {
+          "name": "Player_check_7",
+          "value": "LENGTH(\"role\""
+        }
+      }
+    },
+    "Role": {
+      "name": "Role",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "autoincrement": false,
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "Tournament_Rank_RanksAdmitted_check_1": {
+          "name": "Tournament_Rank_RanksAdmitted_check_1",
+          "value": "LENGTH(rankID"
+        },
+        "Role_check_2": {
+          "name": "Role_check_2",
+          "value": "LENGTH(\"ID\""
+        },
+        "Rank_check_3": {
+          "name": "Rank_check_3",
+          "value": "LENGTH(\"id\""
+        },
+        "Rank_check_4": {
+          "name": "Rank_check_4",
+          "value": "LENGTH(\"id\""
+        },
+        "Rank_check_5": {
+          "name": "Rank_check_5",
+          "value": "LENGTH(\"id\""
+        },
+        "Player_check_6": {
+          "name": "Player_check_6",
+          "value": "LENGTH(\"actualRank\""
+        },
+        "Player_check_7": {
+          "name": "Player_check_7",
+          "value": "LENGTH(\"role\""
+        }
+      }
+    },
+    "Rank": {
+      "name": "Rank",
+      "columns": {
+        "id": {
+          "autoincrement": false,
+          "name": "id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "autoincrement": false,
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "logoImagePath": {
+          "autoincrement": false,
+          "name": "logoImagePath",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "Tournament_Rank_RanksAdmitted_check_1": {
+          "name": "Tournament_Rank_RanksAdmitted_check_1",
+          "value": "LENGTH(rankID"
+        },
+        "Role_check_2": {
+          "name": "Role_check_2",
+          "value": "LENGTH(\"ID\""
+        },
+        "Rank_check_3": {
+          "name": "Rank_check_3",
+          "value": "LENGTH(\"id\""
+        },
+        "Rank_check_4": {
+          "name": "Rank_check_4",
+          "value": "LENGTH(\"id\""
+        },
+        "Rank_check_5": {
+          "name": "Rank_check_5",
+          "value": "LENGTH(\"id\""
+        },
+        "Player_check_6": {
+          "name": "Player_check_6",
+          "value": "LENGTH(\"actualRank\""
+        },
+        "Player_check_7": {
+          "name": "Player_check_7",
+          "value": "LENGTH(\"role\""
+        }
+      }
+    },
+    "Tournament": {
+      "name": "Tournament",
+      "columns": {
+        "id": {
+          "autoincrement": true,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "autoincrement": false,
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "autoincrement": false,
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creationDate": {
+          "autoincrement": false,
+          "name": "creationDate",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "beginDate": {
+          "autoincrement": false,
+          "name": "beginDate",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "matchPeriodTime": {
+          "autoincrement": false,
+          "name": "matchPeriodTime",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "endDate": {
+          "autoincrement": false,
+          "name": "endDate",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {},
+      "foreignKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "Tournament_Rank_RanksAdmitted_check_1": {
+          "name": "Tournament_Rank_RanksAdmitted_check_1",
+          "value": "LENGTH(rankID"
+        },
+        "Role_check_2": {
+          "name": "Role_check_2",
+          "value": "LENGTH(\"ID\""
+        },
+        "Rank_check_3": {
+          "name": "Rank_check_3",
+          "value": "LENGTH(\"id\""
+        },
+        "Rank_check_4": {
+          "name": "Rank_check_4",
+          "value": "LENGTH(\"id\""
+        },
+        "Rank_check_5": {
+          "name": "Rank_check_5",
+          "value": "LENGTH(\"id\""
+        },
+        "Player_check_6": {
+          "name": "Player_check_6",
+          "value": "LENGTH(\"actualRank\""
+        },
+        "Player_check_7": {
+          "name": "Player_check_7",
+          "value": "LENGTH(\"role\""
+        }
+      }
+    },
+    "Player": {
+      "name": "Player",
+      "columns": {
+        "id": {
+          "autoincrement": true,
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "username": {
+          "autoincrement": false,
+          "name": "username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "profilePicturePath": {
+          "autoincrement": false,
+          "name": "profilePicturePath",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "actualRank": {
+          "autoincrement": false,
+          "name": "actualRank",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "tournamentSelected": {
+          "autoincrement": false,
+          "name": "tournamentSelected",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phoneNumber": {
+          "autoincrement": false,
+          "name": "phoneNumber",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "whatsappNickName": {
+          "autoincrement": false,
+          "name": "whatsappNickName",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "autoincrement": false,
+          "name": "role",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "compositePrimaryKeys": {},
+      "indexes": {},
+      "foreignKeys": {
+        "Player_tournamentSelected_Tournament_id_fk": {
+          "name": "Player_tournamentSelected_Tournament_id_fk",
+          "tableFrom": "Player",
+          "tableTo": "Tournament",
+          "columnsFrom": [
+            "tournamentSelected"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Player_actualRank_Rank_id_fk": {
+          "name": "Player_actualRank_Rank_id_fk",
+          "tableFrom": "Player",
+          "tableTo": "Rank",
+          "columnsFrom": [
+            "actualRank"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "Tournament_Rank_RanksAdmitted_check_1": {
+          "name": "Tournament_Rank_RanksAdmitted_check_1",
+          "value": "LENGTH(rankID"
+        },
+        "Role_check_2": {
+          "name": "Role_check_2",
+          "value": "LENGTH(\"ID\""
+        },
+        "Rank_check_3": {
+          "name": "Rank_check_3",
+          "value": "LENGTH(\"id\""
+        },
+        "Rank_check_4": {
+          "name": "Rank_check_4",
+          "value": "LENGTH(\"id\""
+        },
+        "Rank_check_5": {
+          "name": "Rank_check_5",
+          "value": "LENGTH(\"id\""
+        },
+        "Player_check_6": {
+          "name": "Player_check_6",
+          "value": "LENGTH(\"actualRank\""
+        },
+        "Player_check_7": {
+          "name": "Player_check_7",
+          "value": "LENGTH(\"role\""
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  }
+}
