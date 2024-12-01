@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:C:\\Users\\itan_\\KrsDocuments\\Coding\\typescript\\KLBOT\\db\\klbotdb.db"
+}
+
+model Player {
+  id                 Int         @id @default(autoincrement())
+  username           String      @unique(map: "sqlite_autoindex_Player_1")
+  profilePicturePath String      @unique(map: "sqlite_autoindex_Player_2")
+  actualRank         String
+  tournamentSelected Int?
+  phoneNumber        String      @unique(map: "sqlite_autoindex_Player_3")
+  whatsappNickName   String
+  role               String
+  Tournament         Tournament? @relation(fields: [tournamentSelected], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Rank               Rank        @relation(fields: [actualRank], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Rank {
+  id            String   @unique(map: "sqlite_autoindex_Rank_1")
+  name          String   @unique(map: "sqlite_autoindex_Rank_2")
+  logoImagePath String   @unique(map: "sqlite_autoindex_Rank_3")
+  Player        Player[]
+}
+
+model Role {
+  id   String @id
+  name String @unique(map: "sqlite_autoindex_Role_2")
+}
+
+model Tournament {
+  id              Int      @id @default(autoincrement())
+  name            String   @unique(map: "sqlite_autoindex_Tournament_1")
+  description     String
+  creationDate    Int
+  beginDate       Int
+  matchPeriodTime Int
+  endDate         Int
+  Player          Player[]
+}
+
+model Tournament_Rank_RanksAdmitted {
+  tournamentID Int
+  rankID       String
+
+  @@id([tournamentID, rankID])
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model drizzle_migrations {
+  id         Int?     @id
+  hash       String
+  created_at Decimal?
+
+  @@map("__drizzle_migrations")
+  @@ignore
+}

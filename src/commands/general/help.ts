@@ -1,4 +1,4 @@
-import { HelperRoleName } from '../../../drizzle/helper_types';
+import { HelperRoleName } from '../../types/helper_types';
 import Bot from '../../bot';
 import { ICommand, CommandArgs } from '../../types/bot_types';
 

@@ -1,7 +1,7 @@
 import { CommandArgs, ICommand, MsgType } from "../../types/bot_types";
 import Bot from "../../bot";
 import { BotUtilsObj } from '../../bot_utils';
-import { HelperRoleName } from '../../../drizzle/helper_types';
+import { HelperRoleName } from '../../types/helper_types';
 
 export default class ResponseCommand implements ICommand {
   commandName: string = "responde";

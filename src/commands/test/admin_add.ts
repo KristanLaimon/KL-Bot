@@ -1,11 +1,10 @@
-import { CommandAccessibleRoles, HelperRankId, HelperRankName, HelperRoleName } from '../../../drizzle/helper_types';
+import { CommandAccessibleRoles, HelperRankId, HelperRankName, HelperRoleName } from '../../types/helper_types';
 import Bot from '../../bot';
 import { BotUtilsObj } from '../../bot_utils';
 import { CommandArgs, ICommand, MsgType } from '../../types/bot_types';
-import KLDb from '../../../main';
-import { rank, player } from '../../schema';
-import { eq } from 'drizzle-orm';
 import fs from 'fs'
+import KlDb from '../../../main';
+import path from 'path';
 
 export default class AddAdminCommand implements ICommand {
   commandName: string = "addadmin";
@@ -25,29 +24,25 @@ export default class AddAdminCommand implements ICommand {
       await bot.SendText(args.chatId, "Give me the new admin's name:");
       const name = await bot.WaitTextMessageFrom(args.chatId, args.userId);
 
-      let validRank: {
-        id: HelperRankId;
-        name: HelperRankName;
-        logoImagePath: string;
-      } | undefined;
+      let validRank;
       do {
         await bot.SendText(args.chatId, "Give me his rank: \n You can use the following ranks:");
         await bot.SendText(args.chatId, "Bronce, Plata, Oro, Platino, Diamante, Campeón, Gran Campeón");
         const rankPrompt = await bot.WaitTextMessageFrom(args.chatId, args.userId, 60);
-        validRank = await KLDb.select().from(rank).where(eq(rank.name, rankPrompt as HelperRankName)).get();
-      } while (validRank);
+        validRank = await KlDb.rank.findFirst({ where: { id: rankPrompt } });
+      } while (!validRank);
 
       SendText("Now send me his profile picture");
       let wasValidImg: boolean = false;
-      let imgPath: string;
+      let imgName: string;
       do {
-        imgPath = `AD-${args.originalPromptMsgObj.pushName}-${Date.now()}-profile-picture`;
+        imgName = `AD-${name}-${Date.now()}-profile-picture`;
         wasValidImg = await utils.DownloadMedia(
           await bot.WaitMessageFrom(
             args.chatId,
             args.userId,
             MsgType.image, 60),
-          imgPath,
+          imgName,
           ".png",
           "db/players"
         )
@@ -61,13 +56,15 @@ export default class AddAdminCommand implements ICommand {
       SendText("Now im trying to store everyint in my database");
 
       //Everything went right!
-      await KLDb.insert(player).values({
-        actualRank: (validRank as unknown as { id: HelperRankId }).id,
-        phoneNumber: utils.GetPhoneNumber(args.originalPromptMsgObj).fullRawNumber,
-        profilePicturePath: imgPath,
-        role: "AD",
-        username: name,
-        whatsappNickName: args.originalPromptMsgObj.pushName!,
+      await KlDb.player.create({
+        data: {
+          actualRank: (validRank as unknown as { id: HelperRankId }).id,
+          phoneNumber: utils.GetPhoneNumber(args.originalPromptMsgObj).fullRawNumber,
+          profilePicturePath: imgName,
+          role: "AD",
+          username: name,
+          whatsappNickName: args.originalPromptMsgObj.pushName!,
+        }
       })
 
       const m: string[] = [];
@@ -77,7 +74,7 @@ export default class AddAdminCommand implements ICommand {
       m.push(`Rango: ${validRank!.name}`)
       m.push(`ProfileImage:`);
       await bot.SendText(args.chatId, m.join("\n"));
-      await bot.SendImg(args.chatId, imgPath);
+      await bot.SendImg(args.chatId, path.join("db", imgName, ".png"));
 
       await bot.SendText(args.chatId, "============================");
     } catch (error) {

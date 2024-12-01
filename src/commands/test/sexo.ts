@@ -1,6 +1,6 @@
 import { ICommand, CommandArgs } from '../../types/bot_types';
 import Bot from '../../bot';
-import { HelperRoleName } from '../../../drizzle/helper_types';
+import { HelperRoleName } from '../../types/helper_types';
 
 ///How can i handle different types of messages in a single function? -- READY!j
 ///always a command have a commandName -- READY!

@@ -2,7 +2,7 @@ import makeWASocket from "@whiskeysockets/baileys";
 import type { WAMessage, MessageUpsertType } from "@whiskeysockets/baileys";
 import Bot from "../bot";
 import { BotUtilsObj } from '../bot_utils';
-import { CommandAccessibleRoles } from '../../drizzle/helper_types';
+import { CommandAccessibleRoles } from './helper_types';
 
 type FlowCallBack = (bot: Bot, message: WAMessage, waitMessage: (chatId: string, message: WAMessage) => Promise<string>) => Promise<void>;
 
