@@ -109,11 +109,13 @@ export default class Bot {
               this.thisBot,
               {
                 msgType: msgType,
-                msgObj: msg,
+                originalPromptMsgObj: msg,
                 senderType: senderType,
                 chatId: chatId,
                 commandArgs: msgWords.slice(1),
-                userId: msg.key.participant || "There's no participant, strange error..."
+                /** If comes from a group, it gets the id from participant */
+                /** otherwise, its from an individual chatId */
+                userId: msg.key.participant || chatId || "There's no participant, strange error..."
               },
               botUtils
             )
@@ -152,31 +154,23 @@ export default class Bot {
 
           if (msg.key.fromMe) continue;
 
-          const chatId = msg.key.remoteJid!;
-          let senderType: SenderType = SenderType.Individual;
-          if (chatId && chatId.endsWith("@g.us")) senderType = SenderType.Group;
-          if (chatId && chatId.endsWith("@s.whatsapp.net")) senderType = SenderType.Individual;
-
-          if (senderType == SenderType.Group) {
-            //TODO: Validate if message is from group or person, etc...
-          }
-          if (msg.key.participant !== originalSender) continue;
+          if ((msg.key.participant || msg.key.remoteJid) !== originalSender) continue;
           if (msg.key.remoteJid !== originalChat) continue;
 
           // Reset the timeout on any user response
           resetTimeout();
-
-          const msgType = botUtils.GetMsgTypeFromRawMsg(msg);
-          if (msgType !== expectedMsgType) {
-            await this.SendText(chatSenderId, `Formato Incorrecto: Tienes que responder con ${botUtils.MsgTypeToString(expectedMsgType)}`);
-            continue; // Keep listening for the correct response
-          }
 
           if (GetTextFromRawMsg(msg).includes('cancelar')) {
             this.socket.ev.off("messages.upsert", listener);
             clearTimeout(timerOut);
             reject({ wasAbortedByUser: true, errorMessage: timeoutMsg });
             return;
+          }
+
+          const msgType = botUtils.GetMsgTypeFromRawMsg(msg);
+          if (msgType !== expectedMsgType) {
+            await this.SendText(chatSenderId, `Formato Incorrecto: Tienes que responder con ${botUtils.MsgTypeToString(expectedMsgType)}`);
+            continue; // Keep listening for the correct response
           }
 
           // Valid response

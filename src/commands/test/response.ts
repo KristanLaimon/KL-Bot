@@ -23,7 +23,7 @@ export default class ResponseCommand implements ICommand {
     } catch (error) {
       if (utils.isBotWaitMessageError(error)) {
         if (error.wasAbortedByUser)
-          await bot.SendText(args.chatId, `El usuario ${args.msgObj.pushName} canceló la operación`);
+          await bot.SendText(args.chatId, `El usuario ${args.originalPromptMsgObj.pushName} canceló la operación`);
         else
           await bot.SendText(args.chatId, `Te tardaste ${seconds / 1000} segundos en responder...`);
       }

@@ -1,10 +1,10 @@
 import { sqliteTable, AnySQLiteColumn, primaryKey, check, integer, text, foreignKey } from "drizzle-orm/sqlite-core"
 import { sql } from "drizzle-orm"
-import { HelperRankId, HelperRoleId, HelperRankName, HelperRoleName } from './helper_types';
+import { HelperRankId, HelperRoleId, HelperRankName, HelperRoleName } from '../drizzle/helper_types';
 
 export const tournamentRankRanksAdmitted = sqliteTable("Tournament_Rank_RanksAdmitted", {
-	tournamentId: integer().notNull(),
-	rankId: text().$type<HelperRankId>().notNull(),
+	tournamentId: integer().primaryKey().notNull(),
+	rankId: text().primaryKey().$type<HelperRankId>().notNull(),
 },
 	(table) => ({
 		pk0: primaryKey({ columns: [table.tournamentId, table.rankId], name: "Tournament_Rank_RanksAdmitted_tournamentID_rankID_pk" }),
@@ -34,7 +34,7 @@ export const role = sqliteTable("Role", {
 	});
 
 export const rank = sqliteTable("Rank", {
-	id: text().$type<HelperRankId>().notNull(),
+	id: text().primaryKey().$type<HelperRankId>().notNull(),
 	name: text().$type<HelperRankName>().notNull(),
 	logoImagePath: text().notNull(),
 },

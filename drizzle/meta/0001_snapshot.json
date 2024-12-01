@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "59caac24-1c07-4608-a451-fe4cd3ac529d",
+  "id": "5cea4a7e-ba28-427b-867d-5041fcf727a2",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "Player": {
@@ -132,7 +132,7 @@
         "id": {
           "name": "id",
           "type": "text",
-          "primaryKey": false,
+          "primaryKey": true,
           "notNull": true,
           "autoincrement": false
         },
@@ -333,14 +333,14 @@
         "tournamentId": {
           "name": "tournamentId",
           "type": "integer",
-          "primaryKey": false,
+          "primaryKey": true,
           "notNull": true,
           "autoincrement": false
         },
         "rankId": {
           "name": "rankId",
           "type": "text",
-          "primaryKey": false,
+          "primaryKey": true,
           "notNull": true,
           "autoincrement": false
         }
@@ -394,10 +394,7 @@
   "_meta": {
     "schemas": {},
     "tables": {},
-    "columns": {
-      "\"Tournament_Rank_RanksAdmitted\".\"tournamentID\"": "\"Tournament_Rank_RanksAdmitted\".\"tournamentId\"",
-      "\"Tournament_Rank_RanksAdmitted\".\"rankID\"": "\"Tournament_Rank_RanksAdmitted\".\"rankId\""
-    }
+    "columns": {}
   },
   "internal": {
     "indexes": {}

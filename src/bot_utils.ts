@@ -8,8 +8,26 @@ export type BotUtilsObj = {
   GetTextFromRawMsg: (message: WAMessage) => string;
   isBotWaitMessageError: (error: unknown) => error is BotWaitMessageError;
   DownloadMedia(rawMsg: WAMessage, fileName: string, extension: string, localPathStore: string): Promise<boolean>;
+  GetPhoneNumber(rawMsg: WAMessage): WhatsNumber;
 }
 
+type WhatsNumber = {
+  countryCode: string;
+  number: string;
+  fullRawNumber: string;
+}
+
+export function GetPhoneNumber(rawMsg: WAMessage): WhatsNumber {
+  //Let's check if comes from private msg or group
+  let number = rawMsg.key.participant || rawMsg.key.remoteJid || undefined;
+  if (!number) throw new Error("Strange... everyone must have a number!!");
+  number = number.slice(0, number.indexOf("@"));
+  return {
+    countryCode: number.slice(0, 3),
+    fullRawNumber: number,
+    number: number.slice(3)
+  }
+}
 
 //TODO: Make a handling error for this one;
 /**

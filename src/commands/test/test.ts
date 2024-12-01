@@ -4,7 +4,7 @@ import Bot from '../../bot';
 import { CommandArgs, ICommand } from '../../types/bot_types';
 import { HelperRankName, HelperRoleName } from '../../../drizzle/helper_types';
 import KLDb from '../../../main';
-import { rank } from '../../../drizzle/schema';
+import { rank } from '../../schema';
 import { eq } from 'drizzle-orm';
 
 

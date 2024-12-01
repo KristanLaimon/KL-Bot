@@ -19,3 +19,5 @@ export type HelperRankName =
 export type HelperRoleId = "AD" | "MB";
 
 export type HelperRoleName = "Administrador" | "Miembro";
+
+export type CommandAccessibleRoles = HelperRoleName | "Secreto";
