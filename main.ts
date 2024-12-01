@@ -8,7 +8,7 @@ import ResponseCommand from './src/commands/test/response';
 import SexoCommand from "./src/commands/test/sexo";
 import TestCommand from './src/commands/test/test';
 import HelpCommand from './src/commands/general/help';
-import AgregarMiembroCommand from './src/commands/admin/AgregarJugador';
+import AgregarMiembroCommand from './src/commands/admin/agregarmiembro';
 import ReceiveImgCommand from './src/commands/test/img';
 
 async function Main() {

@@ -96,6 +96,7 @@ export default class Bot {
         const chatId = msg.key.remoteJid!; // Can be null | undefined for some reason
         let senderType: SenderType = SenderType.Individual;
         if (chatId && chatId.endsWith("@g.us")) senderType = SenderType.Group;
+        if (chatId && chatId.endsWith("@s.whatsapp.net")) senderType = SenderType.Individual;
         const objMsg = msg.message!; // Same as 3 lines above
 
         ///This can be undefined for some reason
@@ -148,7 +149,17 @@ export default class Bot {
 
       const listener = async (messageEvent: BaileysInsertArgs) => {
         for (const msg of messageEvent.messages) {
+
           if (msg.key.fromMe) continue;
+
+          const chatId = msg.key.remoteJid!;
+          let senderType: SenderType = SenderType.Individual;
+          if (chatId && chatId.endsWith("@g.us")) senderType = SenderType.Group;
+          if (chatId && chatId.endsWith("@s.whatsapp.net")) senderType = SenderType.Individual;
+
+          if (senderType == SenderType.Group) {
+            //TODO: Validate if message is from group or person, etc...
+          }
           if (msg.key.participant !== originalSender) continue;
           if (msg.key.remoteJid !== originalChat) continue;
 
