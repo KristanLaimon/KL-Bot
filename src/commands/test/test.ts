@@ -1,22 +1,28 @@
-import { WAMessage } from '@whiskeysockets/baileys';
-import Bot from '../../bot';
-import { CommandArgs, ICommand, MsgType, SenderType } from '../../types/bot_types';
 import fs from "fs";
-import RanksImgPaths from '../../../drizzle/helper_types';
+import Bot from '../../bot';
+
+import { CommandArgs, ICommand } from '../../types/bot_types';
+import { HelperRankName, HelperRoleName } from '../../../drizzle/helper_types';
+import KLDb from '../../../main';
+import { rank } from '../../../drizzle/schema';
+import { eq } from 'drizzle-orm';
+
+
 
 export default class TestCommand implements ICommand {
   commandName: string = 'rango';
+  roleCommand: HelperRoleName = "Miembro";
   description: string = 'Por el momento solo manda una imagen del rango que tu le pidas'
   async onMsgReceived(bot: Bot, args: CommandArgs) {
     if (args.commandArgs.length != 1) {
-      await bot.SendText(args.chatSenderId, "Tienes que mandar de que rango quieres la imagen");
+      await bot.SendText(args.chatId, "Tienes que mandar de que rango quieres la imagen, solo se manda una palabra");
       return;
     }
 
-    const rank = args.commandArgs[0].toLocaleLowerCase().replace('ó', "o");
-    const rankPath = RanksImgPaths[rank];
+    const selectdRank = CapitalizeStr(args.commandArgs[0]);
+    const rankObj = await KLDb.select().from(rank).where(eq(rank.name, selectdRank as HelperRankName)).get();
 
-    if (!rankPath) {
+    if (!rankObj) {
       const strs: string[] = [];
 
       strs.push('No existe ese rango, prueba con algunos de los siguientes:');
@@ -31,10 +37,14 @@ export default class TestCommand implements ICommand {
       strs.push('');
       strs.push('Ejemplo de uso: !rango campeón   ó    !rango campeon');
 
-      await bot.SendText(args.chatSenderId, strs.join('\n'));
+      await bot.SendText(args.chatId, strs.join('\n'));
       return;
     }
 
-    await bot.SendObjMsg(args.chatSenderId, { image: fs.readFileSync(rankPath), caption: "LoboKL" });
+    await bot.SendObjMsg(args.chatId, { image: fs.readFileSync(rankObj.logoImagePath), caption: "LoboKL" });
   }
+}
+
+function CapitalizeStr(str: string): string {
+  return str.slice(0, 1).toUpperCase() + str.slice(1).toLowerCase();
 }

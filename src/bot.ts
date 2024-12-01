@@ -110,9 +110,9 @@ export default class Bot {
                 msgType: msgType,
                 msgObj: msg,
                 senderType: senderType,
-                chatSenderId: chatId,
+                chatId: chatId,
                 commandArgs: msgWords.slice(1),
-                userSenderId: msg.key.participant || "There's no participant, strange error..."
+                userId: msg.key.participant || "There's no participant, strange error..."
               },
               botUtils
             )
@@ -184,6 +184,9 @@ export default class Bot {
     });
   }
 
+  public async WaitTextMessageFrom(chatSenderId: string, participantId: string, timeout: number = 30): Promise<string> {
+    return botUtils.GetTextFromRawMsg(await this.WaitMessageFrom(chatSenderId, participantId, MsgType.text, timeout));
+  }
 
   public async SendText(msgIdJSR: string, textToSend: string) {
     await this.SendObjMsg(msgIdJSR, { text: textToSend });

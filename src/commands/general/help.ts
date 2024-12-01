@@ -1,8 +1,10 @@
+import { HelperRoleName } from '../../../drizzle/helper_types';
 import Bot from '../../bot';
 import { ICommand, CommandArgs } from '../../types/bot_types';
 
 export default class HelpCommand implements ICommand {
   commandName: string = 'help';
+  roleCommand: HelperRoleName = "Miembro";
   description: string = 'Despliega esta pantalla de ayuda';
 
   async onMsgReceived(bot: Bot, args: CommandArgs) {
@@ -27,6 +29,6 @@ export default class HelpCommand implements ICommand {
     strs.push('Tip: Usa el comando para obtener más detalles.');
 
     // Send formatted message
-    await bot.SendText(args.chatSenderId, strs.join('\n'));
+    await bot.SendText(args.chatId, strs.join('\n'));
   }
 }

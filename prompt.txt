@@ -1,0 +1,49 @@
+A continuación te daré un contexto completo para que hagas el encargo que tengo para ti:
+
+Carrera: Ingeniería en sistemas computacionales
+Materia: Fundamentos de ingeniería de software
+Tema: Desarrollo del análisis de requisitos y documentación de las funcionalidades utilizando diagramas
+    ContextoTrabajo:
+    Una veterinaria llamada MCVET quiere que le hagamos un sistema de software completo con base de datos incluido (centralizado),
+    se tienen analizado varios casos de uso los cuales son los siguientes:
+
+En base a la información anterior CREA UN DICCIONARIO DE CLASES añadiendo obligatoriamente los siguientes actores:
+- iUsuario
+- mPrincipal
+- mServicios 
+
+Con las siguientes tablas que se utilizan en el diagrama de secuencia llamados como entidad[nombreTabla] y el cual usarás:
+- BDCitas
+Con los siguientes manejadores:
+- mRCitas
+Siguiente interfaz:
+- iBDCitas
+
+Te puedes basar en LA SINTAXIS de lo siguiente:
+sequenceDiagram
+    iUsuario->>mREmpleado: 3: introducir credenciales
+    iUsuario->>mREmpleado: 2: Mostrar P1 - Login
+    iUsuario->>mREmpleado: 1: Acceder al sistema
+    mREmpleado->>mServicios: 5: Ok
+    mREmpleado->>mServicios: 6: Validar Credenciales
+    mServicios->>mPrincipal: 7: Validar Credenciales
+    mPrincipal->>IBDEmpleado: 10: OK
+    mPrincipal->>BDEmpleado: 11: OK
+    mServicios->>iUsuario: 4: Ok
+    mServicios->>iUsuario: 12: Ofrecer Servicios
+    iUsuario->>mREmpleado: 14: Elegir Opcion
+    mREmpleado->>iUsuario: 13: Desplegar P2 - Administrar Veterinaria
+
+El flujo será utilizando las siguientes pantallas,  las cuales deberías incluir en el diagrama de secuencia:
+- Pantalla 5 - Menú principal
+- Pantalla 55 - Atención a clientes
+- Pantalla 64 -  Lista de citas(Desde aqui puedes ver todos las citas)
+- Pantalla 24 - Ver empleado(Ves un empleado en especifico, llegas desde la pantalla 23)
+- Pantalla 25 - Modificar empleado (llegas dedsde la pantalla 24)
+- Pantalla 26 - Agregar empleado (llegas desde la pantalla 23)
+- Pantalla 27 - Eliminar empleado (Prompt para pedir credenciales) desde aqui pides las credenciales, se llega desde la pantalla 23
+- Pantalla 28 - Empleados (Con permiso de administrador) desde aqui puedes hacerlo mismo que antes pero tambien puedes eliminar un empleado, llegas desde la pantalla 27
+
+
+En base a la información anterior dame el CÓDIGO MERMAID del diagrama de secuencia de cada subcaso de uso (o sea, si hay 4 subcasos, dame 4 codigos, uno para cada uno) LISTO PARA SER USADO
+EN UN documento FORMAL DE DOCUMENTACIÓN Y ENTREGAR AL CLIENTE.
