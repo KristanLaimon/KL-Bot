@@ -2,14 +2,14 @@ import fs from "fs";
 import Bot from '../../bot';
 
 import { CommandArgs, ICommand } from '../../types/bot_types';
-import { HelperRankName, HelperRoleName } from '../../types/helper_types';
+import { HelperRoleName } from '../../types/helper_types';
 import KLDb from '../../../main';
-
-
+import { CapitalizeStr } from '../../utils';
 
 export default class TestCommand implements ICommand {
   commandName: string = 'rango';
   roleCommand: HelperRoleName = "Miembro";
+
   description: string = 'Por el momento solo manda una imagen del rango que tu le pidas'
   async onMsgReceived(bot: Bot, args: CommandArgs) {
     if (args.commandArgs.length != 1) {
@@ -18,7 +18,7 @@ export default class TestCommand implements ICommand {
     }
 
     const selectdRank = CapitalizeStr(args.commandArgs[0]);
-    const rankObj = await KLDb.select().from(rank).where(eq(rank.name, selectdRank as HelperRankName)).get();
+    const rankObj = await KLDb.rank.findFirst({ where: { name: selectdRank } });
 
     if (!rankObj) {
       const strs: string[] = [];
@@ -41,8 +41,4 @@ export default class TestCommand implements ICommand {
 
     await bot.SendObjMsg(args.chatId, { image: fs.readFileSync(rankObj.logoImagePath), caption: "LoboKL" });
   }
-}
-
-function CapitalizeStr(str: string): string {
-  return str.slice(0, 1).toUpperCase() + str.slice(1).toLowerCase();
 }

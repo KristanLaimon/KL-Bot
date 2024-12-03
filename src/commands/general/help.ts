@@ -22,6 +22,7 @@ export default class HelpCommand implements ICommand {
     const generalCommands = bot.Commands.filter(com => com[1].roleCommand == "Miembro");
     const adminCommands = bot.Commands.filter(com => com[1].roleCommand == "Administrador");
 
+    strs.push('');
     strs.push("=== Comandos Generales ===");
     for (const cmd of generalCommands) {
       const command = cmd[1].commandName.padEnd(maxCmdLength + 2, ' ');

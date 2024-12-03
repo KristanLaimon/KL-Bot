@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:C:\\Users\\itan_\\KrsDocuments\\Coding\\typescript\\KLBOT\\db\\klbotdb.db"
+  url      = "file:..\\db\\klbotdb.db"
 }
 
 model Player {

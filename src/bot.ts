@@ -3,7 +3,7 @@ import type { BaileysWASocket, BotWaitMessageError, ICommand } from "./types/bot
 import { useMultiFileAuthState } from "@whiskeysockets/baileys";
 import { GetTextFromRawMsg } from './bot_utils';
 import { MsgType, SenderType } from "./types/bot_types";
-import SocketMessageQueue from './msgqueue';
+import SocketMessageQueue from './bot_queue';
 import * as botUtils from './bot_utils';
 import { Boom } from "@hapi/boom";
 import fs from "fs";
