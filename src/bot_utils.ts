@@ -9,23 +9,36 @@ export type BotUtilsObj = {
   isBotWaitMessageError: (error: unknown) => error is BotWaitMessageError;
   DownloadMedia(rawMsg: WAMessage, fileName: string, extension: string, localPathStore: string): Promise<boolean>;
   GetPhoneNumber(rawMsg: WAMessage): WhatsNumber;
+  ParseNumberMention(numberStr: string): WhatsNumber;
 }
 
 type WhatsNumber = {
   countryCode: string;
   number: string;
-  fullRawNumber: string;
+  fullRawCleanedNumber: string;
+  whatsappId: string;
 }
 
 export function GetPhoneNumber(rawMsg: WAMessage): WhatsNumber {
   //Let's check if comes from private msg or group
   let number = rawMsg.key.participant || rawMsg.key.remoteJid || undefined;
   if (!number) throw new Error("Strange... everyone must have a number!!");
-  number = number.slice(0, number.indexOf("@"));
+  const numberCleaned = number.slice(0, number.indexOf("@"));
+  return {
+    countryCode: numberCleaned.slice(0, 3),
+    fullRawCleanedNumber: numberCleaned,
+    number: numberCleaned.slice(3),
+    whatsappId: `${numberCleaned.slice(3)}@s.whatsapp.net`
+  }
+}
+
+export function ParseNumberMention(numberStr: string): WhatsNumber {
+  let number = numberStr.slice(1);
   return {
     countryCode: number.slice(0, 3),
-    fullRawNumber: number,
-    number: number.slice(3)
+    fullRawCleanedNumber: number,
+    number: number.slice(3),
+    whatsappId: `${number}@s.whatsapp.net`
   }
 }
 

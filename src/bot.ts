@@ -1,12 +1,13 @@
-import makeWASocket, { AnyMessageContent, DisconnectReason, MessageUpsertType, MiscMessageGenerationOptions, proto, WAMessage } from "@whiskeysockets/baileys";
+import makeWASocket, { AnyMessageContent, Contact, DisconnectReason, MessageUpsertType, MiscMessageGenerationOptions, proto, WAMessage } from "@whiskeysockets/baileys";
 import type { BaileysWASocket, BotWaitMessageError, ICommand } from "./types/bot_types";
-import { useMultiFileAuthState } from "@whiskeysockets/baileys";
+import { useMultiFileAuthState, makeInMemoryStore } from "@whiskeysockets/baileys";
 import { GetTextFromRawMsg } from './bot_utils';
 import { MsgType, SenderType } from "./types/bot_types";
 import SocketMessageQueue from './bot_queue';
 import * as botUtils from './bot_utils';
 import { Boom } from "@hapi/boom";
 import fs from "fs";
+import path from 'path';
 
 type BaileysInsertArgs = {
   messages: WAMessage[];
@@ -27,6 +28,8 @@ export default class Bot {
   private _commands: Record<string, ICommand>;
   private thisBot: Bot;
   private credentialsStoragePath: string;
+
+  public whatsData: ReturnType<typeof makeInMemoryStore>;
 
   /** CoolDown between meesages in seconds */
   private coolDownTime: number;
@@ -198,7 +201,7 @@ export default class Bot {
   }
 
   public async SendObjMsg(msgIdJSR: string, content: AnyMessageContent, misc?: MiscMessageGenerationOptions) {
-    this.msgQueue.AddMsg(msgIdJSR, content, misc);
+    await this.msgQueue.AddMsg(msgIdJSR, content, misc);
   }
 
   public async SendImg(msgIdJSR: string, imgPath: string, captionTxt?: string) {
@@ -206,6 +209,19 @@ export default class Bot {
       image: fs.readFileSync(imgPath),
       caption: captionTxt || ''
     });
+  }
+
+  /**
+   * @param whatsappID This must be like 6122398392@whatsapp.net OR ending with "@g.us"!
+   */
+  public async GetContactFromId(whatsappID: string): Promise<Contact | null> {
+    const existsUserList = await this.socket.onWhatsApp(whatsappID);
+    if (existsUserList.length == 0) return null;
+
+    const jidUser = existsUserList.at(0)!.jid;
+    const contact = this.whatsData.contacts[jidUser];
+
+    if (contact) return contact; else return null;
   }
 
   private async innerStartupSocket() {
@@ -216,6 +232,32 @@ export default class Bot {
     });
     this.msgQueue = new SocketMessageQueue(this.socket, this.maxQueueMsgs, this.coolDownTime);
     this.socket.ev.on("creds.update", saveCreds);
+
+
+    // Initialize memory store
+    this.whatsData = makeInMemoryStore({});
+    const dbStorePath = path.join("db", "bot_store.json");
+
+    // Ensure file exists and is valid JSON before reading
+    if (fs.existsSync(dbStorePath)) {
+      try {
+        const fileContent = fs.readFileSync(dbStorePath, "utf-8");
+        if (fileContent.trim()) {
+          const jsonData = JSON.parse(fileContent);
+          this.whatsData.readFromFile(dbStorePath);
+        }
+      } catch (error) {
+        console.error("Error reading or parsing bot_store.json:", error);
+      }
+    }
+
+    // Periodically write to the file
+    setInterval(() => {
+      this.whatsData.writeToFile(path.join("db", "bot_store.json"));
+    }, 1000);
+
+    // Bind events
+    this.whatsData.bind(this.socket.ev);
   }
 }
 

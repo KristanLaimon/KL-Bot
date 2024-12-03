@@ -2,7 +2,7 @@ import { HelperRoleName } from '../../types/helper_types';
 import Bot from '../../bot';
 import { BotUtilsObj } from '../../bot_utils';
 import { CommandArgs, ICommand, MsgType } from '../../types/bot_types';
-import { downloadMediaMessage, WAMessage } from '@whiskeysockets/baileys';
+import { downloadMediaMessage, isJidBroadcast, WAMessage } from '@whiskeysockets/baileys';
 import path from "path";
 import fs from "fs";
 
@@ -28,4 +28,3 @@ export default class ReceiveImgCommand implements ICommand {
     }
   }
 }
-
