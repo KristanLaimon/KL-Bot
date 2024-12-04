@@ -1,6 +1,6 @@
 import { HelperRoleName } from '../../types/helper_types';
 import Bot from '../../bot';
-import { BotUtilsObj } from '../../bot_utils';
+import { BotUtilsObj } from '../../bot';
 import { CommandArgs, ICommand, MsgType } from '../../types/bot_types';
 import { downloadMediaMessage, isJidBroadcast, WAMessage } from '@whiskeysockets/baileys';
 import path from "path";

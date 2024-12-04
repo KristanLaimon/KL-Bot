@@ -1,13 +1,12 @@
 import { CommandAccessibleRoles, HelperRankId, HelperRankName, HelperRoleName } from '../../types/helper_types';
-import Bot from '../../bot';
-import { BotUtilsObj } from '../../bot_utils';
+import Bot, { BotUtilsObj } from '../../bot';
 import { CommandArgs, ICommand, MsgType } from '../../types/bot_types';
 import fs from 'fs'
 import Kldb from '../../../main';
 import path, { join } from 'path';
 import { CapitalizeStr } from '../../utils';
 
-export default class AddAdminCommand implements ICommand {
+export default class AddMemberCommand implements ICommand {
   commandName: string = "addmember";
   description: string = "Añade un nuevo miembro al bot";
   roleCommand: CommandAccessibleRoles = "Administrador";
@@ -107,11 +106,22 @@ ${availablesRanksText}`);
         numberStr = await bot.WaitTextMessageFrom(args.chatId, args.userId, 250);
 
         if (numberStr.includes('mio')) {
-          numberStr = utils.GetPhoneNumber(args.originalPromptMsgObj).fullRawCleanedNumber;
-          isRightNumber = true;
+          const local = utils.GetPhoneNumber(args.originalPromptMsgObj);
+          if (local !== null) {
+            numberStr = local.fullRawCleanedNumber
+            isRightNumber = true;
+          } else {
+            await SendText("Eso no es un número válido, intenta de nuevo");
+          }
         } else if (numberStr.startsWith("@")) {
-          numberStr = utils.ParseNumberMention(numberStr).fullRawCleanedNumber;
-          isRightNumber = true;
+          const local = utils.GetPhoneNumberFromMention(numberStr);
+          if (local !== null) {
+            numberStr = local.fullRawCleanedNumber
+            isRightNumber = true;
+          }
+          else {
+            await SendText("Eso no es un número válido, intenta de nuevo");
+          }
         }
         else if (numberStr.matchAll(/^\d+$/)) {
           isRightNumber = true;

@@ -3,15 +3,6 @@ import { BotWaitMessageError, MsgType } from './types/bot_types';
 import path from 'path';
 import fs from 'fs'
 
-export type BotUtilsObj = {
-  GetMsgTypeFromRawMsg: (rawMsg: WAMessage) => MsgType;
-  GetTextFromRawMsg: (message: WAMessage) => string;
-  isBotWaitMessageError: (error: unknown) => error is BotWaitMessageError;
-  DownloadMedia(rawMsg: WAMessage, fileName: string, extension: string, localPathStore: string): Promise<boolean>;
-  GetPhoneNumber(rawMsg: WAMessage): WhatsNumber;
-  ParseNumberMention(numberStr: string): WhatsNumber;
-}
-
 type WhatsNumber = {
   countryCode: string;
   number: string;
@@ -19,10 +10,18 @@ type WhatsNumber = {
   whatsappId: string;
 }
 
-export function GetPhoneNumber(rawMsg: WAMessage): WhatsNumber {
+function isValidNumberStr(numberStr: string): boolean {
+  const mentionRegex = /^@\d{13}$/;
+  const userIdRegex = /^\d{13}@s.whatsapp.net$/;
+  return mentionRegex.test(numberStr) || userIdRegex.test(numberStr);
+}
+
+export function GetPhoneNumber(rawMsg: WAMessage): WhatsNumber | null {
   //Let's check if comes from private msg or group
   let number = rawMsg.key.participant || rawMsg.key.remoteJid || undefined;
-  if (!number) throw new Error("Strange... everyone must have a number!!");
+  if (!number) return null;
+  if (!isValidNumberStr(number)) return null;
+
   const numberCleaned = number.slice(0, number.indexOf("@"));
   return {
     countryCode: numberCleaned.slice(0, 3),
@@ -32,7 +31,8 @@ export function GetPhoneNumber(rawMsg: WAMessage): WhatsNumber {
   }
 }
 
-export function ParseNumberMention(numberStr: string): WhatsNumber {
+export function GetPhoneNumberFromMention(numberStr: string): WhatsNumber | null {
+  if (!isValidNumberStr(numberStr)) return null;
   let number = numberStr.slice(1);
   return {
     countryCode: number.slice(0, 3),
