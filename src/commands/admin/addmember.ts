@@ -2,7 +2,7 @@ import { CommandAccessibleRoles, HelperRankId, HelperRankName, HelperRoleName } 
 import Bot, { BotUtilsObj } from '../../bot';
 import { CommandArgs, ICommand, MsgType } from '../../types/bot_types';
 import fs from 'fs'
-import Kldb from '../../../main';
+import Kldb from '../../kldb';
 import path, { join } from 'path';
 import { CapitalizeStr } from '../../utils';
 
@@ -11,10 +11,10 @@ export default class AddMemberCommand implements ICommand {
   description: string = "Añade un nuevo miembro al bot";
   roleCommand: CommandAccessibleRoles = "Administrador";
   async onMsgReceived(bot: Bot, args: CommandArgs, utils: BotUtilsObj) {
+
     const separator = "=======================";
     const SendText = async (msg: string) => await bot.SendText(args.chatId, msg);
     let thereWasImgStored: string = "";
-
     try {
       /// 1 of 4: Password
       await bot.SendText(args.chatId,
@@ -38,6 +38,7 @@ Paso 1 de 5: Para continuar, tienes que brindar la contraseña secreta entre adm
 
       let validRole: string | undefined;
       do {
+        //TODO: Implement a force type expecting response logic
         await SendText(`Elije alguno de los siguientes roles:\n${allRolesAvailableText}`);
         const roleResponse = await bot.WaitTextMessageFrom(args.chatId, args.userId, 250);
         validRole = (await Kldb.role.findFirst({ where: { name: CapitalizeStr(roleResponse) } }))?.id;
@@ -167,7 +168,7 @@ ${availablesRanksText}`);
         await SendText("Error en cuestión:")
         await SendText(JSON.stringify(error));
       }
-      if (thereWasImgStored === "") {
+      if (thereWasImgStored !== "") {
         fs.unlinkSync(path.join("db", "players", thereWasImgStored + ".png"))
         await SendText("Imagen no cargada debido a que se abortó el proceso");
       }

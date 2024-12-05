@@ -2,6 +2,7 @@ import { WAMessage, downloadMediaMessage } from '@whiskeysockets/baileys'
 import { BotWaitMessageError, MsgType } from './types/bot_types';
 import path from 'path';
 import fs from 'fs'
+import Kldb from './kldb';
 
 type WhatsNumber = {
   countryCode: string;
@@ -16,7 +17,7 @@ function isValidNumberStr(numberStr: string): boolean {
   return mentionRegex.test(numberStr) || userIdRegex.test(numberStr);
 }
 
-export function GetPhoneNumber(rawMsg: WAMessage): WhatsNumber | null {
+export function GetPhoneNumberFromRawmsg(rawMsg: WAMessage): WhatsNumber | null {
   //Let's check if comes from private msg or group
   let number = rawMsg.key.participant || rawMsg.key.remoteJid || undefined;
   if (!number) return null;
@@ -42,7 +43,17 @@ export function GetPhoneNumberFromMention(numberStr: string): WhatsNumber | null
   }
 }
 
-//TODO: Make a handling error for this one;
+export async function isAdminSender(rawMsg: WAMessage): Promise<boolean> {
+  let senderIsAnAdminAsWell: boolean = false;
+  try {
+    const phoneNumber = GetPhoneNumberFromRawmsg(rawMsg)!.fullRawCleanedNumber;
+    senderIsAnAdminAsWell = !!(await Kldb.player.findFirst({ where: { phoneNumber, role: "AD" } }));
+  } catch (e) {
+    senderIsAnAdminAsWell = false;
+  }
+  return senderIsAnAdminAsWell;
+}
+
 /**
  * Downloads media from a WAMessage and saves it to a specified folder.
  * 
@@ -69,7 +80,6 @@ export async function DownloadMedia(
     return false;
   }
 }
-
 
 export function GetMsgTypeFromRawMsg(rawMsg: WAMessage): MsgType {
   if (!rawMsg.message) return MsgType.unknown;

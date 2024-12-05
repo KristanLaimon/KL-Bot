@@ -1,5 +1,6 @@
-import path from 'path'
+import path from 'path';
 import fs from "fs";
+
 const playersImgsPath = path.join("db", "players");
 const getFullPlayerImgPath = (imgPlayer: string) => path.join("db", "players", imgPlayer);
 

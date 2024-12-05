@@ -1,14 +1,13 @@
 import makeWASocket, { AnyMessageContent, Contact, DisconnectReason, MessageUpsertType, MiscMessageGenerationOptions, proto, WAMessage } from "@whiskeysockets/baileys";
-import type { BaileysWASocket, BotWaitMessageError, ICommand } from "./types/bot_types";
-import { useMultiFileAuthState, makeInMemoryStore } from "@whiskeysockets/baileys";
+import type { BaileysWASocket, BotWaitMessageError, ICommand, WaitTextRegexFormat } from "./types/bot_types";
+import { useMultiFileAuthState } from "@whiskeysockets/baileys";
 import { GetTextFromRawMsg } from './bot_utils';
 import { MsgType, SenderType } from "./types/bot_types";
 import SocketMessageQueue from './bot_queue';
 import * as botUtils from './bot_utils';
 import { Boom } from "@hapi/boom";
 import fs from "fs";
-import path from 'path';
-
+import Kldb from './kldb';
 export type BotUtilsObj = typeof botUtils;
 
 type BaileysInsertArgs = {
@@ -22,6 +21,7 @@ type BotArgs = {
   /** CoolTime in seconds for every response */
   coolDownTime?: number;
   maxQueueMsgs?: number;
+  shouldConsiderRoles?: boolean;
 };
 
 export default class Bot {
@@ -29,9 +29,9 @@ export default class Bot {
   private prefix: string;
   private _commands: Record<string, ICommand>;
   private thisBot: Bot;
+  private _shouldConsiderRoles: boolean;
   private credentialsStoragePath: string;
 
-  public whatsData: ReturnType<typeof makeInMemoryStore>;
 
   /** CoolDown between meesages in seconds */
   private coolDownTime: number;
@@ -51,6 +51,7 @@ export default class Bot {
     this.thisBot = this;
     this.prefix = args?.prefix || "!";
     this.maxQueueMsgs = args?.maxQueueMsgs || 10;
+    this._shouldConsiderRoles = args?.shouldConsiderRoles || true; // True by default
     this.credentialsStoragePath = "./auth_info";
     this.WaitMessageFrom.bind(this, 'NO ID THIS COMES FROM BIND()', 30000);
   }
@@ -94,7 +95,7 @@ export default class Bot {
     this.socket.ev.on("messages.upsert", async (messageUpdate) => {
       if (!messageUpdate.messages) return;
 
-      messageUpdate.messages.forEach((msg) => {
+      messageUpdate.messages.forEach(async (msg) => {
         console.log(msg);
         if (!msg.message || msg.key.fromMe) return;
         let msgType: MsgType;
@@ -109,6 +110,26 @@ export default class Bot {
         if (msgWords && msgWords[0].startsWith(this.prefix)) {
           msgType = MsgType.text;
           const isACommand = this._commands[msgWords[0].slice(this.prefix.length).toLowerCase()]; ///Is removing the ! in the beginning of the word....
+
+
+
+
+          //Check is user has privileges to use this (administrator||secret) command
+          if (isACommand.roleCommand === "Administrador" || isACommand.roleCommand === "Secreto") {
+            let senderIsAnAdminAsWell: boolean = false;
+            try {
+              const phoneNumber = await botUtils.GetPhoneNumberFromRawmsg(msg)!.fullRawCleanedNumber;
+              senderIsAnAdminAsWell = !!(await Kldb.player.findFirst({ where: { phoneNumber, role: "AD" } }));
+            } catch (e) {
+              senderIsAnAdminAsWell = false;
+            }
+            if (!senderIsAnAdminAsWell) {
+              this.SendText(chatId, "No tienes permisos para ejecutar este comando");
+              return;
+            }
+          }
+
+          //Member users or admins with admins commands
           if (isACommand) {
             isACommand.onMsgReceived(
               this.thisBot,
@@ -136,6 +157,7 @@ export default class Bot {
    * @param participantId Whatsapp ID fromthe participant from the previous Chat ID this method should wait for
    * @param expectedMsgType Expected msg, it will validate the message wil be from that type insisting to user to send the expected message type
    * @param timeout Max time in seconds the user has to respond this message, if not, this will raise an error YOU MUST USE TRY CATCH
+   * @throws {BotWaitMessageError} if user has CANCELLED the operation or if timeout has been reached
    * @returns The message object sent by the user
    */
   public async WaitMessageFrom(chatSenderId: string, participantId: string, expectedMsgType: MsgType = MsgType.text, timeout: number = 30): Promise<WAMessage> {
@@ -194,8 +216,42 @@ export default class Bot {
     });
   }
 
+  /**
+   * Expect a TEXT message from the user (Doesn't matter the format)
+   * max message timeout in seconds has been reached.
+   * @param chatSenderId ChatId where the message comes from
+   * @param participantId  UserId of the participant that sent the message (if it is individual chat, its the same as chatSenderId)
+   * @param timeout  Time in seconds to wait for the user to respond
+   * @throws {BotWaitMessageError} if user has CANCELLED the operation or if timeout has been reached
+   * @returns  The message sent by the user
+   */
   public async WaitTextMessageFrom(chatSenderId: string, participantId: string, timeout: number = 30): Promise<string> {
     return botUtils.GetTextFromRawMsg(await this.WaitMessageFrom(chatSenderId, participantId, MsgType.text, timeout));
+  }
+
+  /**
+   * Expect a TEXT message from the user with a specific format (with regex) or throws error if user cancel the operation or 
+   * max message timeout in seconds has been reached.
+   * @param chatSenderId ChatId where the message comes from
+   * @param participantId  UserId of the participant that sent the message (if it is individual chat, its the same as chatSenderId)
+   * @param regexExpectingFormat  A small object giving the regex and the error message to be sent to the user if the message does not match the expected format
+   * @param timeout  Time in seconds to wait for the user to respond
+   * @throws {BotWaitMessageError} if user has CANCELLED the operation or if timeout has been reached
+   * @returns  The message sent by the user
+   */
+  public async WaitSpecificTextMessageFrom(chatSenderId: string, participantId: string, regexExpectingFormat: WaitTextRegexFormat, timeout: number = 30): Promise<string> {
+    let isValidResponse: boolean = false;
+    let userResult: string;
+    do {
+
+      userResult = await this.WaitTextMessageFrom(chatSenderId, participantId, timeout);
+      if (regexExpectingFormat.regex.test(userResult))
+        isValidResponse = true
+      else {
+        await this.SendText(chatSenderId, regexExpectingFormat.incorrectMsg);
+      }
+    } while (!isValidResponse);
+    return userResult;
   }
 
   public async SendText(msgIdJSR: string, textToSend: string) {
@@ -234,32 +290,6 @@ export default class Bot {
     });
     this.msgQueue = new SocketMessageQueue(this.socket, this.maxQueueMsgs, this.coolDownTime);
     this.socket.ev.on("creds.update", saveCreds);
-
-
-    // Initialize memory store
-    this.whatsData = makeInMemoryStore({});
-    const dbStorePath = path.join("db", "bot_store.json");
-
-    // Ensure file exists and is valid JSON before reading
-    if (fs.existsSync(dbStorePath)) {
-      try {
-        const fileContent = fs.readFileSync(dbStorePath, "utf-8");
-        if (fileContent.trim()) {
-          const jsonData = JSON.parse(fileContent);
-          this.whatsData.readFromFile(dbStorePath);
-        }
-      } catch (error) {
-        console.error("Error reading or parsing bot_store.json:", error);
-      }
-    }
-
-    // Periodically write to the file
-    setInterval(() => {
-      this.whatsData.writeToFile(path.join("db", "bot_store.json"));
-    }, 1000);
-
-    // Bind events
-    this.whatsData.bind(this.socket.ev);
   }
 }
 

@@ -16,6 +16,7 @@ model Player {
   phoneNumber        String      @unique(map: "sqlite_autoindex_Player_3")
   whatsappNickName   String
   role               String
+  joined_date        BigInt     @default(-1)
   Tournament         Tournament? @relation(fields: [tournamentSelected], references: [id], onDelete: NoAction, onUpdate: NoAction)
   Rank               Rank        @relation(fields: [actualRank], references: [id], onDelete: NoAction, onUpdate: NoAction)
   Role               Role        @relation(fields: [role], references: [id], onDelete: NoAction, onUpdate: NoAction)

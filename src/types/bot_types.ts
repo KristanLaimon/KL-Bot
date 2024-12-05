@@ -6,6 +6,11 @@ import { CommandAccessibleRoles } from './helper_types';
 
 type FlowCallBack = (bot: Bot, message: WAMessage, waitMessage: (chatId: string, message: WAMessage) => Promise<string>) => Promise<void>;
 
+export type WaitTextRegexFormat = {
+  regex: RegExp,
+  incorrectMsg: string
+}
+
 export type BaileysOnMessageObj = {
   messages: WAMessage[];
   type: MessageUpsertType;

@@ -1,4 +1,4 @@
-import Kldb from '../../../main';
+import Kldb from '../../kldb';
 import Bot from '../../bot';
 import { BotUtilsObj } from '../../bot';
 import { CommandArgs, ICommand } from '../../types/bot_types';
