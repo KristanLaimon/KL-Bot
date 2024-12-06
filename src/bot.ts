@@ -53,7 +53,7 @@ export default class Bot {
     this.maxQueueMsgs = args?.maxQueueMsgs || 10;
     this._shouldConsiderRoles = args?.shouldConsiderRoles || true; // True by default
     this.credentialsStoragePath = "./auth_info";
-    this.WaitMessageFrom.bind(this, 'NO ID THIS COMES FROM BIND()', 30000);
+    this.WaitRawMessageFrom.bind(this, 'NO ID THIS COMES FROM BIND()', 30000);
   }
 
   public AddCommand(commandObj: ICommand) {
@@ -111,26 +111,24 @@ export default class Bot {
           msgType = MsgType.text;
           const isACommand = this._commands[msgWords[0].slice(this.prefix.length).toLowerCase()]; ///Is removing the ! in the beginning of the word....
 
-
-
-
-          //Check is user has privileges to use this (administrator||secret) command
-          if (isACommand.roleCommand === "Administrador" || isACommand.roleCommand === "Secreto") {
-            let senderIsAnAdminAsWell: boolean = false;
-            try {
-              const phoneNumber = await botUtils.GetPhoneNumberFromRawmsg(msg)!.fullRawCleanedNumber;
-              senderIsAnAdminAsWell = !!(await Kldb.player.findFirst({ where: { phoneNumber, role: "AD" } }));
-            } catch (e) {
-              senderIsAnAdminAsWell = false;
-            }
-            if (!senderIsAnAdminAsWell) {
-              this.SendText(chatId, "No tienes permisos para ejecutar este comando");
-              return;
-            }
-          }
-
           //Member users or admins with admins commands
           if (isACommand) {
+            //TODO: This logic already exists in isAdminUser() util method, replace it!
+            //Check is user has privileges to use this (administrator||secret) command
+            if (isACommand.roleCommand === "Administrador" || isACommand.roleCommand === "Secreto") {
+              let senderIsAnAdminAsWell: boolean = false;
+              try {
+                const phoneNumber = await botUtils.GetPhoneNumberFromRawmsg(msg)!.fullRawCleanedNumber;
+                senderIsAnAdminAsWell = !!(await Kldb.player.findFirst({ where: { phoneNumber, role: "AD" } }));
+              } catch (e) {
+                senderIsAnAdminAsWell = false;
+              }
+              if (!senderIsAnAdminAsWell) {
+                this.SendText(chatId, "No tienes permisos para ejecutar este comando");
+                return;
+              }
+            }
+
             isACommand.onMsgReceived(
               this.thisBot,
               {
@@ -160,7 +158,7 @@ export default class Bot {
    * @throws {BotWaitMessageError} if user has CANCELLED the operation or if timeout has been reached
    * @returns The message object sent by the user
    */
-  public async WaitMessageFrom(chatSenderId: string, participantId: string, expectedMsgType: MsgType = MsgType.text, timeout: number = 30): Promise<WAMessage> {
+  public async WaitRawMessageFrom(chatSenderId: string, participantId: string, expectedMsgType: MsgType = MsgType.text, timeout: number = 30): Promise<WAMessage> {
     return new Promise((resolve, reject: (reason: BotWaitMessageError) => void) => {
       const timeoutMsg = "User didn't respond in specified time: " + timeout + " seconds";
       const originalChat = chatSenderId;
@@ -226,7 +224,7 @@ export default class Bot {
    * @returns  The message sent by the user
    */
   public async WaitTextMessageFrom(chatSenderId: string, participantId: string, timeout: number = 30): Promise<string> {
-    return botUtils.GetTextFromRawMsg(await this.WaitMessageFrom(chatSenderId, participantId, MsgType.text, timeout));
+    return botUtils.GetTextFromRawMsg(await this.WaitRawMessageFrom(chatSenderId, participantId, MsgType.text, timeout));
   }
 
   /**

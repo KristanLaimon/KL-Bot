@@ -1,16 +1,16 @@
-import { CommandAccessibleRoles, HelperRankId, HelperRankName, HelperRoleName } from '../../types/helper_types';
+import { CommandAccessibleRoles } from '../../types/helper_types';
 import Bot, { BotUtilsObj } from '../../bot';
-import { CommandArgs, ICommand, MsgType } from '../../types/bot_types';
-import fs from 'fs'
+import { BotCommandArgs, ICommand, MsgType } from '../../types/bot_types';
+import fs from 'fs';
 import Kldb from '../../kldb';
-import path, { join } from 'path';
+import path from 'path';
 import { CapitalizeStr } from '../../utils';
 
 export default class AddMemberCommand implements ICommand {
   commandName: string = "addmember";
   description: string = "Añade un nuevo miembro al bot";
   roleCommand: CommandAccessibleRoles = "Administrador";
-  async onMsgReceived(bot: Bot, args: CommandArgs, utils: BotUtilsObj) {
+  async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: BotUtilsObj) {
 
     const separator = "=======================";
     const SendText = async (msg: string) => await bot.SendText(args.chatId, msg);
@@ -20,15 +20,7 @@ export default class AddMemberCommand implements ICommand {
       await bot.SendText(args.chatId,
         `${separator}
 Añadiendo un nuevo administrador
-${separator}
-Paso 1 de 5: Para continuar, tienes que brindar la contraseña secreta entre administradores:`);
-
-      let password: string;
-      password = await bot.WaitTextMessageFrom(args.chatId, args.userId, 250);
-      if (password != fs.readFileSync('db/secretpassword.txt').toString()) {
-        await bot.SendText(args.chatId, "Wrong password...");
-        return;
-      }
+${separator}`);
 
       // 1.1 of 5: Member role
       await SendText(`${separator}\nEnvía el rango del usuario:`);
@@ -75,7 +67,7 @@ ${availablesRanksText}`);
       do {
         imgName = `AD-${name}-${Date.now()}-profile-picture`;
         wasValidImg = await utils.DownloadMedia(
-          await bot.WaitMessageFrom(
+          await bot.WaitRawMessageFrom(
             args.chatId,
             args.userId,
             MsgType.image, 60),
@@ -107,14 +99,14 @@ ${availablesRanksText}`);
         numberStr = await bot.WaitTextMessageFrom(args.chatId, args.userId, 250);
 
         if (numberStr.includes('mio')) {
-          const local = utils.GetPhoneNumber(args.originalPromptMsgObj);
+          const local = utils.GetPhoneNumberFromRawmsg(args.originalPromptMsgObj);
           if (local !== null) {
             numberStr = local.fullRawCleanedNumber
             isRightNumber = true;
           } else {
             await SendText("Eso no es un número válido, intenta de nuevo");
           }
-        } else if (numberStr.startsWith("@")) {
+        } else if (utils.isAMentionNumber(numberStr)) {
           const local = utils.GetPhoneNumberFromMention(numberStr);
           if (local !== null) {
             numberStr = local.fullRawCleanedNumber
@@ -131,8 +123,14 @@ ${availablesRanksText}`);
           await SendText("Eso no es un número válido, intenta de nuevo");
         }
       } while (!isRightNumber);
-
       await SendText("Se ha registrado el número");
+
+
+      // await SendText(
+      //   `Brinda la fecha en la que se unió el miembro en el formato:
+      //    AÑO/MES/DIA. Ejemplo: 2024/octubre/24
+      //    Si quieres que sea el día de hoy escribe:  hoy`)
+      // const dateInput = bot.WaitSpecificTextMessageFrom(args.chatId, args.userId, { regex: /^\d{4} \w+ \d{1,2}$/, incorrectMsg: "Formato de fecha incorrecta, vuelve a intentarlo..." })
 
       await SendText("Estoy guardando la información...");
       await Kldb.player.create({

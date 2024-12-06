@@ -1,8 +1,9 @@
 import { WAMessage, downloadMediaMessage } from '@whiskeysockets/baileys'
-import { BotWaitMessageError, MsgType } from './types/bot_types';
+import { BotCommandArgs, BotWaitMessageError, MsgType, WaitTextRegexFormat } from './types/bot_types';
 import path from 'path';
 import fs from 'fs'
 import Kldb from './kldb';
+import Bot from './bot';
 
 type WhatsNumber = {
   countryCode: string;
@@ -16,6 +17,8 @@ function isValidNumberStr(numberStr: string): boolean {
   const userIdRegex = /^\d{13}@s.whatsapp.net$/;
   return mentionRegex.test(numberStr) || userIdRegex.test(numberStr);
 }
+
+
 
 export function GetPhoneNumberFromRawmsg(rawMsg: WAMessage): WhatsNumber | null {
   //Let's check if comes from private msg or group
@@ -43,6 +46,10 @@ export function GetPhoneNumberFromMention(numberStr: string): WhatsNumber | null
   }
 }
 
+export function isAMentionNumber(mentionStr: string) {
+  return /^@\d{13}$/.test(mentionStr);
+}
+
 export async function isAdminSender(rawMsg: WAMessage): Promise<boolean> {
   let senderIsAnAdminAsWell: boolean = false;
   try {
@@ -52,6 +59,23 @@ export async function isAdminSender(rawMsg: WAMessage): Promise<boolean> {
     senderIsAnAdminAsWell = false;
   }
   return senderIsAnAdminAsWell;
+}
+
+export function CreateSenderReplyToolKit(bot: Bot, args: BotCommandArgs) {
+  return {
+    async txtToChatSender(msgText: string): Promise<void> {
+      await bot.SendText(args.chatId, msgText);
+    },
+    async imgToChatSender(imgPath: string, caption?: string): Promise<void> {
+      await bot.SendImg(args.chatId, imgPath, caption);
+    },
+    async waitTextFromSender(timeout?: number): Promise<string> {
+      return await bot.WaitTextMessageFrom(args.chatId, args.userId, timeout);
+    },
+    async waitSpecificTextFromSender(regexExpectingFormat: WaitTextRegexFormat, timeout?: number): Promise<string> {
+      return await bot.WaitSpecificTextMessageFrom(args.chatId, args.userId, regexExpectingFormat, timeout);
+    }
+  }
 }
 
 /**

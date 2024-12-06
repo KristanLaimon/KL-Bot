@@ -1,6 +1,6 @@
 import { HelperRoleName } from '../../types/helper_types';
 import Bot from '../../bot';
-import { ICommand, CommandArgs } from '../../types/bot_types';
+import { ICommand, BotCommandArgs } from '../../types/bot_types';
 import { isAdminSender } from '../../bot_utils';
 
 export default class HelpCommand implements ICommand {
@@ -8,7 +8,7 @@ export default class HelpCommand implements ICommand {
   roleCommand: HelperRoleName = "Miembro";
   description: string = 'Despliega esta pantalla de ayuda';
 
-  async onMsgReceived(bot: Bot, args: CommandArgs) {
+  async onMsgReceived(bot: Bot, args: BotCommandArgs) {
 
 
     const strs: string[] = [];

@@ -1,11 +1,12 @@
 import Bot from "./src/bot";
+import moment from 'moment';
 import WolfCommand from "./src/commands/test/wolf";
 import HelpCommand from './src/commands/general/help';
 import ReceiveImgCommand from './src/commands/test/img';
 import AddMemberCommand from './src/commands/admin/addmember';
 import DeleteAdmin from './src/commands/admin/deletemember';
 import GetProfileInfoCommand from './src/commands/general/perfil';
-import moment from 'moment';
+import TestCommand from './src/commands/test/test';
 
 async function Main() {
   //Set moment library to spanish
@@ -18,6 +19,7 @@ async function Main() {
   klBot.AddCommand(new AddMemberCommand());
   klBot.AddCommand(new DeleteAdmin());
   klBot.AddCommand(new GetProfileInfoCommand());
+  klBot.AddCommand(new TestCommand());
 
   klBot.StartBot();
 }

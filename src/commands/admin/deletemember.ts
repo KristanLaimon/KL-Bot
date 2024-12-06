@@ -1,7 +1,7 @@
 import Kldb from '../../kldb';
 import Bot from '../../bot';
 import { BotUtilsObj } from '../../bot';
-import { CommandArgs, ICommand } from '../../types/bot_types';
+import { BotCommandArgs, ICommand } from '../../types/bot_types';
 import { CommandAccessibleRoles } from '../../types/helper_types';
 
 
@@ -9,7 +9,7 @@ export default class DeleteAdmin implements ICommand {
   commandName: string = 'deletemember';
   description: string = "DeleteAdmin"
   roleCommand: CommandAccessibleRoles = "Secreto";
-  async onMsgReceived(bot: Bot, args: CommandArgs, utils: BotUtilsObj) {
+  async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: BotUtilsObj) {
     await bot.SendText(args.chatId, "Eliminado de un miembro");
     const allMembers = await Kldb.player.findMany({ include: { Role: true } });
     const allMembersText = allMembers.map(memberObj => `🦁 ${memberObj.Role.name}: ${memberObj.username}`).join("\n");
