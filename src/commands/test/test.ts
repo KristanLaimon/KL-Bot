@@ -2,7 +2,6 @@ import Bot, { BotUtilsObj } from '../../bot';
 import { BotCommandArgs, ICommand } from '../../types/bot_types';
 import { CommandAccessibleRoles } from '../../types/helper_types';
 
-
 export default class TestCommand implements ICommand {
   commandName: string = "test";
   description: string = "A simple test command";

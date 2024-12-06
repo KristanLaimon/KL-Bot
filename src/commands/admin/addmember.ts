@@ -11,12 +11,13 @@ export default class AddMemberCommand implements ICommand {
   description: string = "Añade un nuevo miembro al bot";
   roleCommand: CommandAccessibleRoles = "Administrador";
   async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: BotUtilsObj) {
+    const t = utils.CreateSenderReplyToolKit(bot, args);
 
     const separator = "=======================";
     const SendText = async (msg: string) => await bot.SendText(args.chatId, msg);
     let thereWasImgStored: string = "";
     try {
-      /// 1 of 4: Password
+      //Welcome to command
       await bot.SendText(args.chatId,
         `${separator}
 Añadiendo un nuevo administrador
