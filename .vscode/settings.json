@@ -11,11 +11,15 @@
   "sqltools.useNodeRuntime": true,
   "files.exclude": {
     ".prettierrc": true,
-    ".vscode": true,
     "auth_info": true,
     "node_modules": true,
     ".gitignore": true,
     "LICENSE": true,
-    "package-lock.json": true
+    "package-lock.json": true,
+    "docker-compose.debug.yml": true,
+    "docker-compose.yml": true,
+    ".vscode": true,
+    ".dockerignore": true,
+    "dockerfile": true
   }
 }

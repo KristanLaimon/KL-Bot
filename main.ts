@@ -8,6 +8,8 @@ import DeleteAdmin from './src/commands/admin/deletemember';
 import GetProfileInfoCommand from './src/commands/general/perfil';
 import TestCommand from './src/commands/test/test';
 
+//For some reason this bot stops working if a group has ( or ) in its name on production server ubuntu server!
+
 async function Main() {
   //Set moment library to spanish
   moment.locale("es");

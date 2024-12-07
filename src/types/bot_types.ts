@@ -8,7 +8,7 @@ type FlowCallBack = (bot: Bot, message: WAMessage, waitMessage: (chatId: string,
 
 export type WaitTextRegexFormat = {
   regex: RegExp,
-  incorrectMsg: string
+  incorrectMsg?: string
 }
 
 export type BaileysOnMessageObj = {

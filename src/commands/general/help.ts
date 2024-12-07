@@ -9,8 +9,6 @@ export default class HelpCommand implements ICommand {
   description: string = 'Despliega esta pantalla de ayuda';
 
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
-
-
     const strs: string[] = [];
     const maxCmdLength = Math.max(...bot.Commands.map(([_, cmd]) => cmd.commandName.length));
     const separator = '=================================';

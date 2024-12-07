@@ -246,7 +246,7 @@ export default class Bot {
       if (regexExpectingFormat.regex.test(userResult))
         isValidResponse = true
       else {
-        await this.SendText(chatSenderId, regexExpectingFormat.incorrectMsg);
+        await this.SendText(chatSenderId, regexExpectingFormat.incorrectMsg || "No has respondido con un formato válido, intenta de nuevo...");
       }
     } while (!isValidResponse);
     return userResult;
@@ -265,19 +265,6 @@ export default class Bot {
       image: fs.readFileSync(imgPath),
       caption: captionTxt || ''
     });
-  }
-
-  /**
-   * @param whatsappID This must be like 6122398392@whatsapp.net OR ending with "@g.us"!
-   */
-  public async GetContactFromId(whatsappID: string): Promise<Contact | null> {
-    const existsUserList = await this.socket.onWhatsApp(whatsappID);
-    if (existsUserList.length == 0) return null;
-
-    const jidUser = existsUserList.at(0)!.jid;
-    const contact = this.whatsData.contacts[jidUser];
-
-    if (contact) return contact; else return null;
   }
 
   private async innerStartupSocket() {

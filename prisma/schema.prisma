@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:..\\db\\klbotdb.db"
+  url      = "file:../db/klbotdb.db"
 }
 
 model Player {
@@ -16,10 +16,10 @@ model Player {
   phoneNumber        String      @unique(map: "sqlite_autoindex_Player_3")
   whatsappNickName   String
   role               String
-  joined_date        BigInt     @default(-1)
-  Tournament         Tournament? @relation(fields: [tournamentSelected], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Rank               Rank        @relation(fields: [actualRank], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  joined_date        BigInt      @default(-1)
   Role               Role        @relation(fields: [role], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Rank               Rank        @relation(fields: [actualRank], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Tournament         Tournament? @relation(fields: [tournamentSelected], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model Rank {

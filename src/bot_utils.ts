@@ -74,6 +74,51 @@ export function CreateSenderReplyToolKit(bot: Bot, args: BotCommandArgs) {
     },
     async waitSpecificTextFromSender(regexExpectingFormat: WaitTextRegexFormat, timeout?: number): Promise<string> {
       return await bot.WaitSpecificTextMessageFrom(args.chatId, args.userId, regexExpectingFormat, timeout);
+    },
+    /**
+     * A method to wait a message among a fixed set of options from user
+     * #### Example usage:
+     * User can only answer from this options. ["hola", "hi", "bonjour"]
+     * 
+     * If user didn't select any option, the bot can send "You haven't chosed a correct option" thats errorMsg parameter
+     * 
+     * If you wanna display next all options with your own style:
+     * 
+     * Lets say we wanna display options with emojis and bold text
+     * 
+     * """
+     * 
+     * 🦊 hola
+     * 
+     * 🦊 hi
+     * 
+     * 🦊 bonjour
+     * 
+     * """
+     * 
+     * so, we needto pass formatEachElementCallBack parameter like this:
+     * 
+     * (greetingStr) => `'🦊 ${greetingStr}'`
+     * 
+     * and finally the timeout, indicates how much time in seconds the user have to answer otherwise, this returns a
+     * "exception" (rejecting promise) which you should handle with a try / catch block
+     * @param possibleResults A string list with already fixed possible results that the user can choose from (Mandatory)
+     * @param errorMsg Message to show when user has not chosen any of the possible results (wrong) (Optional)
+     * @param formatEachElementCallback  A function that formats each element of the possible results and send a list like (Optional)
+     * @param timeout 
+     * @returns 
+     */
+    async waitFromListTextsFromSender(possibleResults: string[], errorMsg?: string, formatEachElementCallback?: (element: string, index?: number) => string, timeout?: number): Promise<string> {
+      const possibleResultsRegex = new RegExp(`^(${possibleResults.join("|")})$`);
+      let fullMsg: string | undefined = errorMsg;
+      if (errorMsg) {
+        if (formatEachElementCallback) {
+          fullMsg += "\n";
+          fullMsg += possibleResults.map((element: string, index: number) => `${formatEachElementCallback(element, index)}`).join("\n");
+        }
+      }
+      const toReturn = await bot.WaitSpecificTextMessageFrom(args.chatId, args.userId, { regex: possibleResultsRegex, incorrectMsg: fullMsg }, timeout)
+      return toReturn;
     }
   }
 }
