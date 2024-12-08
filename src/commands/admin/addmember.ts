@@ -68,7 +68,7 @@ ${availablesRanksText}`);
       do {
         imgName = `AD-${name}-${Date.now()}-profile-picture`;
         wasValidImg = await utils.DownloadMedia(
-          await bot.WaitRawMessageFrom(
+          await bot.WaitRawMessageFromId(
             args.chatId,
             args.userId,
             MsgType.image, 60),

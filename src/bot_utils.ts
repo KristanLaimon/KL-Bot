@@ -5,7 +5,7 @@ import fs from 'fs'
 import Kldb from './kldb';
 import Bot from './bot';
 
-type WhatsNumber = {
+export type WhatsNumber = {
   countryCode: string;
   number: string;
   fullRawCleanedNumber: string;
@@ -17,8 +17,6 @@ function isValidNumberStr(numberStr: string): boolean {
   const userIdRegex = /^\d{13}@s.whatsapp.net$/;
   return mentionRegex.test(numberStr) || userIdRegex.test(numberStr);
 }
-
-
 
 export function GetPhoneNumberFromRawmsg(rawMsg: WAMessage): WhatsNumber | null {
   //Let's check if comes from private msg or group

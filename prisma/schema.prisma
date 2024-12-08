@@ -57,31 +57,42 @@ model Tournament_Rank_RanksAdmitted {
 }
 
 model MatchType {
-  id   String @id
-  name String
+  id    String  @id
+  name  String
+  Match Match[]
 }
 
-model TournamentMatch {
-  date              BigInt @id
-  tournament_id     Int
+//Father table | Inheritance
+model Match {
+  date_id              BigInt @id
   match_type        String
-  referee_verifier  Int
   blue_scoreboard   Int
   orange_scoreboard Int
 
+  MathType        MatchType         @relation(fields: [match_type], references: [id])
+  TournamentMatch TournamentMatch[]
+}
+
+//Child table
+model TournamentMatch {
+  match_date_id       BigInt @id // Foreign and primary key at the same time
+  tournament_id    Int
+  referee_verifier Int
+
+  MatchInfo              Match                    @relation(fields: [match_date_id], references: [date_id])
   RefereeVerifier        Player                   @relation(fields: [referee_verifier], references: [id], onDelete: NoAction, onUpdate: NoAction)
   Tournament             Tournament               @relation(fields: [tournament_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   TournamentMatch_Player TournamentMatch_Player[]
 }
 
 model TournamentMatch_Player {
-  match_date BigInt  @id
-  player_id  Int
-  is_winner  Boolean
-  team_color String
+  tournament_match_date_id BigInt  @id
+  player_id             Int
+  is_winner             Boolean
+  team_color            String
 
   TeamColor       TeamColor       @relation(fields: [team_color], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  TournamentMatch TournamentMatch @relation(fields: [match_date], references: [date], onDelete: NoAction, onUpdate: NoAction)
+  TournamentMatch TournamentMatch @relation(fields: [tournament_match_date_id], references: [match_date_id], onDelete: NoAction, onUpdate: NoAction)
   Player          Player          @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 

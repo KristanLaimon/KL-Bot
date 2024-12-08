@@ -1,7 +1,7 @@
 import makeWASocket, { AnyMessageContent, Contact, DisconnectReason, MessageUpsertType, MiscMessageGenerationOptions, proto, WAMessage } from "@whiskeysockets/baileys";
 import type { BaileysWASocket, BotWaitMessageError, ICommand, WaitTextRegexFormat } from "./types/bot_types";
 import { useMultiFileAuthState } from "@whiskeysockets/baileys";
-import { GetTextFromRawMsg } from './bot_utils';
+import { GetTextFromRawMsg, WhatsNumber } from './bot_utils';
 import { MsgType, SenderType } from "./types/bot_types";
 import SocketMessageQueue from './bot_queue';
 import * as botUtils from './bot_utils';
@@ -53,7 +53,7 @@ export default class Bot {
     this.maxQueueMsgs = args?.maxQueueMsgs || 10;
     this._shouldConsiderRoles = args?.shouldConsiderRoles || true; // True by default
     this.credentialsStoragePath = "./auth_info";
-    this.WaitRawMessageFrom.bind(this, 'NO ID THIS COMES FROM BIND()', 30000);
+    this.WaitRawMessageFromId.bind(this, 'NO ID THIS COMES FROM BIND()', 30000);
   }
 
   public AddCommand(commandObj: ICommand) {
@@ -158,7 +158,7 @@ export default class Bot {
    * @throws {BotWaitMessageError} if user has CANCELLED the operation or if timeout has been reached
    * @returns The message object sent by the user
    */
-  public async WaitRawMessageFrom(chatSenderId: string, participantId: string, expectedMsgType: MsgType = MsgType.text, timeout: number = 30): Promise<WAMessage> {
+  public async WaitRawMessageFromId(chatSenderId: string, participantId: string, expectedMsgType: MsgType = MsgType.text, timeout: number = 30): Promise<WAMessage> {
     return new Promise((resolve, reject: (reason: BotWaitMessageError) => void) => {
       const timeoutMsg = "User didn't respond in specified time: " + timeout + " seconds";
       const originalChat = chatSenderId;
@@ -214,6 +214,64 @@ export default class Bot {
     });
   }
 
+  public async WaitRawMessageFromNumber(chatSenderId: string, expectedCleanedPhoneNumber: string, expectedMsgType: MsgType = MsgType.text, timeout: number = 30): Promise<WAMessage> {
+    return new Promise((resolve, reject: (reason: BotWaitMessageError) => void) => {
+      const timeoutMsg = "User didn't respond in specified time: " + timeout + " seconds";
+      const originalChat = chatSenderId;
+      const expectedSenderNumber = expectedCleanedPhoneNumber;
+
+      let timerOut: NodeJS.Timeout;
+
+      const resetTimeout = () => {
+        clearTimeout(timerOut);
+        timerOut = setTimeout(() => {
+          this.socket.ev.off("messages.upsert", listener);
+          reject({ wasAbortedByUser: false, errorMessage: timeoutMsg });
+        }, timeout * 1000);
+      };
+
+      const listener = async (messageEvent: BaileysInsertArgs) => {
+        for (const msg of messageEvent.messages) {
+
+          if (msg.key.fromMe) continue;
+          if (msg.key.remoteJid !== originalChat) continue;
+
+          //Compare phone numbers
+          const msgNumber = botUtils.GetPhoneNumberFromRawmsg(msg)!.fullRawCleanedNumber;
+          if (msgNumber !== expectedSenderNumber) continue;
+
+          // Reset the timeout on any user response
+          resetTimeout();
+
+          if (GetTextFromRawMsg(msg).includes('cancelar')) {
+            this.socket.ev.off("messages.upsert", listener);
+            clearTimeout(timerOut);
+            reject({ wasAbortedByUser: true, errorMessage: timeoutMsg });
+            return;
+          }
+
+          const msgType = botUtils.GetMsgTypeFromRawMsg(msg);
+          if (msgType !== expectedMsgType) {
+            await this.SendText(chatSenderId, `Formato Incorrecto: Tienes que responder con ${botUtils.MsgTypeToString(expectedMsgType)}`);
+            continue; // Keep listening for the correct response
+          }
+
+          // Valid response
+          this.socket.ev.off("messages.upsert", listener);
+          clearTimeout(timerOut);
+          resolve(msg);
+          return;
+        }
+      };
+
+      // Set initial timeout
+      resetTimeout();
+
+      // Start listening for messages
+      this.socket.ev.on("messages.upsert", listener);
+    });
+  }
+
   /**
    * Expect a TEXT message from the user (Doesn't matter the format)
    * max message timeout in seconds has been reached.
@@ -224,7 +282,7 @@ export default class Bot {
    * @returns  The message sent by the user
    */
   public async WaitTextMessageFrom(chatSenderId: string, participantId: string, timeout: number = 30): Promise<string> {
-    return botUtils.GetTextFromRawMsg(await this.WaitRawMessageFrom(chatSenderId, participantId, MsgType.text, timeout));
+    return botUtils.GetTextFromRawMsg(await this.WaitRawMessageFromId(chatSenderId, participantId, MsgType.text, timeout));
   }
 
   /**
