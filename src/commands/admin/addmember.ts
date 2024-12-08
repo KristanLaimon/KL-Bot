@@ -1,17 +1,18 @@
-import { CommandAccessibleRoles } from '../../types/helper_types';
-import Bot, { BotUtilsObj } from '../../bot';
-import { BotCommandArgs, ICommand, MsgType } from '../../types/bot_types';
+import { CommandAccessibleRoles, ICommand, MsgType } from '../../types/commands';
 import fs from 'fs';
-import Kldb from '../../kldb';
+import Kldb from '../../utils/db';
 import path from 'path';
-import { CapitalizeStr } from '../../utils';
+import { CapitalizeStr } from '../../utils/strings';
+import { BotCommandArgs } from '../../types/bot';
+import { AllUtilsType } from '../../utils/index_utils';
+import Bot from '../../bot';
 
 export default class AddMemberCommand implements ICommand {
   commandName: string = "addmember";
   description: string = "Añade un nuevo miembro al bot";
   roleCommand: CommandAccessibleRoles = "Administrador";
-  async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: BotUtilsObj) {
-    const t = utils.CreateSenderReplyToolKit(bot, args);
+  async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: AllUtilsType) {
+    const t = utils.Msg.CreateSenderReplyToolKit(bot, args);
 
     const separator = "=======================";
     const SendText = async (msg: string) => await bot.SendText(args.chatId, msg);
@@ -67,7 +68,7 @@ ${availablesRanksText}`);
       let imgName: string;
       do {
         imgName = `AD-${name}-${Date.now()}-profile-picture`;
-        wasValidImg = await utils.DownloadMedia(
+        wasValidImg = await utils.FileSystem.DownloadMedia(
           await bot.WaitRawMessageFromId(
             args.chatId,
             args.userId,
@@ -100,15 +101,15 @@ ${availablesRanksText}`);
         numberStr = await bot.WaitTextMessageFrom(args.chatId, args.userId, 250);
 
         if (numberStr.includes('mio')) {
-          const local = utils.GetPhoneNumberFromRawmsg(args.originalPromptMsgObj);
+          const local = utils.PhoneNumber.GetPhoneNumberFromRawmsg(args.originalPromptMsgObj);
           if (local !== null) {
             numberStr = local.fullRawCleanedNumber
             isRightNumber = true;
           } else {
             await SendText("Eso no es un número válido, intenta de nuevo");
           }
-        } else if (utils.isAMentionNumber(numberStr)) {
-          const local = utils.GetPhoneNumberFromMention(numberStr);
+        } else if (utils.PhoneNumber.isAMentionNumber(numberStr)) {
+          const local = utils.PhoneNumber.GetPhoneNumberFromMention(numberStr);
           if (local !== null) {
             numberStr = local.fullRawCleanedNumber
             isRightNumber = true;
@@ -155,7 +156,7 @@ ${availablesRanksText}`);
 
       await bot.SendText(args.chatId, "===========Terminado==============");
     } catch (error) {
-      if (utils.isBotWaitMessageError(error)) {
+      if (utils.Msg.isBotWaitMessageError(error)) {
         if (error.wasAbortedByUser) {
           await SendText("Se ha cancelado el proceso de creación del administrador");
         }

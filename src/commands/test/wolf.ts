@@ -1,6 +1,6 @@
-import { ICommand, BotCommandArgs } from '../../types/bot_types';
+import { BotCommandArgs } from '../../types/bot';
 import Bot from '../../bot';
-import { HelperRoleName } from '../../types/helper_types';
+import { HelperRoleName, ICommand } from '../../types/commands';
 
 ///How can i handle different types of messages in a single function? -- READY!j
 ///always a command have a commandName -- READY!

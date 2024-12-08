@@ -1,14 +1,14 @@
-import { HelperRoleName } from '../../types/helper_types';
+import { HelperRoleName, ICommand } from '../../types/commands';
 import Bot from '../../bot';
-import { ICommand, BotCommandArgs } from '../../types/bot_types';
-import { isAdminSender } from '../../bot_utils';
+import { BotCommandArgs } from '../../types/bot';
+import { AllUtilsType } from '../../utils/index_utils';
 
 export default class HelpCommand implements ICommand {
   commandName: string = 'help';
   roleCommand: HelperRoleName = "Miembro";
   description: string = 'Despliega esta pantalla de ayuda';
 
-  async onMsgReceived(bot: Bot, args: BotCommandArgs) {
+  async onMsgReceived(bot: Bot, args: BotCommandArgs, u: AllUtilsType) {
     const strs: string[] = [];
     const maxCmdLength = Math.max(...bot.Commands.map(([_, cmd]) => cmd.commandName.length));
     const separator = '=================================';
@@ -31,7 +31,7 @@ export default class HelpCommand implements ICommand {
     }
 
     //Check if it' admin
-    if (await isAdminSender(args.originalPromptMsgObj)) {
+    if (await u.Member.isAdminSender(args.originalPromptMsgObj)) {
       if (adminCommands.length > 0) {
         strs.push("=== Comandos de administrador ===");
         for (const cmd of adminCommands) {

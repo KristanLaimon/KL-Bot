@@ -1,14 +1,13 @@
-import makeWASocket, { AnyMessageContent, Contact, DisconnectReason, MessageUpsertType, MiscMessageGenerationOptions, proto, WAMessage } from "@whiskeysockets/baileys";
-import type { BaileysWASocket, BotWaitMessageError, ICommand, WaitTextRegexFormat } from "./types/bot_types";
+import makeWASocket, { AnyMessageContent, DisconnectReason, MessageUpsertType, MiscMessageGenerationOptions, proto, WAMessage } from "@whiskeysockets/baileys";
+import type { BaileysWASocket, BotWaitMessageError, WaitTextRegexFormat } from "./types/bot";
 import { useMultiFileAuthState } from "@whiskeysockets/baileys";
-import { GetTextFromRawMsg, WhatsNumber } from './bot_utils';
-import { MsgType, SenderType } from "./types/bot_types";
+import { GetTextFromRawMsg } from './utils/rawmsgs';
 import SocketMessageQueue from './bot_queue';
-import * as botUtils from './bot_utils';
+import allUtils, { AllUtilsType } from './utils/index_utils';
 import { Boom } from "@hapi/boom";
 import fs from "fs";
-import Kldb from './kldb';
-export type BotUtilsObj = typeof botUtils;
+import Kldb from './utils/db';
+import { ICommand, MsgType, SenderType } from './types/commands';
 
 type BaileysInsertArgs = {
   messages: WAMessage[];
@@ -118,7 +117,7 @@ export default class Bot {
             if (isACommand.roleCommand === "Administrador" || isACommand.roleCommand === "Secreto") {
               let senderIsAnAdminAsWell: boolean = false;
               try {
-                const phoneNumber = await botUtils.GetPhoneNumberFromRawmsg(msg)!.fullRawCleanedNumber;
+                const phoneNumber = await allUtils.PhoneNumber.GetPhoneNumberFromRawmsg(msg)!.fullRawCleanedNumber;
                 senderIsAnAdminAsWell = !!(await Kldb.player.findFirst({ where: { phoneNumber, role: "AD" } }));
               } catch (e) {
                 senderIsAnAdminAsWell = false;
@@ -141,7 +140,7 @@ export default class Bot {
                 /** otherwise, its from an individual chatId */
                 userId: msg.key.participant || chatId || "There's no participant, strange error..."
               },
-              botUtils
+              allUtils
             )
           }
         }
@@ -192,9 +191,9 @@ export default class Bot {
             return;
           }
 
-          const msgType = botUtils.GetMsgTypeFromRawMsg(msg);
+          const msgType = allUtils.Msg.GetMsgTypeFromRawMsg(msg);
           if (msgType !== expectedMsgType) {
-            await this.SendText(chatSenderId, `Formato Incorrecto: Tienes que responder con ${botUtils.MsgTypeToString(expectedMsgType)}`);
+            await this.SendText(chatSenderId, `Formato Incorrecto: Tienes que responder con ${allUtils.Msg.MsgTypeToString(expectedMsgType)}`);
             continue; // Keep listening for the correct response
           }
 
@@ -214,7 +213,7 @@ export default class Bot {
     });
   }
 
-  public async WaitRawMessageFromNumber(chatSenderId: string, expectedCleanedPhoneNumber: string, expectedMsgType: MsgType = MsgType.text, timeout: number = 30): Promise<WAMessage> {
+  public async WaitRawMessageFromNumber(chatSenderId: string, userSenderId: string, expectedCleanedPhoneNumber: string, expectedMsgType: MsgType = MsgType.text, timeout: number = 30): Promise<WAMessage> {
     return new Promise((resolve, reject: (reason: BotWaitMessageError) => void) => {
       const timeoutMsg = "User didn't respond in specified time: " + timeout + " seconds";
       const originalChat = chatSenderId;
@@ -236,23 +235,23 @@ export default class Bot {
           if (msg.key.fromMe) continue;
           if (msg.key.remoteJid !== originalChat) continue;
 
-          //Compare phone numbers
-          const msgNumber = botUtils.GetPhoneNumberFromRawmsg(msg)!.fullRawCleanedNumber;
-          if (msgNumber !== expectedSenderNumber) continue;
-
-          // Reset the timeout on any user response
-          resetTimeout();
-
-          if (GetTextFromRawMsg(msg).includes('cancelar')) {
+          if (GetTextFromRawMsg(msg).includes('cancelar') && (msg.key.participant || msg.key.remoteJid) === userSenderId) {
             this.socket.ev.off("messages.upsert", listener);
             clearTimeout(timerOut);
             reject({ wasAbortedByUser: true, errorMessage: timeoutMsg });
             return;
           }
 
-          const msgType = botUtils.GetMsgTypeFromRawMsg(msg);
+          //Compare phone numbers
+          const msgNumber = allUtils.PhoneNumber.GetPhoneNumberFromRawmsg(msg)!.fullRawCleanedNumber;
+          if (msgNumber !== expectedSenderNumber) continue;
+
+          // Reset the timeout on any user response
+          resetTimeout();
+
+          const msgType = allUtils.Msg.GetMsgTypeFromRawMsg(msg);
           if (msgType !== expectedMsgType) {
-            await this.SendText(chatSenderId, `Formato Incorrecto: Tienes que responder con ${botUtils.MsgTypeToString(expectedMsgType)}`);
+            await this.SendText(chatSenderId, `Formato Incorrecto: Tienes que responder con ${allUtils.Msg.MsgTypeToString(expectedMsgType)}`);
             continue; // Keep listening for the correct response
           }
 
@@ -282,7 +281,7 @@ export default class Bot {
    * @returns  The message sent by the user
    */
   public async WaitTextMessageFrom(chatSenderId: string, participantId: string, timeout: number = 30): Promise<string> {
-    return botUtils.GetTextFromRawMsg(await this.WaitRawMessageFromId(chatSenderId, participantId, MsgType.text, timeout));
+    return allUtils.Msg.GetTextFromRawMsg(await this.WaitRawMessageFromId(chatSenderId, participantId, MsgType.text, timeout));
   }
 
   /**

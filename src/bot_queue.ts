@@ -1,5 +1,5 @@
 import { AnyMessageContent, MiscMessageGenerationOptions } from '@whiskeysockets/baileys';
-import { BaileysWASocket } from './types/bot_types';
+import { BaileysWASocket } from './types/bot';
 
 export type SocketMsgQueueItem = {
   chatId: string,

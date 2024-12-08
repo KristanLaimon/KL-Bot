@@ -1,15 +1,15 @@
-import Kldb from '../../kldb';
+import Kldb from '../../utils/db';
 import Bot from '../../bot';
-import { BotUtilsObj } from '../../bot';
-import { BotCommandArgs, ICommand } from '../../types/bot_types';
-import { CommandAccessibleRoles } from '../../types/helper_types';
+import { CommandAccessibleRoles, ICommand } from '../../types/commands';
+import { BotCommandArgs } from '../../types/bot';
+import { AllUtilsType } from '../../utils/index_utils';
 
 
 export default class DeleteAdmin implements ICommand {
   commandName: string = 'deletemember';
   description: string = "DeleteAdmin"
   roleCommand: CommandAccessibleRoles = "Secreto";
-  async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: BotUtilsObj) {
+  async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: AllUtilsType) {
     await bot.SendText(args.chatId, "Eliminado de un miembro");
     const allMembers = await Kldb.player.findMany({ include: { Role: true } });
     const allMembersText = allMembers.map(memberObj => `🦁 ${memberObj.Role.name}: ${memberObj.username}`).join("\n");
@@ -32,7 +32,7 @@ export default class DeleteAdmin implements ICommand {
       await bot.SendText(args.chatId, `Se ha borrado correctamente los datos del usuario: ${JSON.stringify(deleted)}`)
       await bot.SendText(args.chatId, "========= Finalizado =========");
     } catch (error) {
-      if (utils.isBotWaitMessageError(error)) {
+      if (utils.Msg.isBotWaitMessageError(error)) {
         if (error.wasAbortedByUser) {
           await bot.SendText(args.chatId, "Se ha cancelado el borrado del miembro");
         }
