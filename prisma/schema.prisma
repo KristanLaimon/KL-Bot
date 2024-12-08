@@ -8,20 +8,20 @@ datasource db {
 }
 
 model Player {
-  id                     Int                      @id @default(autoincrement())
-  username               String                   @unique(map: "sqlite_autoindex_Player_1")
-  profilePicturePath     String                   @unique(map: "sqlite_autoindex_Player_2")
+  id                     Int               @id @default(autoincrement())
+  username               String            @unique(map: "sqlite_autoindex_Player_1")
+  profilePicturePath     String            @unique(map: "sqlite_autoindex_Player_2")
   actualRank             String
   tournamentSelected     Int?
-  phoneNumber            String                   @unique(map: "sqlite_autoindex_Player_3")
+  phoneNumber            String            @unique(map: "sqlite_autoindex_Player_3")
   whatsappNickName       String
   role                   String
-  joined_date            BigInt                   @default(-1)
-  Role                   Role                     @relation(fields: [role], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Rank                   Rank                     @relation(fields: [actualRank], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Tournament             Tournament?              @relation(fields: [tournamentSelected], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  joined_date            BigInt            @default(-1)
+  Role                   Role              @relation(fields: [role], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Rank                   Rank              @relation(fields: [actualRank], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Tournament             Tournament?       @relation(fields: [tournamentSelected], references: [id], onDelete: NoAction, onUpdate: NoAction)
   TournamentMatch        TournamentMatch[]
-  TournamentMatch_Player TournamentMatch_Player[]
+  TournamentMatch_Player Match_Player[]
 }
 
 model Rank {
@@ -64,42 +64,42 @@ model MatchType {
 
 //Father table | Inheritance
 model Match {
-  date_id              BigInt @id
+  date_id           BigInt @id
   match_type        String
   blue_scoreboard   Int
   orange_scoreboard Int
 
   MathType        MatchType         @relation(fields: [match_type], references: [id])
   TournamentMatch TournamentMatch[]
+  Match_Player    Match_Player[]
 }
 
-//Child table
+//Child table  OK
 model TournamentMatch {
-  match_date_id       BigInt @id // Foreign and primary key at the same time
+  match_date_id    BigInt @id // Foreign and primary key at the same time
   tournament_id    Int
   referee_verifier Int
 
-  MatchInfo              Match                    @relation(fields: [match_date_id], references: [date_id])
-  RefereeVerifier        Player                   @relation(fields: [referee_verifier], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Tournament             Tournament               @relation(fields: [tournament_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  TournamentMatch_Player TournamentMatch_Player[]
+  MatchInfo       Match      @relation(fields: [match_date_id], references: [date_id])
+  RefereeVerifier Player     @relation(fields: [referee_verifier], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Tournament      Tournament @relation(fields: [tournament_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
-model TournamentMatch_Player {
-  tournament_match_date_id BigInt  @id
-  player_id             Int
-  is_winner             Boolean
-  team_color            String
+model Match_Player {
+  match_date_id BigInt  @id
+  player_id     Int
+  is_winner     Boolean
+  team_color    String
 
-  TeamColor       TeamColor       @relation(fields: [team_color], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  TournamentMatch TournamentMatch @relation(fields: [tournament_match_date_id], references: [match_date_id], onDelete: NoAction, onUpdate: NoAction)
-  Player          Player          @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  TeamColor       TeamColor @relation(fields: [team_color], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  TournamentMatch Match     @relation(fields: [match_date_id], references: [date_id], onDelete: NoAction, onUpdate: NoAction)
+  Player          Player    @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model TeamColor {
-  id                     String                   @id
+  id                     String         @id
   name                   String
-  TournamentMatch_Player TournamentMatch_Player[]
+  TournamentMatch_Player Match_Player[]
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

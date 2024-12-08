@@ -52,10 +52,14 @@ export default class DuelCommand implements ICommand {
 
       //Waiting for the dueled person's response
       await t.txtToChatSender(`
-        ⏳ **¡Esperando respuesta de ${challengedInfo.username}!** ⏳  
-        🔔 Tienes **60 segundos** para decidir:  
-        - Escribe **'aceptar'** para unirte al duelo.  
-        - Escribe **'no gracias ya comí'** o cualquier otro mensaje para rechazarlo.  
+        ⏳ *¡Esperando respuesta de ${challengedInfo.username}!* ⏳  
+        🔔 Tienes *60 segundos* para decidir:
+        
+        ${challengedInfo.username} puedes:
+        - Escribe *aceptar* para unirte al duelo.  
+        - Escribe *no gracias ya comí* o cualquier otro mensaje para rechazarlo.  
+
+        ${challengerInfo.username}, si ya tuviste miedo, escribe *cancelar*.
 
         ⚔️ ¡El destino del duelo está en tus manos! 🔥
       `);
@@ -100,15 +104,15 @@ export default class DuelCommand implements ICommand {
     } catch (e) {
       if (u.Msg.isBotWaitMessageError(e)) {
         if (!e.wasAbortedByUser) {
-          await t.txtToChatSender("No se recibió mensaje de esa persona");
+          await t.txtToChatSender("⏳ **No se recibió una respuesta de la persona esperada.**\nParece que no contestó a tiempo.");
         }
         else if (e.wasAbortedByUser) {
-          await t.txtToChatSender("El usuario original canceló la espera");
+          await t.txtToChatSender("❌ **El usuario original canceló la espera.**\nEl duelo ha sido cancelado.");
         }
+      } else {
+        await t.txtToChatSender("⚠️ **Algo salió mal** con el sistema o la base de datos.\nPor favor, intenta nuevamente o contacta con soporte.\nDetalles: " + JSON.stringify(e));
       }
-      else {
-        await t.txtToChatSender("Ha ocurrido un error extraño o con la BD: " + JSON.stringify(e));
-      }
+
     }
   }
 
