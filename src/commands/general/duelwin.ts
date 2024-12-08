@@ -1,7 +1,7 @@
 import Bot from '../../bot';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand } from '../../types/commands';
-import { TempPendingMatches } from '../../utils/db';
+import Kldb, { TempPendingMatches } from '../../utils/db';
 import { AllUtilsType } from '../../utils/index_utils';
 
 export default class DuelWinCommand implements ICommand {
@@ -13,10 +13,9 @@ export default class DuelWinCommand implements ICommand {
 
     //Check if sender is on a pending duel
     const numberSender = utils.PhoneNumber.GetPhoneNumberFromRawmsg(args.originalPromptMsgObj)!.fullRawCleanedNumber;
-    const thisSenderIsOnPendingMatchObj = TempPendingMatches.find(a => a.challenger.phoneNumber === numberSender || a.challenged.phoneNumber === numberSender);
-    if (!thisSenderIsOnPendingMatchObj) {
+    const pendingMatchFoundIndex = TempPendingMatches.findIndex(a => a.challenger.phoneNumber === numberSender || a.challenged.phoneNumber === numberSender);
+    if (pendingMatchFoundIndex === -1) {
       t.txtToChatSender("❌ *No tienes un duelo pendiente con nadie.*\nPara iniciar uno, usa *!duel @persona* y retar a alguien");
-
       return;
     }
 
@@ -31,10 +30,40 @@ export default class DuelWinCommand implements ICommand {
       return;
     }
 
+    const pendingMatch = TempPendingMatches.at(pendingMatchFoundIndex)!;
+    //This is already handled so, lets remove his countdown
+    clearTimeout(pendingMatch.countDownTimer);
+    //Remove the pending match from the IN MEMORY LIST;
+    TempPendingMatches.splice(pendingMatchFoundIndex, 1);
+
     //Two arguments: score and colorTeam given
+    const score = args.commandArgs.at(0)!.split(/[-|_]/).map(scoreStr => parseInt(scoreStr));
+    const winnerScore = Math.max(...score);
+    const loserScore = Math.min(...score);
+    let winnerTeamColor = args.commandArgs.at(1)!.toLowerCase();
+    winnerTeamColor = winnerTeamColor === "a" || winnerTeamColor === "azul" ? "BLU" : "ORA";
+    //TODO:Check which player is the winner and loser.... and store them in database
 
     try {
-      t.txtToChatSender("Todo el proceso ocurrió exitosamente, falta implementar la lógica para guardar en la base de datos");
+      t.txtToChatSender("Todo el proceso ocurrió exitosamente");
+      //1. Store match in db
+      await Kldb.match.create({
+        data: {
+          date_id: pendingMatch.dateTime,
+          blue_scoreboard: winnerTeamColor === "BLU" ? winnerScore : loserScore,
+          orange_scoreboard: winnerTeamColor === "ORA" ? winnerScore : loserScore,
+          match_type: "1S"
+        },
+      })
+
+      // //2. Store match_players
+      // await Kldb.match_Player.createMany({
+      //   data: [
+      //     {
+      //       player_id
+      //     }
+      //   ]
+      // })
     } catch (e) {
       if (utils.Msg.isBotWaitMessageError(e)) {
       }
