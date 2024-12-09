@@ -86,7 +86,8 @@ model TournamentMatch {
 }
 
 model Match_Player {
-  match_date_id BigInt  @id
+  id              Int               @id @default(autoincrement())
+  match_date_id BigInt 
   player_id     Int
   is_winner     Boolean
   team_color    String

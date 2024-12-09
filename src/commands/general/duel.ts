@@ -36,8 +36,8 @@ export default class DuelCommand implements ICommand {
       }
 
       //Validates that the tagged user is a member
-      const targetNumber = u.PhoneNumber.GetPhoneNumberFromMention(args.commandArgs.at(0)!)!.fullRawCleanedNumber;
-      const challengedInfo = await u.Member.GetMemberInfoFromPhone(targetNumber, "Miembro");
+      const challengedNumber = u.PhoneNumber.GetPhoneNumberFromMention(args.commandArgs.at(0)!)!.fullRawCleanedNumber;
+      const challengedInfo = await u.Member.GetMemberInfoFromPhone(challengedNumber, "Miembro");
       if (challengedInfo === null) {
         await t.txtToChatSender("Por alguna razón todavía no está registrado como miembro el usuario etiquetado, contacta a un admin para que te registre\nAdmins actuales:");
         //It assumes there's at least an admin registered
@@ -47,6 +47,12 @@ export default class DuelCommand implements ICommand {
               `🐺 ${ad.username}`
             ).join("\n");
         await t.txtToChatSender(adminsAvailable);
+        return;
+      }
+
+      //Validates they aren't the same person
+      if (challengerNumber === challengedNumber) {
+        await t.txtToChatSender("Te estás haciendo duelo a ti mismo?, no puedes hacer eso! 🦊");
         return;
       }
 
@@ -63,7 +69,7 @@ export default class DuelCommand implements ICommand {
 
         ⚔️ ¡El destino del duelo está en tus manos! 🔥
       `);
-      const thatPersonRawMsg = await bot.WaitRawMessageFromNumber(args.chatId, args.userId, targetNumber, MsgType.text, 60);
+      const thatPersonRawMsg = await bot.WaitRawMessageFromNumber(args.chatId, args.userId, challengedNumber, MsgType.text, 60);
       const thatPersonTxt = u.Msg.GetTextFromRawMsg(thatPersonRawMsg).toLowerCase();
 
       //Other used has responded!
@@ -79,7 +85,7 @@ export default class DuelCommand implements ICommand {
 
           ¡Que gane el mejor! 🚀🔥`
         );
-        const matchPendingIdentifier = new Date().getDate();
+        const matchPendingIdentifier = Date.now();
         const timerOnEnd = setTimeout(() => {
           const foundIndex = TempPendingMatches.findIndex(match => match.dateTime === matchPendingIdentifier);
           if (foundIndex !== -1) {
@@ -87,7 +93,7 @@ export default class DuelCommand implements ICommand {
             TempPendingMatches.splice(foundIndex, 1);
             t.txtToChatSender(`
               ⏳💔 **El tiempo ha terminado** 💔⏳  
-              El duelo entre **${challengerInfo.username}** y **${challengedInfo.username}** no se completó a tiempo.  
+              El duelo entre *${challengerInfo.username}* y *${challengedInfo.username}* no se completó a tiempo.  
               ⚠️ **El duelo ya no está pendiente.** ¡Inténtenlo de nuevo cuando estén listos! 🚀
             `);
           }
