@@ -17,7 +17,7 @@ async function Main() {
   //Set moment library to spanish
   moment.locale("es");
 
-  const klBot = new Bot({ prefix: "!", coolDownTime: 1 });
+  const klBot = new Bot({ prefix: "!", coolDownSecondsTime: 1 });
   klBot.AddCommand(new WolfCommand());
   klBot.AddCommand(new HelpCommand());
   klBot.AddCommand(new ReceiveImgCommand());

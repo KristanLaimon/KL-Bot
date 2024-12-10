@@ -1,7 +1,7 @@
 import { AnyMessageContent, MiscMessageGenerationOptions } from '@whiskeysockets/baileys';
-import { BaileysWASocket } from './types/bot';
+import WhatsSocket from './WhatsSocket';
 
-export type SocketMsgQueueItem = {
+type SocketMsgQueueItem = {
   chatId: string,
   content: AnyMessageContent,
   misc?: MiscMessageGenerationOptions,
@@ -14,22 +14,20 @@ export type SocketMsgQueueItem = {
  * IT'S global, applies for all messages from all chats the bot is included in. If in some point
  * this becomes a problem, we can always make it per chat and using multithreading.
  */
-export default class SocketMessageQueue {
+export default class WhatsSocketMsgQueue {
   private queue: SocketMsgQueueItem[] = [];
   private isProcessing: boolean = false;
-  private socket: BaileysWASocket;
-  /** In miliseconds */
-  private minDelay: number;
+  private socket: WhatsSocket;
+  private minMilisecondsDelay: number;
   private maxQueueLimit: number;
 
-
-  constructor(socket: BaileysWASocket, maxQueueLimit: number = 3, minDelay: number = 1000) {
+  constructor(socket: WhatsSocket, maxQueueLimit: number = 3, minMilisecondsDelay: number = 1000) {
     this.socket = socket;
-    this.minDelay = minDelay;
+    this.minMilisecondsDelay = minMilisecondsDelay;
     this.maxQueueLimit = maxQueueLimit;
   }
 
-  async AddMsg(chatId: string, content: AnyMessageContent, misc?: MiscMessageGenerationOptions): Promise<void> {
+  async Enqueue(chatId: string, content: AnyMessageContent, misc?: MiscMessageGenerationOptions): Promise<void> {
     if (this.queue.length >= this.maxQueueLimit) return;
 
     return new Promise((resolve, reject) => {
@@ -47,14 +45,13 @@ export default class SocketMessageQueue {
 
     const { chatId, content, misc, resolve, reject } = this.queue.shift()!;
     try {
-      await this.socket.sendMessage(chatId, content, misc);
+      await this.socket.Send(chatId, content, misc);
       resolve(true);
     }
     catch (error) {
       reject(error);
     }
-    await new Promise(resolve => setTimeout(resolve, this.minDelay));
-
+    await new Promise(resolve => setTimeout(resolve, this.minMilisecondsDelay));
     this.isProcessing = false;
     this.ProcessQueue();
   }
