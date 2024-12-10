@@ -4,6 +4,7 @@
   "main": "main.ts",
   "scripts": {
     "start": "npx tsx main.ts",
+    "lint": "tsc --noEmit --esModuleInterop --skipLibCheck main.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -14,12 +15,13 @@
     "-": "^0.0.1",
     "@prisma/client": "^6.0.0",
     "@whiskeysockets/baileys": "^6.7.9",
-    "moment": "^2.30.1",
-    "tsc": "^2.0.4"
+    "moment": "^2.30.1"
   },
   "devDependencies": {
+    "@types/node": "^22.10.1",
     "prisma": "^6.0.0",
     "terminal-qr": "^1.0.1",
+    "tsc": "^2.0.4",
     "tsx": "^4.19.2"
   }
 }
