@@ -33,6 +33,6 @@ export type KlPlayer = {
   tournamentSelected: number | null;
   phoneNumber: string;
   whatsappNickName: string;
-  role: string;
+  role: HelperRoleId;
   joined_date: bigint;
 }

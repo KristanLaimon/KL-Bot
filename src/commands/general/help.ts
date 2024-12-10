@@ -31,7 +31,7 @@ export default class HelpCommand implements ICommand {
     }
 
     //Check if it' admin
-    if (await u.Member.isAdminSender(args.originalPromptMsgObj)) {
+    if (await u.Member.isAdminSender(args.originalMsg)) {
       if (adminCommands.length > 0) {
         strs.push("=== Comandos de administrador ===");
         for (const cmd of adminCommands) {

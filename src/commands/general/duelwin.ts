@@ -12,7 +12,7 @@ export default class DuelWinCommand implements ICommand {
     const t = utils.Msg.CreateSenderReplyToolKit(bot, args);
 
     //Check if sender is on a pending duel
-    const numberSender = utils.PhoneNumber.GetPhoneNumberFromRawmsg(args.originalPromptMsgObj)!.fullRawCleanedNumber;
+    const numberSender = utils.PhoneNumber.GetPhoneNumberFromRawmsg(args.originalMsg)!.fullRawCleanedNumber;
     const pendingMatchFoundIndex = TempPendingMatches.findIndex(a => a.challenger.phoneNumber === numberSender || a.challenged.phoneNumber === numberSender);
     if (pendingMatchFoundIndex === -1) {
       await t.txtToChatSender("❌ *No tienes un duelo pendiente con nadie.*\nPara iniciar uno, usa *!duel @persona* y retar a alguien");

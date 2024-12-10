@@ -22,16 +22,17 @@ export class Delegate<functType extends (...args: any[]) => any> {
 export default class WhatsSocket {
   private socket: BaileysWASocket; //It's initialized in "initializeSelf"
   public onReconnect: Delegate<() => void> = new Delegate();
-  public onIncommingMessage: Delegate<(rawMsg: WAMessage, type: MsgType, senderType: SenderType) => void> = new Delegate();
+  public onIncommingMessage: Delegate<(chatId: string, rawMsg: WAMessage, type: MsgType, senderType: SenderType) => void> = new Delegate();
 
   constructor() {
-    this.InitializeSelf();
-    this.ConfigureReconnection();
-    this.ConfigureMessageIncoming();
+    this.InitializeSelf().then(() => {
+      this.ConfigureReconnection();
+      this.ConfigureMessageIncoming();
+    })
   }
 
   private async InitializeSelf() {
-    const { state, saveCreds } = await useMultiFileAuthState("./auth_info");
+    const { state, saveCreds } = await useMultiFileAuthState("auth_info");
     this.socket = makeWASocket({
       auth: state,
       printQRInTerminal: true, // Genera QR en la terminal
@@ -59,14 +60,14 @@ export default class WhatsSocket {
     this.socket.ev.on("messages.upsert", async (messageUpdate) => {
       if (!messageUpdate.messages) return;
       messageUpdate.messages.forEach(async (msg) => {
-        console.log(msg);
+        // console.log(msg);
         if (!msg.message || msg.key.fromMe) return;
         const chatId = msg.key.remoteJid!;
 
         let senderType: SenderType = SenderType.Individual;
         if (chatId && chatId.endsWith("@g.us")) senderType = SenderType.Group;
         if (chatId && chatId.endsWith("@s.whatsapp.net")) senderType = SenderType.Individual;
-        this.onIncommingMessage.CallAll(msg, GetMsgTypeFromRawMsg(msg), senderType);
+        this.onIncommingMessage.CallAll(chatId, msg, GetMsgTypeFromRawMsg(msg), senderType);
       });
     });
   }

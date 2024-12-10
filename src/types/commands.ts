@@ -1,15 +1,14 @@
 import Bot from '../bot';
-import { AllUtilsType } from '../utils/index_utils';
 import { BotCommandArgs } from './bot';
 
-export type HelperRoleName = "Administrador" | "Miembro";
+export type HelperRoleName = "Administrador" | "Miembro" | "Cualquiera";
 export type CommandAccessibleRoles = HelperRoleName | "Secreto";
 
 export interface ICommand {
   commandName: string;
   description: string;
   roleCommand: CommandAccessibleRoles;
-  onMsgReceived: (bot: Bot, args: BotCommandArgs, utils: AllUtilsType) => Promise<void>;
+  onMsgReceived: (bot: Bot, args: BotCommandArgs) => Promise<void>;
 }
 
 export enum SenderType {

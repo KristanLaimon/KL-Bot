@@ -6,10 +6,10 @@ import Bot from '../bot';
 export function CreateSenderReplyToolKit(bot: Bot, args: BotCommandArgs) {
   return {
     async txtToChatSender(msgText: string): Promise<void> {
-      await bot.SendTxtToChatId(args.chatId, msgText);
+      await bot.sender.sendText(args.chatId, msgText);
     },
     async imgToChatSender(imgPath: string, caption?: string): Promise<void> {
-      await bot.SendImgToChatId(args.chatId, imgPath, caption);
+      await bot.sender.sendImage(args.chatId, imgPath, caption);
     },
     async waitTextFromSender(timeout?: number): Promise<string> {
       return await bot.WaitNextTxtMsgFromUserId(args.chatId, args.userId, timeout);

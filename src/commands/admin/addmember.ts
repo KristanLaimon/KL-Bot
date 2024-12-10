@@ -89,7 +89,7 @@ ${availablesRanksText}`);
       await SendText("Si quieres que se registre tu nombre de usuario escribe:  mio");
       let whatsappNameOrNot = await bot.WaitNextTxtMsgFromUserId(args.chatId, args.userId, 250);
       if (whatsappNameOrNot.includes("mio")) {
-        whatsappNameOrNot = args.originalPromptMsgObj.pushName!
+        whatsappNameOrNot = args.originalMsg.pushName!
       }
       await SendText(`Se ha seleccionado: ${whatsappNameOrNot}`);
 
@@ -101,7 +101,7 @@ ${availablesRanksText}`);
         numberStr = await bot.WaitNextTxtMsgFromUserId(args.chatId, args.userId, 250);
 
         if (numberStr.includes('mio')) {
-          const local = utils.PhoneNumber.GetPhoneNumberFromRawmsg(args.originalPromptMsgObj);
+          const local = utils.PhoneNumber.GetPhoneNumberFromRawmsg(args.originalMsg);
           if (local !== null) {
             numberStr = local.fullRawCleanedNumber
             isRightNumber = true;

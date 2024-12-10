@@ -4,16 +4,13 @@ import { HelperRoleName, ICommand } from '../types/commands';
 import { AllUtilsType } from '../utils/index_utils';
 
 
-export default class Commands {
+export default class CommandsHandler {
   private _commands: Record<string, ICommand>;
 
   get Commands() {
     return Object.entries(this._commands);
   }
-
-  constructor() {
-    this._commands = {};
-  }
+  constructor() { this._commands = {}; }
 
   public AddCommand(commandObj: ICommand) {
     this._commands[commandObj.commandName] = commandObj;
@@ -26,14 +23,16 @@ export default class Commands {
   public HasPermisionToExecute(commandName: string, privilege: HelperRoleName): boolean {
     if (!this.Exists(commandName)) return false;
     const foundCommand = this._commands[commandName];
-    if (privilege === "Administrador" && foundCommand.roleCommand !== "Administrador") return false;
+    if (foundCommand.roleCommand === "Cualquiera") return true;
+    if (foundCommand.roleCommand === "Administrador" && privilege !== "Administrador") return false;
+    if (foundCommand.roleCommand === "Miembro" && (privilege !== "Administrador" && privilege !== "Miembro")) return false;
     return true;
   }
 
-  public Execute(commandName: string, bot: Bot, commandArgs: BotCommandArgs, allUtils: AllUtilsType): boolean {
+  public Execute(commandName: string, bot: Bot, commandArgs: BotCommandArgs): boolean {
     if (!this.Exists(commandName)) return false;
     const foundCommand = this._commands[commandName];
-    foundCommand.onMsgReceived(bot, commandArgs, allUtils);
+    foundCommand.onMsgReceived(bot, commandArgs);
     return true;
   }
 }

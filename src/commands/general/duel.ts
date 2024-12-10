@@ -15,7 +15,7 @@ export default class DuelCommand implements ICommand {
 
     try {
       //Validates the original sender is a member
-      const challengerNumber = u.PhoneNumber.GetPhoneNumberFromRawmsg(args.originalPromptMsgObj)!.fullRawCleanedNumber;
+      const challengerNumber = u.PhoneNumber.GetPhoneNumberFromRawmsg(args.originalMsg)!.fullRawCleanedNumber;
       const challengerInfo = await u.Member.GetMemberInfoFromPhone(challengerNumber, "Miembro");
       if (challengerInfo === null) {
         await t.txtToChatSender("Por alguna razón todavía no estás registrado como miembro, contacta a un admin para que te registre\nAdmins actuales:");

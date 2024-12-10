@@ -2,7 +2,7 @@ import moment from 'moment';
 import { PendingMatch } from '../types/db';
 moment.locale('es');
 
-export function GetFormatedDurationDaysSince(pastDate: bigint | number) {
+export function Dates_GetFormatedDurationDaysSince(pastDate: bigint | number) {
   const pastTime = moment(Number(pastDate));
   const now = moment();
 
@@ -19,7 +19,7 @@ export function GetFormatedDurationDaysSince(pastDate: bigint | number) {
   return finalMsg.join(", ");
 }
 
-export function GetTimePassedSinceDuelMatchPending(pendingMatch: PendingMatch): string {
+export function Dates_GetTimePassedSinceDuelMatchPending(pendingMatch: PendingMatch): string {
   const rawTimePassed = new Date().getTime() - pendingMatch.dateTime;
   const timePassed = moment.duration(rawTimePassed);
 

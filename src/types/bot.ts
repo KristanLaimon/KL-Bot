@@ -10,7 +10,7 @@ export type WaitTextRegexFormat = {
 }
 
 export type BotCommandArgs = {
-  originalPromptMsgObj: WAMessage,
+  originalMsg: WAMessage,
   chatId: string,
   userId: string,
   senderType: SenderType,

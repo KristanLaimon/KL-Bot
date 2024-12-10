@@ -18,16 +18,16 @@ async function Main() {
   moment.locale("es");
 
   const klBot = new Bot({ prefix: "!", coolDownSecondsTime: 1 });
-  klBot.AddCommand(new WolfCommand());
-  klBot.AddCommand(new HelpCommand());
-  klBot.AddCommand(new ReceiveImgCommand());
-  klBot.AddCommand(new AddMemberCommand());
-  klBot.AddCommand(new DeleteAdmin());
-  klBot.AddCommand(new GetProfileInfoCommand());
-  klBot.AddCommand(new TestCommand());
-  klBot.AddCommand(new OtherCommand());
-  klBot.AddCommand(new DuelCommand());
-  klBot.AddCommand(new DuelWinCommand());
+  // klBot.AddCommand(new WolfCommand());
+  // klBot.AddCommand(new HelpCommand());
+  // klBot.AddCommand(new ReceiveImgCommand());
+  // klBot.AddCommand(new AddMemberCommand());
+  // klBot.AddCommand(new DeleteAdmin());
+  // klBot.AddCommand(new GetProfileInfoCommand());
+  // klBot.AddCommand(new TestCommand());
+  // klBot.AddCommand(new OtherCommand());
+  // klBot.AddCommand(new DuelCommand());
+  // klBot.AddCommand(new DuelWinCommand());
 
   klBot.StartBot();
 }

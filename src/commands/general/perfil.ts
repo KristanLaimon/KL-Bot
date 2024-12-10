@@ -1,7 +1,7 @@
 import Kldb from '../../utils/db';
 import Bot from '../../bot';
 import { CommandAccessibleRoles, ICommand } from '../../types/commands';
-import { GetFormatedDurationDaysSince } from '../../utils/dates';
+import { Dates_GetFormatedDurationDaysSince } from '../../utils/dates';
 import { AllUtilsType } from '../../utils/index_utils';
 import { BotCommandArgs } from '../../types/bot';
 
@@ -19,7 +19,7 @@ export default class GetProfileInfoCommand implements ICommand {
     const wasSomeoneTagged: boolean = args.commandArgs.length == 1;
     const whatsNumberInfo = wasSomeoneTagged ?
       utils.PhoneNumber.GetPhoneNumberFromMention(args.commandArgs[0]) :
-      utils.PhoneNumber.GetPhoneNumberFromRawmsg(args.originalPromptMsgObj);
+      utils.PhoneNumber.GetPhoneNumberFromRawmsg(args.originalMsg);
 
     if (whatsNumberInfo == null) {
       await bot.SendTxtToChatId(args.chatId, "No etiquetaste a nadie o el etiquetado es inválido (?)");
@@ -41,7 +41,7 @@ export default class GetProfileInfoCommand implements ICommand {
 Username: ${member?.username}
 Rango: ${member?.Rank.name}
 Rol: ${member.Role.name}
-Antiguedad: ${GetFormatedDurationDaysSince(member.joined_date)}`;
+Antiguedad: ${Dates_GetFormatedDurationDaysSince(member.joined_date)}`;
       await bot.SendTxtToChatId(args.chatId, memberInfo);
       const imgPlayerPath = utils.FileSystem.GetPlayerImagePath(member.username);
       await bot.SendImgToChatId(args.chatId, imgPlayerPath!);

@@ -4,7 +4,7 @@ import { downloadMediaMessage, WAMessage } from '@whiskeysockets/baileys';
 
 const playersImgsPath = path.join("db", "players");
 const getFullPlayerImgPath = (imgPlayer: string) => path.join("db", "players", imgPlayer);
-export function GetPlayerImagePath(playerName: string): string | null {
+export function Db_GetPlayerImagePath(playerName: string): string | null {
   const allImgsNames = fs.readdirSync(playersImgsPath);
   const playerImgName = allImgsNames.find(imgName => {
     const threeParts = imgName.split("-");
@@ -23,7 +23,7 @@ export function GetPlayerImagePath(playerName: string): string | null {
  * @param folderToStore - The folder path where the file will be stored.
  * @returns {Promise<boolean>} - True if the media is downloaded successfully, false otherwise.
  */
-export async function DownloadMedia(
+export async function Db_DownloadMedia(
   rawMsg: WAMessage,
   fileName: string,
   extension: string,

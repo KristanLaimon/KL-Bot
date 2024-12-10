@@ -7,17 +7,17 @@ export type WhatsNumber = {
   whatsappId: string;
 }
 
-function isValidNumberStr(numberStr: string): boolean {
+function Phone_IsValidNumberStr(numberStr: string): boolean {
   const mentionRegex = /^@\d{13}$/;
   const userIdRegex = /^\d{13}@s.whatsapp.net$/;
   return mentionRegex.test(numberStr) || userIdRegex.test(numberStr);
 }
 
-export function GetPhoneNumberFromRawmsg(rawMsg: WAMessage): WhatsNumber | null {
+export function Phone_GetPhoneNumberFromRawmsg(rawMsg: WAMessage): WhatsNumber | null {
   //Let's check if comes from private msg or group
   let number = rawMsg.key.participant || rawMsg.key.remoteJid || undefined;
   if (!number) return null;
-  if (!isValidNumberStr(number)) return null;
+  if (!Phone_IsValidNumberStr(number)) return null;
 
   const numberCleaned = number.slice(0, number.indexOf("@"));
   return {
@@ -28,8 +28,8 @@ export function GetPhoneNumberFromRawmsg(rawMsg: WAMessage): WhatsNumber | null 
   }
 }
 
-export function GetPhoneNumberFromMention(numberStr: string): WhatsNumber | null {
-  if (!isValidNumberStr(numberStr)) return null;
+export function Phone_GetPhoneNumberFromMention(numberStr: string): WhatsNumber | null {
+  if (!Phone_IsValidNumberStr(numberStr)) return null;
   let number = numberStr.slice(1);
   return {
     countryCode: number.slice(0, 3),
@@ -39,6 +39,6 @@ export function GetPhoneNumberFromMention(numberStr: string): WhatsNumber | null
   }
 }
 
-export function isAMentionNumber(mentionStr: string) {
+export function Phone_IsAMentionNumber(mentionStr: string) {
   return /^@\d{13}$/.test(mentionStr);
 }
