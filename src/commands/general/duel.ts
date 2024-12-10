@@ -69,7 +69,7 @@ export default class DuelCommand implements ICommand {
 
         ⚔️ ¡El destino del duelo está en tus manos! 🔥
       `);
-      const thatPersonRawMsg = await bot.WaitRawMessageFromNumber(args.chatId, args.userId, challengedNumber, MsgType.text, 60);
+      const thatPersonRawMsg = await bot.WaitNextRawMsgFromPhone(args.chatId, args.userId, challengedNumber, MsgType.text, 60);
       const thatPersonTxt = u.Msg.GetTextFromRawMsg(thatPersonRawMsg).toLowerCase();
 
       //Other used has responded!

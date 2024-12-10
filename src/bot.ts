@@ -28,17 +28,11 @@ export default class Bot {
   private prefix: string;
   private _commands: Record<string, ICommand>;
   private thisBot: Bot;
+  private coolDownTime: number; /** CoolDown between meesages in seconds */
+  private maxQueueMsgs: number; /** Max quantity of msgs to handle at the same time */
+  private msgQueue: SocketMessageQueue;
   private _shouldConsiderRoles: boolean;
   private credentialsStoragePath: string;
-
-
-  /** CoolDown between meesages in seconds */
-  private coolDownTime: number;
-
-  /** Max quantity of msgs to handle at the same time */
-  private maxQueueMsgs: number;
-
-  private msgQueue: SocketMessageQueue;
 
   get Commands() {
     return Object.entries(this._commands);
@@ -52,13 +46,14 @@ export default class Bot {
     this.maxQueueMsgs = args?.maxQueueMsgs || 10;
     this._shouldConsiderRoles = args?.shouldConsiderRoles || true; // True by default
     this.credentialsStoragePath = "./auth_info";
-    this.WaitRawMessageFromId.bind(this, 'NO ID THIS COMES FROM BIND()', 30000);
+    this.WaitNextRawMsgFromId.bind(this, 'NO ID THIS COMES FROM BIND()', 30000);
   }
 
   public AddCommand(commandObj: ICommand) {
     this._commands[commandObj.commandName] = commandObj;
   }
 
+  //#region ================= CORE Methods ====================
   public async StartBot() {
     await this.innerStartupSocket();
 
@@ -123,7 +118,7 @@ export default class Bot {
                 senderIsAnAdminAsWell = false;
               }
               if (!senderIsAnAdminAsWell) {
-                this.SendText(chatId, "No tienes permisos para ejecutar este comando");
+                this.SendTxtToChatId(chatId, "No tienes permisos para ejecutar este comando");
                 return;
               }
             }
@@ -147,6 +142,21 @@ export default class Bot {
       });
     });
   }
+  private async innerStartupSocket() {
+    const { state, saveCreds } = await useMultiFileAuthState("./auth_info");
+    this.socket = makeWASocket({
+      auth: state,
+      printQRInTerminal: true, // Genera QR en la terminal
+    });
+    this.msgQueue = new SocketMessageQueue(this.socket, this.maxQueueMsgs, this.coolDownTime);
+    this.socket.ev.on("creds.update", saveCreds);
+  }
+  public async SendRawObjMsg(msgIdJSR: string, content: AnyMessageContent, misc?: MiscMessageGenerationOptions) {
+    await this.msgQueue.AddMsg(msgIdJSR, content, misc);
+  }
+  //#endregion
+
+  //#region ================= Intermediate Methods ===================
 
   /**
    * A useful answering handling to expect msg from the user
@@ -157,7 +167,7 @@ export default class Bot {
    * @throws {BotWaitMessageError} if user has CANCELLED the operation or if timeout has been reached
    * @returns The message object sent by the user
    */
-  public async WaitRawMessageFromId(chatSenderId: string, participantId: string, expectedMsgType: MsgType = MsgType.text, timeout: number = 30): Promise<WAMessage> {
+  public async WaitNextRawMsgFromId(chatSenderId: string, participantId: string, expectedMsgType: MsgType = MsgType.text, timeout: number = 30): Promise<WAMessage> {
     return new Promise((resolve, reject: (reason: BotWaitMessageError) => void) => {
       const timeoutMsg = "User didn't respond in specified time: " + timeout + " seconds";
       const originalChat = chatSenderId;
@@ -193,7 +203,7 @@ export default class Bot {
 
           const msgType = allUtils.Msg.GetMsgTypeFromRawMsg(msg);
           if (msgType !== expectedMsgType) {
-            await this.SendText(chatSenderId, `Formato Incorrecto: Tienes que responder con ${allUtils.Msg.MsgTypeToString(expectedMsgType)}`);
+            await this.SendTxtToChatId(chatSenderId, `Formato Incorrecto: Tienes que responder con ${allUtils.Msg.MsgTypeToString(expectedMsgType)}`);
             continue; // Keep listening for the correct response
           }
 
@@ -212,8 +222,7 @@ export default class Bot {
       this.socket.ev.on("messages.upsert", listener);
     });
   }
-
-  public async WaitRawMessageFromNumber(chatSenderId: string, userSenderId: string, expectedCleanedPhoneNumber: string, expectedMsgType: MsgType = MsgType.text, timeout: number = 30): Promise<WAMessage> {
+  public async WaitNextRawMsgFromPhone(chatSenderId: string, userSenderId: string, expectedCleanedPhoneNumber: string, expectedMsgType: MsgType = MsgType.text, timeout: number = 30): Promise<WAMessage> {
     return new Promise((resolve, reject: (reason: BotWaitMessageError) => void) => {
       const timeoutMsg = "User didn't respond in specified time: " + timeout + " seconds";
       const originalChat = chatSenderId;
@@ -251,7 +260,7 @@ export default class Bot {
 
           const msgType = allUtils.Msg.GetMsgTypeFromRawMsg(msg);
           if (msgType !== expectedMsgType) {
-            await this.SendText(chatSenderId, `Formato Incorrecto: Tienes que responder con ${allUtils.Msg.MsgTypeToString(expectedMsgType)}`);
+            await this.SendTxtToChatId(chatSenderId, `Formato Incorrecto: Tienes que responder con ${allUtils.Msg.MsgTypeToString(expectedMsgType)}`);
             continue; // Keep listening for the correct response
           }
 
@@ -270,6 +279,24 @@ export default class Bot {
       this.socket.ev.on("messages.upsert", listener);
     });
   }
+  public async SendImgToChatId(msgIdJSR: string, imgPath: string, captionTxt?: string) {
+    this.SendRawObjMsg(msgIdJSR, {
+      image: fs.readFileSync(imgPath),
+      caption: captionTxt || ''
+    });
+  }
+  public async SendTxtToChatId(msgIdJSR: string, textToSend: string) {
+    textToSend =
+      textToSend
+        .trim()
+        .split("\n")
+        .map((line) => line.trim() || line)
+        .join("\n");
+    await this.SendRawObjMsg(msgIdJSR, { text: textToSend });
+  }
+  //#endregion
+
+  //#region ================= Surface Methods =====================
 
   /**
    * Expect a TEXT message from the user (Doesn't matter the format)
@@ -280,8 +307,8 @@ export default class Bot {
    * @throws {BotWaitMessageError} if user has CANCELLED the operation or if timeout has been reached
    * @returns  The message sent by the user
    */
-  public async WaitTextMessageFrom(chatSenderId: string, participantId: string, timeout: number = 30): Promise<string> {
-    return allUtils.Msg.GetTextFromRawMsg(await this.WaitRawMessageFromId(chatSenderId, participantId, MsgType.text, timeout));
+  public async WaitNextTxtMsgFromUserId(chatSenderId: string, participantId: string, timeout: number = 30): Promise<string> {
+    return allUtils.Msg.GetTextFromRawMsg(await this.WaitNextRawMsgFromId(chatSenderId, participantId, MsgType.text, timeout));
   }
 
   /**
@@ -294,44 +321,19 @@ export default class Bot {
    * @throws {BotWaitMessageError} if user has CANCELLED the operation or if timeout has been reached
    * @returns  The message sent by the user
    */
-  public async WaitSpecificTextMessageFrom(chatSenderId: string, participantId: string, regexExpectingFormat: WaitTextRegexFormat, timeout: number = 30): Promise<string> {
+  public async WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(chatSenderId: string, participantId: string, regexExpectingFormat: WaitTextRegexFormat, timeout: number = 30): Promise<string> {
     let isValidResponse: boolean = false;
     let userResult: string;
     do {
 
-      userResult = await this.WaitTextMessageFrom(chatSenderId, participantId, timeout);
+      userResult = await this.WaitNextTxtMsgFromUserId(chatSenderId, participantId, timeout);
       if (regexExpectingFormat.regex.test(userResult))
         isValidResponse = true
       else {
-        await this.SendText(chatSenderId, regexExpectingFormat.incorrectMsg || "No has respondido con un formato válido, intenta de nuevo...");
+        await this.SendTxtToChatId(chatSenderId, regexExpectingFormat.incorrectMsg || "No has respondido con un formato válido, intenta de nuevo...");
       }
     } while (!isValidResponse);
     return userResult;
   }
 
-  public async SendText(msgIdJSR: string, textToSend: string) {
-    await this.SendObjMsg(msgIdJSR, { text: textToSend });
-  }
-
-  public async SendObjMsg(msgIdJSR: string, content: AnyMessageContent, misc?: MiscMessageGenerationOptions) {
-    await this.msgQueue.AddMsg(msgIdJSR, content, misc);
-  }
-
-  public async SendImg(msgIdJSR: string, imgPath: string, captionTxt?: string) {
-    this.SendObjMsg(msgIdJSR, {
-      image: fs.readFileSync(imgPath),
-      caption: captionTxt || ''
-    });
-  }
-
-  private async innerStartupSocket() {
-    const { state, saveCreds } = await useMultiFileAuthState("./auth_info");
-    this.socket = makeWASocket({
-      auth: state,
-      printQRInTerminal: true, // Genera QR en la terminal
-    });
-    this.msgQueue = new SocketMessageQueue(this.socket, this.maxQueueMsgs, this.coolDownTime);
-    this.socket.ev.on("creds.update", saveCreds);
-  }
 }
-

@@ -17,7 +17,7 @@ export default class OtherCommand implements ICommand {
     const targetNumber = utils.PhoneNumber.GetPhoneNumberFromMention(args.commandArgs.at(0)!)!;
     await t.txtToChatSender("Ahora se está esperando que conteste....");
     try {
-      const thatPerson = await bot.WaitRawMessageFromNumber(args.chatId, args.userId, targetNumber.fullRawCleanedNumber, MsgType.text, 30);
+      const thatPerson = await bot.WaitNextRawMsgFromPhone(args.chatId, args.userId, targetNumber.fullRawCleanedNumber, MsgType.text, 30);
       const msgFromThatPerson = utils.Msg.GetTextFromRawMsg(thatPerson);
       await t.txtToChatSender("Se ha recibido el mensaje de esa persona!");
       await t.txtToChatSender(msgFromThatPerson);

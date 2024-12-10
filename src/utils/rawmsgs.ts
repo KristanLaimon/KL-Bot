@@ -6,24 +6,16 @@ import Bot from '../bot';
 export function CreateSenderReplyToolKit(bot: Bot, args: BotCommandArgs) {
   return {
     async txtToChatSender(msgText: string): Promise<void> {
-      //cleaning the message
-      msgText =
-        msgText
-          .trim()
-          .split("\n")
-          .map((line) => line.trim() || line)
-          .join("\n");
-
-      await bot.SendText(args.chatId, msgText);
+      await bot.SendTxtToChatId(args.chatId, msgText);
     },
     async imgToChatSender(imgPath: string, caption?: string): Promise<void> {
-      await bot.SendImg(args.chatId, imgPath, caption);
+      await bot.SendImgToChatId(args.chatId, imgPath, caption);
     },
     async waitTextFromSender(timeout?: number): Promise<string> {
-      return await bot.WaitTextMessageFrom(args.chatId, args.userId, timeout);
+      return await bot.WaitNextTxtMsgFromUserId(args.chatId, args.userId, timeout);
     },
     async waitSpecificTextFromSender(regexExpectingFormat: WaitTextRegexFormat, timeout?: number): Promise<string> {
-      return await bot.WaitSpecificTextMessageFrom(args.chatId, args.userId, regexExpectingFormat, timeout);
+      return await bot.WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(args.chatId, args.userId, regexExpectingFormat, timeout);
     },
     /**
      * A method to wait a message among a fixed set of options from user
@@ -67,11 +59,11 @@ export function CreateSenderReplyToolKit(bot: Bot, args: BotCommandArgs) {
           fullMsg += possibleResults.map((element: string, index: number) => `${formatEachElementCallback(element, index)}`).join("\n");
         }
       }
-      const toReturn = await bot.WaitSpecificTextMessageFrom(args.chatId, args.userId, { regex: possibleResultsRegex, incorrectMsg: fullMsg }, timeout)
+      const toReturn = await bot.WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(args.chatId, args.userId, { regex: possibleResultsRegex, incorrectMsg: fullMsg }, timeout)
       return toReturn;
     },
     async waitToThisPhoneNumberToAnswerText(phoneNumberCleaned: string, timeout?: number): Promise<string> {
-      const rawMsg = await bot.WaitRawMessageFromNumber(args.chatId, args.userId, phoneNumberCleaned, MsgType.text, timeout);
+      const rawMsg = await bot.WaitNextRawMsgFromPhone(args.chatId, args.userId, phoneNumberCleaned, MsgType.text, timeout);
       return GetTextFromRawMsg(rawMsg);
     }
   }

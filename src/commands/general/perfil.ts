@@ -12,7 +12,7 @@ export default class GetProfileInfoCommand implements ICommand {
   roleCommand: CommandAccessibleRoles = "Miembro";
   async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: AllUtilsType) {
     if (args.commandArgs.length > 1) {
-      await bot.SendText(args.chatId, "Debes etiquetar al miembro al que quieres consultar con el @ o si no mandas nada, se te desplegará tu propia información");
+      await bot.SendTxtToChatId(args.chatId, "Debes etiquetar al miembro al que quieres consultar con el @ o si no mandas nada, se te desplegará tu propia información");
       return;
     }
 
@@ -22,7 +22,7 @@ export default class GetProfileInfoCommand implements ICommand {
       utils.PhoneNumber.GetPhoneNumberFromRawmsg(args.originalPromptMsgObj);
 
     if (whatsNumberInfo == null) {
-      await bot.SendText(args.chatId, "No etiquetaste a nadie o el etiquetado es inválido (?)");
+      await bot.SendTxtToChatId(args.chatId, "No etiquetaste a nadie o el etiquetado es inválido (?)");
       return;
     }
 
@@ -31,7 +31,7 @@ export default class GetProfileInfoCommand implements ICommand {
       //check if it is a registered member
       const member = await Kldb.player.findFirst({ where: { phoneNumber: cleanedNumber }, include: { Rank: true, Role: true } })
       if (!member) {
-        await bot.SendText(args.chatId, "La persona etiquetada todavía no está registrado en este bot del clan");
+        await bot.SendTxtToChatId(args.chatId, "La persona etiquetada todavía no está registrado en este bot del clan");
         return;
       }
 
@@ -42,12 +42,12 @@ Username: ${member?.username}
 Rango: ${member?.Rank.name}
 Rol: ${member.Role.name}
 Antiguedad: ${GetFormatedDurationDaysSince(member.joined_date)}`;
-      await bot.SendText(args.chatId, memberInfo);
+      await bot.SendTxtToChatId(args.chatId, memberInfo);
       const imgPlayerPath = utils.FileSystem.GetPlayerImagePath(member.username);
-      await bot.SendImg(args.chatId, imgPlayerPath!);
+      await bot.SendImgToChatId(args.chatId, imgPlayerPath!);
 
     } catch (error) {
-      await bot.SendText(args.chatId, "Ha ocurrido un error raro...");
+      await bot.SendTxtToChatId(args.chatId, "Ha ocurrido un error raro...");
     }
   }
 }

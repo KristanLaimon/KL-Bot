@@ -47,6 +47,6 @@ export default class HelpCommand implements ICommand {
     strs.push('Tip: Usa el comando para obtener más detalles.');
 
     // Send formatted message
-    await bot.SendText(args.chatId, strs.join('\n'));
+    await bot.SendTxtToChatId(args.chatId, strs.join('\n'));
   }
 }
