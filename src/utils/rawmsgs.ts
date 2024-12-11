@@ -6,10 +6,10 @@ import Bot from '../bot';
 export function CreateSenderReplyToolKit(bot: Bot, args: BotCommandArgs) {
   return {
     async txtToChatSender(msgText: string): Promise<void> {
-      await bot.sender.sendText(args.chatId, msgText);
+      await bot.Send.Text(args.chatId, msgText);
     },
     async imgToChatSender(imgPath: string, caption?: string): Promise<void> {
-      await bot.sender.sendImage(args.chatId, imgPath, caption);
+      await bot.Send.Img(args.chatId, imgPath, caption);
     },
     async waitTextFromSender(timeout?: number): Promise<string> {
       return await bot.WaitNextTxtMsgFromUserId(args.chatId, args.userId, timeout);
@@ -59,22 +59,22 @@ export function CreateSenderReplyToolKit(bot: Bot, args: BotCommandArgs) {
           fullMsg += possibleResults.map((element: string, index: number) => `${formatEachElementCallback(element, index)}`).join("\n");
         }
       }
-      const toReturn = await bot.WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(args.chatId, args.userId, { regex: possibleResultsRegex, incorrectMsg: fullMsg }, timeout)
+      const toReturn = await bot.Receive.WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(args.chatId, args.userId, possibleResultsRegex, timeout, fullMsg!)
       return toReturn;
     },
     async waitToThisPhoneNumberToAnswerText(phoneNumberCleaned: string, timeout?: number): Promise<string> {
       const rawMsg = await bot.WaitNextRawMsgFromPhone(args.chatId, args.userId, phoneNumberCleaned, MsgType.text, timeout);
-      return GetTextFromRawMsg(rawMsg);
+      return Msg_GetTextFromRawMsg(rawMsg);
     }
   }
 }
 
-export function GetTextFromRawMsg(rawMsg: WAMessage): string {
+export function Msg_GetTextFromRawMsg(rawMsg: WAMessage): string {
   if (!rawMsg.message) return "There's no text in that message";
   return rawMsg.message.conversation || rawMsg.message.extendedTextMessage?.text || "There's no text in that message";
 }
 
-export function isBotWaitMessageError(error: unknown): error is BotWaitMessageError {
+export function Msg_IsBotWaitMessageError(error: unknown): error is BotWaitMessageError {
   return (
     typeof error === "object" &&
     error !== null &&
@@ -83,7 +83,7 @@ export function isBotWaitMessageError(error: unknown): error is BotWaitMessageEr
   );
 }
 
-export function MsgTypeToString(msgType: MsgType): string {
+export function Msg_MsgTypeToString(msgType: MsgType): string {
   if (msgType === MsgType.text) return "Mensaje de texto";
   if (msgType === MsgType.image) return "Imagen";
   if (msgType === MsgType.video) return "Video";

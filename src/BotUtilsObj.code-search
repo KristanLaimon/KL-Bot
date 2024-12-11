@@ -1,0 +1,72 @@
+# Query: BotUtilsObj
+# ContextLines: 1
+
+16 results - 8 files
+
+src\commands\admin\addmember.ts:
+   1  import { CommandAccessibleRoles } from '../../types/commands';
+   2: import Bot, {  } from '../../bot';
+   3  import { BotCommandArgs, ICommand, MsgType } from '../../types/bot';
+
+  12    roleCommand: CommandAccessibleRoles = "Administrador";
+  13:   async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: BotUtilsObj) {
+  14      const t = utils.CreateSenderReplyToolKit(bot, args);
+
+src\commands\admin\deletemember.ts:
+   2  import Bot from '../../bot';
+   3: import { BotUtilsObj } from '../../bot';
+   4  import { BotCommandArgs, ICommand } from '../../types/bot';
+
+  11    roleCommand: CommandAccessibleRoles = "Secreto";
+  12:   async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: BotUtilsObj) {
+  13      await bot.SendText(args.chatId, "Eliminado de un miembro");
+
+src\commands\general\duel.ts:
+   1: import Bot, { BotUtilsObj } from '../../bot';
+   2  import Kldb, { TempPendingMatches } from '../../utils/db';
+
+  10    roleCommand: CommandAccessibleRoles = "Miembro";
+  11:   async onMsgReceived(bot: Bot, args: BotCommandArgs, u: BotUtilsObj) {
+  12      const t = u.CreateSenderReplyToolKit(bot, args);
+
+src\commands\general\duelwin.ts:
+  1: import Bot, { BotUtilsObj } from '../../bot';
+  2  import { BotCommandArgs, ICommand } from '../../types/bot';
+
+  8    roleCommand: CommandAccessibleRoles = "Miembro"
+  9:   async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: BotUtilsObj) {
+  10  
+
+src\commands\general\perfil.ts:
+   2  import Bot from '../../bot';
+   3: import { BotUtilsObj } from '../../bot';
+   4  import { GetPlayerImagePath } from '../../utils/db';
+
+  13    roleCommand: CommandAccessibleRoles = "Miembro";
+  14:   async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: BotUtilsObj) {
+  15      if (args.commandArgs.length > 1) {
+
+src\commands\test\img.ts:
+   2  import Bot from '../../bot';
+   3: import { BotUtilsObj } from '../../bot';
+   4  import { BotCommandArgs, ICommand, MsgType } from '../../types/bot';
+
+   9    roleCommand: HelperRoleName = "Administrador"
+  10:   async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: BotUtilsObj) {
+  11      await bot.SendText(args.chatId, "Envia una imagen y la guardaré en mis archivos...");
+
+src\commands\test\other.ts:
+  1: import Bot, { BotUtilsObj } from '../../bot';
+  2  import { BotCommandArgs, ICommand, MsgType } from '../../types/bot';
+
+  8    roleCommand: CommandAccessibleRoles = "Miembro";
+  9:   async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: BotUtilsObj) {
+  10      const t = utils.CreateSenderReplyToolKit(bot, args);
+
+src\commands\test\test.ts:
+  1: import Bot, { BotUtilsObj } from '../../bot';
+  2  import { BotCommandArgs, ICommand } from '../../types/bot';
+
+  8    roleCommand: CommandAccessibleRoles = "Administrador"
+  9:   async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: BotUtilsObj) {
+  10      const his = ["hola", "hi", "bonjour", "hello"];

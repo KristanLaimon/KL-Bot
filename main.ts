@@ -18,7 +18,7 @@ async function Main() {
   moment.locale("es");
 
   const klBot = new Bot({ prefix: "!", coolDownSecondsTime: 1 });
-  // klBot.AddCommand(new WolfCommand());
+  klBot.AddCommand(new WolfCommand());
   // klBot.AddCommand(new HelpCommand());
   // klBot.AddCommand(new ReceiveImgCommand());
   // klBot.AddCommand(new AddMemberCommand());

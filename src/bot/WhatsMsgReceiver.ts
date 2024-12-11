@@ -1,8 +1,8 @@
 import { WAMessage } from '@whiskeysockets/baileys';
-import { BotWaitMessageError } from '../types/bot';
+import { BotWaitMessageError, WaitTextRegexFormat } from '../types/bot';
 import { MsgType, SenderType } from '../types/commands';
 import WhatsSocket from './WhatsSocket';
-import { GetTextFromRawMsg, MsgTypeToString } from '../utils/rawmsgs';
+import { Msg_GetTextFromRawMsg, Msg_MsgTypeToString } from '../utils/rawmsgs';
 import { Phone_GetPhoneNumberFromRawmsg } from '../utils/phonenumbers';
 
 export class WhatsMsgReceiver {
@@ -12,9 +12,9 @@ export class WhatsMsgReceiver {
     this._rawSocket = socket;
   }
 
-  public WaitNextRawMsgFromId(chatSenderId: string, userSenderId: string, expectedMsgType: MsgType, wrongTypeMsgFeedback?: string, timeout: number = 30): Promise<{ msg: WAMessage, msgType: MsgType, senderType: SenderType }> {
+  public WaitNextRawMsgFromId(chatSenderId: string, userSenderId: string, expectedMsgType: MsgType, timeout: number = 30, wrongTypeMsgFeedback?: string): Promise<WAMessage> {
     if (!wrongTypeMsgFeedback)
-      wrongTypeMsgFeedback = "Formato incorrecto: Deberías de responder con " + MsgTypeToString(expectedMsgType);
+      wrongTypeMsgFeedback = "Formato incorrecto: Deberías de responder con " + Msg_MsgTypeToString(expectedMsgType);
 
     return new Promise((resolve, reject: (reason: BotWaitMessageError) => void) => {
       let timer: NodeJS.Timeout;
@@ -36,7 +36,7 @@ export class WhatsMsgReceiver {
         if (msg.key.remoteJid !== originalChat) return;
         resetTimeout();
 
-        if (GetTextFromRawMsg(msg).includes('cancelar')) {
+        if (Msg_GetTextFromRawMsg(msg).includes('cancelar')) {
           this._rawSocket.onIncommingMessage.Unsubsribe(listener);
           clearTimeout(timer);
           reject({ wasAbortedByUser: true, errorMessage: "User didn't responded in time" });
@@ -45,11 +45,12 @@ export class WhatsMsgReceiver {
 
         if (msgType !== expectedMsgType) {
           this._rawSocket.Send(chatSenderId, { text: wrongTypeMsgFeedback })
+          return;
         }
 
         this._rawSocket.onIncommingMessage.Unsubsribe(listener);
         clearTimeout(timer);
-        resolve({ msg, msgType, senderType });
+        resolve(msg);
         return;
       }
       //Set initial timeout
@@ -60,9 +61,9 @@ export class WhatsMsgReceiver {
     });
   }
 
-  public WaitNextRawMsgFromPhone(chatSenderId: string, userSenderId: string, expectedCleanedPhoneNumber: string, expectedMsgType: MsgType, wrongTypeMsgFeedback?: string, timeout: number = 30): Promise<{ msg: WAMessage, msgType: MsgType, senderType: SenderType }> {
+  public WaitNextRawMsgFromPhone(chatSenderId: string, userSenderId: string, expectedCleanedPhoneNumber: string, expectedMsgType: MsgType, timeout: number = 30, wrongTypeMsgFeedback?: string): Promise<WAMessage> {
     if (!wrongTypeMsgFeedback)
-      wrongTypeMsgFeedback = "Formato incorrecto: Deberías de responder con " + MsgTypeToString(expectedMsgType);
+      wrongTypeMsgFeedback = "Formato incorrecto: Deberías de responder con " + Msg_MsgTypeToString(expectedMsgType);
 
     return new Promise((resolve, reject: (reason: BotWaitMessageError) => void) => {
       const originalChat = chatSenderId;
@@ -81,7 +82,7 @@ export class WhatsMsgReceiver {
         if (msg.key.fromMe) return;
         if (msg.key.remoteJid !== originalChat) return;
 
-        if (GetTextFromRawMsg(msg).includes('cancelar') && (msg.key.participant || msg.key.remoteJid) === userSenderId) {
+        if (Msg_GetTextFromRawMsg(msg).includes('cancelar') && (msg.key.participant || msg.key.remoteJid) === userSenderId) {
           this._rawSocket.onIncommingMessage.Unsubsribe(listener);
           clearTimeout(timer);
           reject({ wasAbortedByUser: true, errorMessage: "User didn't responded in time" });
@@ -98,7 +99,7 @@ export class WhatsMsgReceiver {
         }
 
         this._rawSocket.onIncommingMessage.Unsubsribe(listener);
-        resolve({ msg, msgType, senderType })
+        resolve(msg)
       }
       //Set initial timeout
       resetTimeout();
@@ -108,4 +109,37 @@ export class WhatsMsgReceiver {
     })
   }
 
+  /**
+   * Expect a TEXT message from the user (Doesn't matter the format)
+   * max message timeout in seconds has been reached.
+   * @param chatSenderId ChatId where the message comes from
+   * @param userSenderId  UserId of the participant that sent the message (if it is individual chat, its the same as chatSenderId)
+   * @param timeout  Time in seconds to wait for the user to respond
+   * @throws {BotWaitMessageError} if user has CANCELLED the operation or if timeout has been reached
+   * @returns  The message sent by the user
+   */
+  public async WaitNextTxtMsgFromUserId(chatSenderId: string, userSenderId: string, timeout: number = 30, wrongMsgFeedback?: string): Promise<string> {
+    return Msg_GetTextFromRawMsg((await this.WaitNextRawMsgFromId(chatSenderId, userSenderId, MsgType.text, timeout, wrongMsgFeedback)));
+  }
+
+  /**
+   * Expect a TEXT message from the user with a specific format (with regex) or throws error if user cancel the operation or 
+   * max message timeout in seconds has been reached.
+   * @param chatSenderId ChatId where the message comes from
+   * @param participantId  UserId of the participant that sent the message (if it is individual chat, its the same as chatSenderId)
+   * @param regexExpectingFormat  A small object giving the regex and the error message to be sent to the user if the message does not match the expected format
+   * @param timeout  Time in seconds to wait for the user to respond
+   * @throws {BotWaitMessageError} if user has CANCELLED the operation or if timeout has been reached
+   * @returns  The message sent by the user
+   */
+  public async WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(chatSenderId: string, participantId: string, regex: RegExp, timeout: number = 30, wrongTypeMsgFeedback?: string): Promise<string> {
+    let isValidResponse: boolean = false;
+    let userResult: string;
+    do {
+      userResult = await this.WaitNextTxtMsgFromUserId(chatSenderId, participantId, timeout, wrongTypeMsgFeedback);
+      if (regex.test(userResult))
+        isValidResponse = true
+    } while (!isValidResponse);
+    return userResult;
+  }
 }

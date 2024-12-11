@@ -4,6 +4,7 @@ import { BotCommandArgs } from './bot';
 export type HelperRoleName = "Administrador" | "Miembro" | "Cualquiera";
 export type CommandAccessibleRoles = HelperRoleName | "Secreto";
 
+
 export interface ICommand {
   commandName: string;
   description: string;

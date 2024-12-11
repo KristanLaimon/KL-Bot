@@ -9,6 +9,6 @@ export default class WolfCommand implements ICommand {
   roleCommand: HelperRoleName = "Miembro";
   description: string = "Lobitosssss";
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
-    await bot.SendImgToChatId(args.chatId, './resources/wolf.jpg', "Sex Sex Sex Sex")
+    await bot.Send.Img(args.chatId, './resources/wolf.jpg', "Sex Sex Sex Sex")
   }
 }
