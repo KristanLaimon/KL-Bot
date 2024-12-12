@@ -9,7 +9,7 @@ export default class DeleteAdmin implements ICommand {
   commandName: string = 'deletemember';
   description: string = "DeleteAdmin"
   roleCommand: CommandAccessibleRoles = "Secreto";
-  async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: AllUtilsType) {
+  async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     await bot.SendTxtToChatId(args.chatId, "Eliminado de un miembro");
     const allMembers = await Kldb.player.findMany({ include: { Role: true } });
     const allMembersText = allMembers.map(memberObj => `🦁 ${memberObj.Role.name}: ${memberObj.username}`).join("\n");

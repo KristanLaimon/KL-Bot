@@ -17,12 +17,12 @@ type SocketMsgQueueItem = {
 export default class WhatsSocketMsgQueue {
   private queue: SocketMsgQueueItem[] = [];
   private isProcessing: boolean = false;
-  private socket: WhatsSocket;
+  private whatsSocket: WhatsSocket;
   private minMilisecondsDelay: number;
   private maxQueueLimit: number;
 
   constructor(socket: WhatsSocket, maxQueueLimit: number = 3, minMilisecondsDelay: number = 1000) {
-    this.socket = socket;
+    this.whatsSocket = socket;
     this.minMilisecondsDelay = minMilisecondsDelay;
     this.maxQueueLimit = maxQueueLimit;
   }
@@ -45,7 +45,7 @@ export default class WhatsSocketMsgQueue {
 
     const { chatId, content, misc, resolve, reject } = this.queue.shift()!;
     try {
-      await this.socket.Send(chatId, content, misc);
+      await this.whatsSocket.Send(chatId, content, misc);
       resolve(true);
     }
     catch (error) {

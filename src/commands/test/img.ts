@@ -2,7 +2,7 @@ import { HelperRoleName, ICommand, MsgType } from '../../types/commands';
 import Bot from '../../bot';
 import { BotCommandArgs } from '../../types/bot';
 import { AllUtilsType } from '../../utils/index_utils';
-import { Db_DownloadMedia } from '../../utils/filesystem';
+import { Db_TryToDownloadMedia } from '../../utils/filesystem';
 import { Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
 
 export default class ReceiveImgCommand implements ICommand {
@@ -15,7 +15,7 @@ export default class ReceiveImgCommand implements ICommand {
     try {
       const message = await bot.Receive.WaitNextRawMsgFromId(args.chatId, args.userId, MsgType.image, 30);
 
-      if (await Db_DownloadMedia(message, `${message.pushName}-${Date.now()}`, "jpg", "db/players"))
+      if (await Db_TryToDownloadMedia(message, `${message.pushName}-${Date.now()}`, "jpg", "db/players"))
         await bot.Send.Text(args.chatId, `Imagen guardada exitosamente!`);
       else
         await bot.Send.Text(args.chatId, `Error al guardar la imagen`);

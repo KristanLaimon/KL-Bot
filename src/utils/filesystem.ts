@@ -23,7 +23,7 @@ export function Db_GetPlayerImagePath(playerName: string): string | null {
  * @param folderToStore - The folder path where the file will be stored.
  * @returns {Promise<boolean>} - True if the media is downloaded successfully, false otherwise.
  */
-export async function Db_DownloadMedia(
+export async function Db_TryToDownloadMedia(
   rawMsg: WAMessage,
   fileName: string,
   extension: string,

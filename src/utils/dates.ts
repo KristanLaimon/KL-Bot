@@ -31,5 +31,35 @@ export function Dates_GetTimePassedSinceDuelMatchPending(pendingMatch: PendingMa
   return finalMsg.join(", ");
 }
 
+export const Dates_SpanishMonthRegex = /^(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)$/;
+export const Dates_SpanishMonthStr = "(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)";
+
+/**
+ * Get the month number of a simple spanish month
+ * @param month Single spanish month like 'enero' or'Enero' it will be normalized anyways
+ * @returns The number of the month (NOT ZERO INDEX BASED) or null if its not a month
+ */
+export function Dates_SpanishMonthToNumber(month: string): number | null {
+  const months: { [key: string]: number } = {
+    enero: 1,
+    febrero: 2,
+    marzo: 3,
+    abril: 4,
+    mayo: 5,
+    junio: 6,
+    julio: 7,
+    agosto: 8,
+    septiembre: 9,
+    octubre: 10,
+    noviembre: 11,
+    diciembre: 12,
+  };
+
+  // Normalize the input to lowercase for case-insensitive matching
+  const normalizedMonth = month.trim().toLowerCase();
+  return months[normalizedMonth] || null; // Return null if the month is invalid
+}
+
+
 
 

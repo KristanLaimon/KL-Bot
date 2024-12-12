@@ -3,31 +3,33 @@ import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles } from '../../types/commands';
 import { ICommand, MsgType } from '../../types/commands';
 import { AllUtilsType } from '../../utils/index_utils';
+import { Phone_GetPhoneNumberFromMention, Phone_IsAMentionNumber } from '../../utils/phonenumbers';
+import { Msg_GetTextFromRawMsg, Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
 
 export default class OtherCommand implements ICommand {
   commandName: string = "other";
   description: string = "Espera hasta que otra persona te responda"
   roleCommand: CommandAccessibleRoles = "Miembro";
-  async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: AllUtilsType) {
-    const t = utils.Msg.CreateSenderReplyToolKit(bot, args);
-    if (!utils.PhoneNumber.isAMentionNumber(args.commandArgs.at(0) || '')) {
-      await t.txtToChatSender("No etiquetaste a nadie, prueba de nuevo");
+  async onMsgReceived(bot: Bot, args: BotCommandArgs) {
+    if (!Phone_IsAMentionNumber(args.commandArgs.at(0) || '')) {
+      await bot.Send.Text(args.chatId, "No etiquetaste a nadie, prueba de nuevo");
       return;
     }
-    const targetNumber = utils.PhoneNumber.GetPhoneNumberFromMention(args.commandArgs.at(0)!)!;
-    await t.txtToChatSender("Ahora se está esperando que conteste....");
+    const targetNumber = Phone_GetPhoneNumberFromMention(args.commandArgs.at(0)!)!.number;
+    await bot.Send.Text(args.chatId, "Ahora se está esperando que conteste....");
     try {
-      const thatPerson = await bot.WaitNextRawMsgFromPhone(args.chatId, args.userId, targetNumber.fullRawCleanedNumber, MsgType.text, 30);
-      const msgFromThatPerson = utils.Msg.GetTextFromRawMsg(thatPerson);
-      await t.txtToChatSender("Se ha recibido el mensaje de esa persona!");
-      await t.txtToChatSender(msgFromThatPerson);
+      const thatPerson = await bot.Receive.WaitNextRawMsgFromPhone(args.chatId, args.userId, targetNumber, MsgType.text, 60);
+      const msgFromThatPerson = Msg_GetTextFromRawMsg(thatPerson);
+      await bot.Send.Text(args.chatId, "Se ha recibido el mensaje de esa persona!");
+      await bot.Send.Text(args.chatId, msgFromThatPerson);
+
     } catch (e) {
-      if (utils.Msg.isBotWaitMessageError(e)) {
+      if (Msg_IsBotWaitMessageError(e)) {
         if (!e.wasAbortedByUser) {
-          await t.txtToChatSender("No se recibió mensaje de esa persona");
+          await bot.Send.Text(args.chatId, "No se recibió mensaje de esa persona");
         }
         else if (e.wasAbortedByUser) {
-          await t.txtToChatSender("El usuario original canceló la espera");
+          await bot.Send.Text(args.chatId, "El usuario original canceló la espera");
         }
       }
     }

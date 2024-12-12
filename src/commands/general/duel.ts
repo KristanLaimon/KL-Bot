@@ -3,6 +3,10 @@ import Kldb, { TempPendingMatches } from '../../utils/db';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand, MsgType } from '../../types/commands';
 import { AllUtilsType } from '../../utils/index_utils';
+import { SpecificChat } from '../../bot/SpecificChat';
+import { Phone_GetPhoneNumberFromMention, Phone_GetFullPhoneInfoFromRawmsg, Phone_IsAMentionNumber } from '../../utils/phonenumbers';
+import { Members_GetMemberInfoFromPhone } from '../../utils/members';
+import { Msg_GetTextFromRawMsg, Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
 
 
 //TODO: !duelpending? && !duellose
@@ -10,54 +14,54 @@ export default class DuelCommand implements ICommand {
   commandName: string = "duel";
   description: string = 'Reta a un duelo 1vs1 a otra persona'
   roleCommand: CommandAccessibleRoles = "Miembro";
-  async onMsgReceived(bot: Bot, args: BotCommandArgs, u: AllUtilsType) {
-    const t = u.Msg.CreateSenderReplyToolKit(bot, args);
+  async onMsgReceived(bot: Bot, args: BotCommandArgs) {
+    const chat = new SpecificChat(bot, args);
 
     try {
       //Validates the original sender is a member
-      const challengerNumber = u.PhoneNumber.GetPhoneNumberFromRawmsg(args.originalMsg)!.fullRawCleanedNumber;
-      const challengerInfo = await u.Member.GetMemberInfoFromPhone(challengerNumber, "Miembro");
+      const challengerNumber = Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number;
+      const challengerInfo = await Members_GetMemberInfoFromPhone(challengerNumber);
       if (challengerInfo === null) {
-        await t.txtToChatSender("Por alguna razón todavía no estás registrado como miembro, contacta a un admin para que te registre\nAdmins actuales:");
+        await chat.SendTxt("Por alguna razón todavía no estás registrado como miembro, contacta a un admin para que te registre\nAdmins actuales:");
         //It assumes there's at least an admin registered
         const adminsAvailable =
           (await Kldb.player.findMany({ where: { role: "AD" } }))
             .map(ad =>
               `🐺 ${ad.username}`
             ).join("\n");
-        await t.txtToChatSender(adminsAvailable);
+        await chat.SendTxt(adminsAvailable);
         return;
       }
 
       //Validates the user actually dueled someone
-      if (!u.PhoneNumber.isAMentionNumber(args.commandArgs.at(0) || '')) {
-        await t.txtToChatSender("No etiquetaste a nadie, prueba de nuevo");
+      if (!Phone_IsAMentionNumber(args.commandArgs.at(0) || '')) {
+        await chat.SendTxt("No etiquetaste a nadie, prueba de nuevo");
         return;
       }
 
       //Validates that the tagged user is a member
-      const challengedNumber = u.PhoneNumber.GetPhoneNumberFromMention(args.commandArgs.at(0)!)!.fullRawCleanedNumber;
-      const challengedInfo = await u.Member.GetMemberInfoFromPhone(challengedNumber, "Miembro");
+      const challengedNumber = Phone_GetPhoneNumberFromMention(args.commandArgs.at(0)!)!.number;
+      const challengedInfo = await Members_GetMemberInfoFromPhone(challengedNumber);
       if (challengedInfo === null) {
-        await t.txtToChatSender("Por alguna razón todavía no está registrado como miembro el usuario etiquetado, contacta a un admin para que te registre\nAdmins actuales:");
+        await chat.SendTxt("Por alguna razón todavía no está registrado como miembro el usuario etiquetado, contacta a un admin para que te registre\nAdmins actuales:");
         //It assumes there's at least an admin registered
         const adminsAvailable =
           (await Kldb.player.findMany({ where: { role: "AD" } }))
             .map(ad =>
               `🐺 ${ad.username}`
             ).join("\n");
-        await t.txtToChatSender(adminsAvailable);
+        await chat.SendTxt(adminsAvailable);
         return;
       }
 
       //Validates they aren't the same person
       if (challengerNumber === challengedNumber) {
-        await t.txtToChatSender("Te estás haciendo duelo a ti mismo?, no puedes hacer eso! 🦊");
+        await chat.SendTxt("Te estás haciendo duelo a ti mismo?, no puedes hacer eso! 🦊");
         return;
       }
 
       //Waiting for the dueled person's response
-      await t.txtToChatSender(`
+      await chat.SendTxt(`
         ⏳ *¡Esperando respuesta de ${challengedInfo.username}!* ⏳  
         🔔 Tienes *60 segundos* para decidir:
         
@@ -69,13 +73,14 @@ export default class DuelCommand implements ICommand {
 
         ⚔️ ¡El destino del duelo está en tus manos! 🔥
       `);
-      const thatPersonRawMsg = await bot.WaitNextRawMsgFromPhone(args.chatId, args.userId, challengedNumber, MsgType.text, 60);
-      const thatPersonTxt = u.Msg.GetTextFromRawMsg(thatPersonRawMsg).toLowerCase();
+
+      const thatPersonRawMsg = await bot.Receive.WaitNextRawMsgFromPhone(args.chatId, args.userId, challengedNumber, MsgType.text, 60);
+      const thatPersonTxt = Msg_GetTextFromRawMsg(thatPersonRawMsg).toLowerCase();
 
       //Other used has responded!
       if (thatPersonTxt.includes("aceptar") || thatPersonTxt.includes("si")) {
         //Both users are ready to duel, lets get the duel info
-        await t.txtToChatSender(`
+        await chat.SendTxt(`
           🎮⚔️ ¡Duelo en curso! ⚔️🎮
           🧢 Retador: ${challengerInfo.username}
           🏆 Retado: ${challengedInfo.username}
@@ -91,7 +96,7 @@ export default class DuelCommand implements ICommand {
           if (foundIndex !== -1) {
             //It means the match never was completed it but still pending, so lets delete it
             TempPendingMatches.splice(foundIndex, 1);
-            t.txtToChatSender(`
+            chat.SendTxt(`
               ⏳💔 **El tiempo ha terminado** 💔⏳  
               El duelo entre *${challengerInfo.username}* y *${challengedInfo.username}* no se completó a tiempo.  
               ⚠️ **El duelo ya no está pendiente.** ¡Inténtenlo de nuevo cuando estén listos! 🚀
@@ -108,15 +113,15 @@ export default class DuelCommand implements ICommand {
 
       }
     } catch (e) {
-      if (u.Msg.isBotWaitMessageError(e)) {
+      if (Msg_IsBotWaitMessageError(e)) {
         if (!e.wasAbortedByUser) {
-          await t.txtToChatSender("⏳ **No se recibió una respuesta de la persona esperada.**\nParece que no contestó a tiempo.");
+          await chat.SendTxt("⏳ **No se recibió una respuesta de la persona esperada.**\nParece que no contestó a tiempo.");
         }
         else if (e.wasAbortedByUser) {
-          await t.txtToChatSender("❌ **El usuario original canceló la espera.**\nEl duelo ha sido cancelado.");
+          await chat.SendTxt("❌ **El usuario original canceló la espera.**\nEl duelo ha sido cancelado.");
         }
       } else {
-        await t.txtToChatSender("⚠️ **Algo salió mal** con el sistema o la base de datos.\nPor favor, intenta nuevamente o contacta con soporte.\nDetalles: " + JSON.stringify(e));
+        await chat.SendTxt("⚠️ **Algo salió mal** con el sistema o la base de datos.\nPor favor, intenta nuevamente o contacta con soporte.\nDetalles: " + JSON.stringify(e));
       }
 
     }

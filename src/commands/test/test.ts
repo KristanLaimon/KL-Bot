@@ -1,23 +1,48 @@
+import moment from 'moment';
 import Bot from '../../bot';
+import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand } from '../../types/commands';
+import { Dates_SpanishMonthStr, Dates_SpanishMonthToNumber } from '../../utils/dates';
 import { AllUtilsType } from '../../utils/index_utils';
-import { CreateSenderReplyToolKit } from '../../utils/rawmsgs';
+import { Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
+
 
 export default class TestCommand implements ICommand {
   commandName: string = "test";
   description: string = "A simple test command";
   roleCommand: CommandAccessibleRoles = "Administrador"
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
-    const tooles = CreateSenderReplyToolKit(bot, args);
-    const his = ["hola", "hi", "bonjour", "hello"];
+    const chat = new SpecificChat(bot, args);
+
+    const allPossibleGreetings = ["hola", "hi", "bonjour", "hello"];
     try {
-      await bot.Send.Text(args.chatId, "Intenta mandar un saludo escrito");
-      const msg = await tooles.waitFromListTextsFromSender(his, "Tiene que ser alguna de esas opciones", (e, i) => `🦊 ${e}`);
-      await t.txtToChatSender(`Has respondido correctamente con: ${msg}`);
+      // const msg = await chat.DialogWaitAnOptionFromList(
+      //   allPossibleGreetings,
+      //   "Intenta mandar un saludo escrito de los siguientes:",
+      //   "Ese rango no existe, prueba con alguno de los siguientes:",
+      //   (e) => `🦊 ${e}`
+      // );
+
+      // await chat.SendTxt(`Has respondido correctamente con: ${msg}`);
+      await chat.SendTxt(`
+        Brinda la fecha en la que se unió el miembro en el formato:
+        AÑO/MES/DIA. Ejemplo: 2024/octubre/24
+        Si quieres que sea el día de hoy escribe:  *hoy*
+      `);
+      const dateInput = await chat.WaitNextTxtMsgFromSenderSpecific(
+        new RegExp(`^\\s*\\d{4}\\/${Dates_SpanishMonthStr}\\/\\d{1,2}\\s*$`, "i"),
+        "Formato de fecha incorrecta. Ejemplo de como debería ser: 2024/diciembre/01",
+        250
+      )
+      const dateInputPartes = dateInput.trim().split('/');
+      const monthNumber = Dates_SpanishMonthToNumber(dateInputPartes.at(1)!)!;
+      const dateParsed = dateInput.replace(dateInputPartes.at(1)!, monthNumber.toString());
+      const dateInputMomentJs = moment(dateInput); // Suponiendo que dateInput es válido
+
     } catch (e) {
-      if (utils.Msg.isBotWaitMessageError(e))
-        if (!e.wasAbortedByUser) await t.txtToChatSender("Se te acabó el tiempo"); else await t.txtToChatSender("Has cancelado el saludo..");
+      if (Msg_IsBotWaitMessageError(e))
+        if (!e.wasAbortedByUser) await chat.SendTxt("Se te acabó el tiempo"); else await chat.SendTxt("Has cancelado el saludo..");
     }
   }
 }

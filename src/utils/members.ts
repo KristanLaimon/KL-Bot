@@ -1,4 +1,4 @@
-import { Phone_GetPhoneNumberFromRawmsg } from './phonenumbers';
+import { Phone_GetFullPhoneInfoFromRawmsg } from './phonenumbers';
 import { WAMessage } from '@whiskeysockets/baileys';
 import { KlPlayer } from '../types/db';
 import Kldb from './db';
@@ -7,7 +7,7 @@ import { HelperRoleName } from '../types/commands';
 export async function Members_IsAdminSender(rawMsg: WAMessage): Promise<boolean> {
   let senderIsAnAdminAsWell: boolean = false;
   try {
-    const phoneNumber = Phone_GetPhoneNumberFromRawmsg(rawMsg)!.fullRawCleanedNumber;
+    const phoneNumber = Phone_GetFullPhoneInfoFromRawmsg(rawMsg)!.number;
     senderIsAnAdminAsWell = !!(await Kldb.player.findFirst({ where: { phoneNumber, role: "AD" } }));
   } catch (e) {
     senderIsAnAdminAsWell = false;
@@ -15,12 +15,10 @@ export async function Members_IsAdminSender(rawMsg: WAMessage): Promise<boolean>
   return senderIsAnAdminAsWell;
 }
 
-export async function Members_GetMemberInfoFromPhone(cleanedPhoneNumber: string): Promise<KlPlayer | null> {
-  let senderIsExpectedRoleType: KlPlayer | null;
+export async function Members_GetMemberInfoFromPhone(cleanedPhoneNumber: string) {
   try {
-    senderIsExpectedRoleType = await Kldb.player.findFirst({ where: { phoneNumber: cleanedPhoneNumber, role: "AD" } }) as KlPlayer;
+    return await Kldb.player.findFirst({ where: { phoneNumber: cleanedPhoneNumber }, include: { Rank: true, Role: true } });
   } catch (e) {
-    senderIsExpectedRoleType = null;
+    return null
   }
-  return senderIsExpectedRoleType;
 }

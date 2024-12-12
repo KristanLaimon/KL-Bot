@@ -2,13 +2,15 @@ import { HelperRoleName, ICommand } from '../../types/commands';
 import Bot from '../../bot';
 import { BotCommandArgs } from '../../types/bot';
 import { AllUtilsType } from '../../utils/index_utils';
+import { Members_GetMemberInfoFromPhone } from '../../utils/members';
+import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
 
 export default class HelpCommand implements ICommand {
   commandName: string = 'help';
   roleCommand: HelperRoleName = "Miembro";
   description: string = 'Despliega esta pantalla de ayuda';
 
-  async onMsgReceived(bot: Bot, args: BotCommandArgs, u: AllUtilsType) {
+  async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const strs: string[] = [];
     const maxCmdLength = Math.max(...bot.Commands.map(([_, cmd]) => cmd.commandName.length));
     const separator = '=================================';
@@ -31,7 +33,8 @@ export default class HelpCommand implements ICommand {
     }
 
     //Check if it' admin
-    if (await u.Member.isAdminSender(args.originalMsg)) {
+    const memberInfo = await Members_GetMemberInfoFromPhone(Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number);
+    if (memberInfo && memberInfo.role === "AD") {
       if (adminCommands.length > 0) {
         strs.push("=== Comandos de administrador ===");
         for (const cmd of adminCommands) {
@@ -41,12 +44,11 @@ export default class HelpCommand implements ICommand {
       }
     }
 
-
     strs.push('');
     strs.push(separator);
     strs.push('Tip: Usa el comando para obtener más detalles.');
 
     // Send formatted message
-    await bot.SendTxtToChatId(args.chatId, strs.join('\n'));
+    await bot.Send.Text(args.chatId, strs.join('\n'));
   }
 }

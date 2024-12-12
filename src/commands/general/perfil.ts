@@ -4,50 +4,46 @@ import { CommandAccessibleRoles, ICommand } from '../../types/commands';
 import { Dates_GetFormatedDurationDaysSince } from '../../utils/dates';
 import { AllUtilsType } from '../../utils/index_utils';
 import { BotCommandArgs } from '../../types/bot';
+import { Phone_GetFullPhoneInfoFromRawmsg, Phone_GetPhoneNumberFromMention } from '../../utils/phonenumbers';
+import { Members_GetMemberInfoFromPhone } from '../../utils/members';
+import { SpecificChat } from '../../bot/SpecificChat';
+import { Db_GetPlayerImagePath } from '../../utils/filesystem';
 
 // TODO: Implement a 'usageInfo' for each command and make it accesible with some "helpCommand" function or something like that
 export default class GetProfileInfoCommand implements ICommand {
   commandName: string = "perfil"
   description: string = "Obten la información de cualquier miembro del clan etiquetandolo con @ después del comando"
   roleCommand: CommandAccessibleRoles = "Miembro";
-  async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: AllUtilsType) {
+  async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     if (args.commandArgs.length > 1) {
-      await bot.SendTxtToChatId(args.chatId, "Debes etiquetar al miembro al que quieres consultar con el @ o si no mandas nada, se te desplegará tu propia información");
+      await bot.Send.Text(args.chatId, "Debes etiquetar al miembro al que quieres consultar con el @ o si no mandas nada, se te desplegará tu propia información");
       return;
     }
+
+    const chat = new SpecificChat(bot, args);
 
     const wasSomeoneTagged: boolean = args.commandArgs.length == 1;
     const whatsNumberInfo = wasSomeoneTagged ?
-      utils.PhoneNumber.GetPhoneNumberFromMention(args.commandArgs[0]) :
-      utils.PhoneNumber.GetPhoneNumberFromRawmsg(args.originalMsg);
-
+      Phone_GetPhoneNumberFromMention(args.commandArgs[0]) :
+      Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg);
     if (whatsNumberInfo == null) {
-      await bot.SendTxtToChatId(args.chatId, "No etiquetaste a nadie o el etiquetado es inválido (?)");
+      await chat.SendTxt("No etiquetaste a nadie o el etiquetado es inválido (?)");
       return;
     }
 
-    const cleanedNumber = whatsNumberInfo.fullRawCleanedNumber;
-    try {
-      //check if it is a registered member
-      const member = await Kldb.player.findFirst({ where: { phoneNumber: cleanedNumber }, include: { Rank: true, Role: true } })
-      if (!member) {
-        await bot.SendTxtToChatId(args.chatId, "La persona etiquetada todavía no está registrado en este bot del clan");
-        return;
-      }
-
-
-      const memberInfo =
-        `======== Perfil =======
-Username: ${member?.username}
-Rango: ${member?.Rank.name}
-Rol: ${member.Role.name}
-Antiguedad: ${Dates_GetFormatedDurationDaysSince(member.joined_date)}`;
-      await bot.SendTxtToChatId(args.chatId, memberInfo);
-      const imgPlayerPath = utils.FileSystem.GetPlayerImagePath(member.username);
-      await bot.SendImgToChatId(args.chatId, imgPlayerPath!);
-
-    } catch (error) {
-      await bot.SendTxtToChatId(args.chatId, "Ha ocurrido un error raro...");
+    const member = await Members_GetMemberInfoFromPhone(whatsNumberInfo.number);
+    if (member === null) {
+      await bot.Send.Text(args.chatId, "La persona etiquetada todavía no está registrado en este bot del clan");
+      return;
     }
+
+    await chat.SendTxt(`
+      ======== Perfil =======
+      Username: ${member?.username}
+      Rango: ${member?.Rank.name}
+      Rol: ${member.Role.name}
+      Antiguedad: ${Dates_GetFormatedDurationDaysSince(member.joined_date)}
+    `);
+    await chat.SendImg(Db_GetPlayerImagePath(member.username)!);
   }
 }

@@ -1,32 +1,34 @@
 import Bot from '../../bot';
+import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand } from '../../types/commands';
 import Kldb, { TempPendingMatches } from '../../utils/db';
-import { AllUtilsType } from '../../utils/index_utils';
+import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
+import { Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
 
 export default class DuelWinCommand implements ICommand {
   commandName: string = "duelwin"
   description: string = "Para registrar un duelo pendiente realizado con !duel con otro miembro del clan"
   roleCommand: CommandAccessibleRoles = "Miembro"
-  async onMsgReceived(bot: Bot, args: BotCommandArgs, utils: AllUtilsType) {
-    const t = utils.Msg.CreateSenderReplyToolKit(bot, args);
+  async onMsgReceived(bot: Bot, args: BotCommandArgs) {
+    const chat = new SpecificChat(bot, args);
 
     //Check if sender is on a pending duel
-    const numberSender = utils.PhoneNumber.GetPhoneNumberFromRawmsg(args.originalMsg)!.fullRawCleanedNumber;
+    const numberSender = Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number;
     const pendingMatchFoundIndex = TempPendingMatches.findIndex(a => a.challenger.phoneNumber === numberSender || a.challenged.phoneNumber === numberSender);
     if (pendingMatchFoundIndex === -1) {
-      await t.txtToChatSender("❌ *No tienes un duelo pendiente con nadie.*\nPara iniciar uno, usa *!duel @persona* y retar a alguien");
+      await chat.SendTxt("❌ *No tienes un duelo pendiente con nadie.*\nPara iniciar uno, usa *!duel @persona* y retar a alguien");
       return;
     }
 
     //Check if theres the argument of scoreboard
     if (!/^\d{1,2}(\-|\||_)\d{1,2}$/.test(args.commandArgs.at(0) || "")) {
-      await t.txtToChatSender("⚠️ *Formato incorrecto del resultado.*\nRecuerda que el marcador debe ser en el formato adecuado. \nEjemplo: *!duelwin 2-3 (azul ó naranja ó a ó n)* (con el *'-'* o *'|'* entre los números).\n❌ *Evita poner resultados como 100-12, ¡es imposible!* 🐺\nIntenta de nuevo.");
+      await chat.SendTxt("⚠️ *Formato incorrecto del resultado.*\nRecuerda que el marcador debe ser en el formato adecuado. \nEjemplo: *!duelwin 2-3 (azul ó naranja ó a ó n)* (con el *'-'* o *'|'* entre los números).\n❌ *Evita poner resultados como 100-12, ¡es imposible!* 🐺\nIntenta de nuevo.");
       return;
     }
 
     if (!/^(a|azul|n|naranja)$/.test(args.commandArgs.at(1) || '')) {
-      await t.txtToChatSender("⚠️ *Formato incorrecto de tu color de equipo.*\nPuede ser: *a* ó *azul* ó *n* ó *naranja*\nEjemplo: *!duelwin 2-3 n* (con el *'-'** o *'|'* entre los números y el equipo al final, separado por espacios).\n❌🐺\nIntenta de nuevo.");
+      await chat.SendTxt("⚠️ *Formato incorrecto de tu color de equipo.*\nPuede ser: *a* ó *azul* ó *n* ó *naranja*\nEjemplo: *!duelwin 2-3 n* (con el *'-'** o *'|'* entre los números y el equipo al final, separado por espacios).\n❌🐺\nIntenta de nuevo.");
       return;
     }
 
@@ -38,7 +40,7 @@ export default class DuelWinCommand implements ICommand {
     const loserScore = Math.min(...score);
 
     if (winnerScore === loserScore) {
-      await t.txtToChatSender("Empate?, eso no es posible, probablemente te equivocaste al poner la puntuación, intenta de nuevo");
+      await chat.SendTxt("Empate?, eso no es posible, probablemente te equivocaste al poner la puntuación, intenta de nuevo");
       return;
     }
 
@@ -53,7 +55,7 @@ export default class DuelWinCommand implements ICommand {
     TempPendingMatches.splice(pendingMatchFoundIndex, 1);
 
     try {
-      await t.txtToChatSender("Todo el proceso ocurrió exitosamente");
+      await chat.SendTxt("Todo el proceso ocurrió exitosamente");
       //1. Store match in db
       await Kldb.match.create({
         data: {
@@ -82,7 +84,7 @@ export default class DuelWinCommand implements ICommand {
         ]
       })
 
-      t.txtToChatSender(`
+      chat.SendTxt(`
         🎮 **Resultado del duelo:**
 
         - **Puntuación:** ${score[0]}-${score[1]}.
@@ -92,10 +94,10 @@ export default class DuelWinCommand implements ICommand {
       `);
 
     } catch (e) {
-      if (utils.Msg.isBotWaitMessageError(e)) {
+      if (Msg_IsBotWaitMessageError(e)) {
       }
       else {
-        t.txtToChatSender("Ha ocurrido algo raro, y no se ha guardado la información del duelo " + JSON.stringify(e));
+        chat.SendTxt("Ha ocurrido algo raro, y no se ha guardado la información del duelo " + JSON.stringify(e));
       }
     }
   }

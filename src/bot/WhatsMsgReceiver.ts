@@ -1,9 +1,9 @@
 import { WAMessage } from '@whiskeysockets/baileys';
-import { BotWaitMessageError, WaitTextRegexFormat } from '../types/bot';
+import { BotWaitMessageError } from '../types/bot';
 import { MsgType, SenderType } from '../types/commands';
 import WhatsSocket from './WhatsSocket';
 import { Msg_GetTextFromRawMsg, Msg_MsgTypeToString } from '../utils/rawmsgs';
-import { Phone_GetPhoneNumberFromRawmsg } from '../utils/phonenumbers';
+import { Phone_GetFullPhoneInfoFromRawmsg } from '../utils/phonenumbers';
 
 export class WhatsMsgReceiver {
   private _rawSocket: WhatsSocket;
@@ -26,7 +26,7 @@ export class WhatsMsgReceiver {
         if (timer) clearTimeout(timer);
         timer = setTimeout(() => {
           this._rawSocket.onIncommingMessage.Unsubsribe(listener);
-          reject({ wasAbortedByUser: true, errorMessage: "User didn't responded in time" });
+          reject({ wasAbortedByUser: false, errorMessage: "User didn't responded in time" });
         }, timeout * 1000);
       }
 
@@ -44,7 +44,7 @@ export class WhatsMsgReceiver {
         }
 
         if (msgType !== expectedMsgType) {
-          this._rawSocket.Send(chatSenderId, { text: wrongTypeMsgFeedback })
+          this._rawSocket.Send(chatId, { text: wrongTypeMsgFeedback })
           return;
         }
 
@@ -89,7 +89,7 @@ export class WhatsMsgReceiver {
           return;
         }
 
-        const msgNumber = Phone_GetPhoneNumberFromRawmsg(msg)!.fullRawCleanedNumber;
+        const msgNumber = Phone_GetFullPhoneInfoFromRawmsg(msg)!.number;
         if (msgNumber !== expectedSenderNumber) return;
         resetTimeout();
 
@@ -109,37 +109,5 @@ export class WhatsMsgReceiver {
     })
   }
 
-  /**
-   * Expect a TEXT message from the user (Doesn't matter the format)
-   * max message timeout in seconds has been reached.
-   * @param chatSenderId ChatId where the message comes from
-   * @param userSenderId  UserId of the participant that sent the message (if it is individual chat, its the same as chatSenderId)
-   * @param timeout  Time in seconds to wait for the user to respond
-   * @throws {BotWaitMessageError} if user has CANCELLED the operation or if timeout has been reached
-   * @returns  The message sent by the user
-   */
-  public async WaitNextTxtMsgFromUserId(chatSenderId: string, userSenderId: string, timeout: number = 30, wrongMsgFeedback?: string): Promise<string> {
-    return Msg_GetTextFromRawMsg((await this.WaitNextRawMsgFromId(chatSenderId, userSenderId, MsgType.text, timeout, wrongMsgFeedback)));
-  }
 
-  /**
-   * Expect a TEXT message from the user with a specific format (with regex) or throws error if user cancel the operation or 
-   * max message timeout in seconds has been reached.
-   * @param chatSenderId ChatId where the message comes from
-   * @param participantId  UserId of the participant that sent the message (if it is individual chat, its the same as chatSenderId)
-   * @param regexExpectingFormat  A small object giving the regex and the error message to be sent to the user if the message does not match the expected format
-   * @param timeout  Time in seconds to wait for the user to respond
-   * @throws {BotWaitMessageError} if user has CANCELLED the operation or if timeout has been reached
-   * @returns  The message sent by the user
-   */
-  public async WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(chatSenderId: string, participantId: string, regex: RegExp, timeout: number = 30, wrongTypeMsgFeedback?: string): Promise<string> {
-    let isValidResponse: boolean = false;
-    let userResult: string;
-    do {
-      userResult = await this.WaitNextTxtMsgFromUserId(chatSenderId, participantId, timeout, wrongTypeMsgFeedback);
-      if (regex.test(userResult))
-        isValidResponse = true
-    } while (!isValidResponse);
-    return userResult;
-  }
 }

@@ -6,7 +6,8 @@ import { HelperRoleName, ICommand, MsgType, SenderType } from './types/commands'
 import { WAMessage } from '@whiskeysockets/baileys';
 import { Msg_GetTextFromRawMsg } from './utils/rawmsgs';
 import { Members_GetMemberInfoFromPhone } from './utils/members';
-import { Phone_GetPhoneNumberFromRawmsg } from './utils/phonenumbers';
+import { Phone_GetFullPhoneInfoFromRawmsg } from './utils/phonenumbers';
+import { BotCommandArgs } from './types/bot';
 
 type BotArgs = {
   prefix?: string;
@@ -15,6 +16,7 @@ type BotArgs = {
 };
 
 export default class Bot {
+  private instance: Bot;
   private socket: WhatsSocket;
   private config: BotArgs;
 
@@ -23,12 +25,14 @@ export default class Bot {
   public CommandsHandler: CommandsHandler;
 
   constructor(args: BotArgs | undefined) {
+    this.instance = this;
     this.config = {
       coolDownSecondsTime: 1000 * (args?.coolDownSecondsTime || 1),
       maxQueueMsgs: args?.maxQueueMsgs || 10,
       prefix: args?.prefix || "!",
     };
     this.CommandsHandler = new CommandsHandler();
+    this.OnMessageTriggered = this.OnMessageTriggered.bind(this);
   }
 
   get Commands() {
@@ -39,7 +43,7 @@ export default class Bot {
     this.socket = new WhatsSocket();
     this.Send = new WhatsMsgSender(this.socket, 5, 1000);
     this.Receive = new WhatsMsgReceiver(this.socket);
-    this.socket.onIncommingMessage.Subscribe(this.OnMessageTriggered.bind(this));
+    this.socket.onIncommingMessage.Subscribe(this.OnMessageTriggered);
   }
 
   public AddCommand(commandInstance: ICommand) {
@@ -62,7 +66,7 @@ export default class Bot {
       if (!this.CommandsHandler.Exists(command)) return;
 
       //Check if it is registered in bot, an admin?, a member? or neither of them?
-      const phoneNumber = Phone_GetPhoneNumberFromRawmsg(rawMsg)!.fullRawCleanedNumber;
+      const phoneNumber = Phone_GetFullPhoneInfoFromRawmsg(rawMsg)!.number;
       const foundMemberInfo = await Members_GetMemberInfoFromPhone(phoneNumber);
       let roleMember: HelperRoleName;
       if (foundMemberInfo === null) roleMember = "Cualquiera";
@@ -78,24 +82,5 @@ export default class Bot {
       this.CommandsHandler.Execute(command, this, { chatId, commandArgs: args, msgType: type, originalMsg: rawMsg, senderType, userId })
     }
   }
-
-
 }
 
-// export class SpecificBot {
-//   private bot: Bot;
-//   private specificChatArgs: BotCommandArgs;
-//   constructor(bot, specificArgs) {
-//     this.bot = bot;
-//     this.specificChatArgs = specificArgs;
-//   }
-//   async SendTxt(msg: string): Promise<void> {
-//     await this.bot.SendTxtToChatId(this.specificChatArgs.chatId, msg);
-//   }
-//   async SendImg(imgPath: string, caption?: string): Promise<void> {
-//     await this.bot.SendImgToChatId(this.specificChatArgs.chatId, imgPath, caption);
-//   }
-//   async WaitNextTxtMsgFromSender(timeout?: number): Promise<string> {
-//     // return await this.bot.Wat
-//   }
-// }
