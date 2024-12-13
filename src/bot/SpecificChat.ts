@@ -12,41 +12,117 @@ export class SpecificChat {
     this.args = specificArgs;
   }
   ///================== Sending ====================
+  /**
+   * Sends a text message to the specified chat.
+   *
+   * @param msg - The text message to be sent.
+   *
+   * @returns A promise that resolves when the text message has been sent successfully.
+   */
   async SendTxt(msg: string): Promise<void> {
     await this.bot.Send.Text(this.args.chatId, msg);
   }
+
+  /**
+   * Sends an image to the specified chat.
+   *
+   * @param imgPath - The file path of the image to be sent.
+   * @param caption - Optional. The caption for the image.
+   *
+   * @returns A promise that resolves when the image has been sent successfully.
+   */
   async SendImg(imgPath: string, caption?: string): Promise<void> {
     await this.bot.Send.Img(this.args.chatId, imgPath, caption);
   }
 
+
   //================== Receiving (Basic) =====================
+  /**
+   * Waits for the next text message from the sender and returns it.
+   *
+   * @param timeout - Optional timeout in seconds for waiting for a response. Default is 30 seconds.
+   *
+   * @returns A promise that resolves with the text message from the sender.
+   *
+   * @throws {BotWaitMessageError} If the user cancels the operation or if the timeout is reached.
+   */
   async WaitNextTxtMsgFromSender(timeout?: number): Promise<string> {
     const rawMsg = await this.bot.Receive.WaitNextRawMsgFromId(this.args.chatId, this.args.userId, MsgType.text, timeout);
     return Msg_GetTextFromRawMsg(rawMsg);
   }
 
+
+  /**
+   * Waits for the next text message from the specified phone number and returns it.
+   *
+   * @param phoneNumberCleaned - The cleaned phone number (without country code) to wait for.
+   * @param timeout - Optional timeout in seconds for waiting for a response. Default is 30 seconds.
+   * @param wrongMsg - Optional error message to send if the incoming message does not match the expected format.
+   *
+   * @returns A promise that resolves with the text message from the specified phone number.
+   *
+   * @throws {BotWaitMessageError} If the user cancels the operation or if the timeout is reached.
+   */
   async WaitNextTxtMsgFromPhone(phoneNumberCleaned: string, timeout?: number, wrongMsg?: string): Promise<string> {
     const rawMsg = await this.bot.Receive.WaitNextRawMsgFromPhone(this.args.chatId, this.args.userId, phoneNumberCleaned, MsgType.text, timeout, wrongMsg);
     return Msg_GetTextFromRawMsg(rawMsg);
   }
 
-  async WaitNextTxtMsgFromSenderSpecific(regexExpecingFormat: RegExp, wrongMsg: string, timeout?: number,): Promise<string> {
+
+  /**
+   * Waits for the next text message from the sender with a specific format and returns it.
+   * If the message does not match the expected format, sends an error message and waits for another message.
+   *
+   * @param regexExpecingFormat - The regular expression that the incoming message should match.
+   * @param wrongMsg - The error message to send if the incoming message does not match the expected format.
+   * @param timeout - Optional timeout in seconds for waiting for a response. Default is 30 seconds.
+   * @returns A promise that resolves with the text message from the sender that matches the expected format.
+   * @throws {BotWaitMessageError} If the user cancels the operation or if the timeout is reached.
+   */
+  async WaitNextTxtMsgFromSenderSpecific(regexExpecingFormat: RegExp, wrongMsg: string, timeout?: number): Promise<string> {
     return await WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(this.bot, this.args.chatId, this.args.userId, regexExpecingFormat, wrongMsg, timeout);
   }
 
+
+  // async WaitUntilTxtMsgFromPhone(phoneNumberCleaned: string, regexFormatExpected: RegExp, timeout?: number)
+
   //====================== Dialog (Advanced receiving) ==========================
 
-  async DialogWaitAnOptionFromList(possibleResults: string[], startMsg: string, errorMsg: string, formatEachElementCallback: (element: string, index: number) => string, timeout?: number,): Promise<string> {
-    const possibleResultsRegex = new RegExp(`^(${possibleResults.join("|")})$`)
+  /**
+   * Presents a list of options to the user, waits for them to select one, and returns the selected option.
+   *
+   * @param {string[]} possibleResults - An array of all available options.
+   * @param {string} startMsg - The initial message to display to the user before showing the options.
+   * @param {string} errorMsg - The message to display if the user makes an invalid selection.
+   * @param {(element: string, index: number) => string} formatEachElementCallback - A function that formats how each option is displayed to the user.
+   * @param {number} [timeout] - Optional timeout in seconds for user response.
+   * @returns {Promise<string>} A promise that resolves with the selected option.
+   * @throws {Error} Throws an error if no matching option is found (which should not happen under normal circumstances).
+   */
+  async DialogWaitAnOptionFromList(possibleResults: string[], startMsg: string, errorMsg: string, formatEachElementCallback: (element: string, index: number) => string, timeout?: number): Promise<string> {
+    const possibleResultsRegex = new RegExp(`^(${possibleResults.join("|")})$`);
     let fullMsg: string = errorMsg;
     let optionsTxt: string = possibleResults.map(formatEachElementCallback).join("\n");
     fullMsg += "\n";
-    fullMsg += optionsTxt
+    fullMsg += optionsTxt;
     await this.bot.Send.Text(this.args.chatId, startMsg + "\n\n" + optionsTxt);
     const toReturn = await WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(this.bot, this.args.chatId, this.args.userId, possibleResultsRegex, fullMsg, timeout);
     return toReturn;
   }
 
+  /**
+   * Presents a list of options to the user and waits for them to select one.
+   * 
+   * @template T - The type of objects in the options list.
+   * @param {T[]} allOptionsObj - An array of all available options.
+   * @param {function(T, number): string} selectPropCallback - A function that selects a property from each option object to use as the selectable value.
+   * @param {string} startingMsg - The initial message to display to the user before showing the options.
+   * @param {string} errorMsg - The message to display if the user makes an invalid selection.
+   * @param {function(T, number): string} formatElementCallBack - A function that formats how each option is displayed to the user.
+   * @param {number} [timeout] - Optional timeout in seconds for user response.
+   * @returns {Promise<T>} A promise that resolves with the selected option object.
+   * @throws {Error} Throws an error if no matching object is found (which should not happen under normal circumstances).
+   */
   async DialogWaitAnOptionFromListObj<T>(
     allOptionsObj: T[],
     selectPropCallback: (optionObj: T, index: number) => string,
@@ -67,6 +143,7 @@ export class SpecificChat {
     if (!selectedObj) throw new Error("This shouln't have happened");
     return selectedObj;
   }
+
 }
 
 /**

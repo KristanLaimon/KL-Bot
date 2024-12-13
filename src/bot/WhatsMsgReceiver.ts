@@ -41,12 +41,12 @@ export class WhatsMsgReceiver {
           return;
         }
 
+        if (!successConditionCallback(chatId, msg, msgType, senderType)) return;
+
         if (msgType !== expectedMsgType) {
           this._rawSocket.Send(chatId, { text: wrongTypeMsgFeedback })
           return;
         }
-
-        if (!successConditionCallback(chatId, msg, msgType, senderType)) return;
 
         this._rawSocket.onIncommingMessage.Unsubsribe(listener);
         clearTimeout(timer);
@@ -76,7 +76,7 @@ export class WhatsMsgReceiver {
 
   public async WaitUntilRawTxtMsgFromPhone(chatSenderId: string, userSenderId: string, expectedCleanedPhoneNumber: string, regexExpected: RegExp, timeout?: number, wrongTypeMsgFeedback?: string): Promise<WAMessage> {
     const cb: SuccessConditionCallback = (chatId, msg, msgType, senderType) => {
-      //Asumming msg is MsgType.text
+      if (msgType !== MsgType.text) return false;
       const phoneNumber = Phone_GetFullPhoneInfoFromRawmsg(msg)!.number;
       const msgTxt = Msg_GetTextFromRawMsg(msg);
       const isFromExpectedPhoneUser = phoneNumber === expectedCleanedPhoneNumber;
