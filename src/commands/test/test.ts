@@ -5,8 +5,9 @@ import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand } from '../../types/commands';
 import { Dates_SpanishMonthStr, Dates_SpanishMonthToNumber } from '../../utils/dates';
 import { AllUtilsType } from '../../utils/index_utils';
-import { Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
+import { Msg_GetTextFromRawMsg, Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
 import Kldb from '../../utils/db';
+import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
 
 
 export default class TestCommand implements ICommand {
@@ -17,6 +18,11 @@ export default class TestCommand implements ICommand {
     const chat = new SpecificChat(bot, args);
 
     try {
+      chat.SendTxt("Esperaré hasta que mandes alguna 'tasa'...");
+      const respondedWithTasa = await bot.Receive.WaitUntilRawTxtMsgFromPhone(args.chatId, args.userId, Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number, /tasa/i, 30);
+      chat.SendTxt("Finalmente respondiste tasa cabrón");
+      chat.SendTxt(`Respondiste así: La cagada va en la *${Msg_GetTextFromRawMsg(respondedWithTasa)}*`)
+
       // const allMembers = (await Kldb.player.findMany({ include: { Rank: true, Role: true } }));
       // const selectedMember =
       //   await chat.DialogWaitAnOptionFromListObj(

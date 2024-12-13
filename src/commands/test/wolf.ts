@@ -7,7 +7,7 @@ import { SpecificChat } from '../../bot/SpecificChat';
 ///always a command have a commandName -- READY!
 export default class WolfCommand implements ICommand {
   commandName: string = "wolf"
-  roleCommand: HelperRoleName = "Miembro";
+  roleCommand: HelperRoleName = "Cualquiera";
   description: string = "Lobitosssss";
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);

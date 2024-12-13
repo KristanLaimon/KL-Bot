@@ -8,7 +8,7 @@ import { Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
 
 
 export default class DeleteAdmin implements ICommand {
-  commandName: string = 'deletemember';
+  commandName: string = 'deletemembersssss';
   description: string = "Elimina a un miembro existente en el clan"
   roleCommand: CommandAccessibleRoles = "Secreto";
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {

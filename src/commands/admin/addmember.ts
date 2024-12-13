@@ -8,7 +8,7 @@ import { AllUtilsType } from '../../utils/index_utils';
 import Bot from '../../bot';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { Db_TryToDownloadMedia } from '../../utils/filesystem';
-import { Phone_GetFullPhoneInfoFromRawmsg, Phone_MentionNumberRegexStr } from '../../utils/phonenumbers';
+import { Phone_GetFullPhoneInfoFromRawmsg, Phone_GetPhoneNumberFromMention as Phone_GetFullPhoneNumberInfoFromMention, Phone_MentionNumberRegexStr } from '../../utils/phonenumbers';
 import { Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
 import { Dates_GetFormatedDurationDaysSince, Dates_SpanishMonthStr, Dates_SpanishMonthToNumber } from '../../utils/dates';
 import moment from 'moment';
@@ -25,7 +25,7 @@ export default class AddMemberCommand implements ICommand {
     try {
       await chat.SendTxt(`
         ${separator}
-        Añadiendo un nuevo administrador
+        Añadiendo un nuevo miembro
         ${separator}`
       );
 
@@ -68,12 +68,13 @@ export default class AddMemberCommand implements ICommand {
 
       // MEMBER NUMBER PHONE
       await chat.SendTxt("Manda su número de whatsapp: (Puedes etiquetarlo con @) o poner *mio*");
-      let memberNumber = await chat.WaitNextTxtMsgFromSenderSpecific(
+      let rawUserNumberAnswer = await chat.WaitNextTxtMsgFromSenderSpecific(
         new RegExp(`^(${Phone_MentionNumberRegexStr}|mio)$`),
         "No es un número válido, intenta de nuevo",
         250
       );
-      if (memberNumber.includes('mio')) memberNumber = Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number;
+      if (rawUserNumberAnswer.includes('mio')) rawUserNumberAnswer = Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number;
+      else rawUserNumberAnswer = Phone_GetFullPhoneNumberInfoFromMention(rawUserNumberAnswer)!.number;
       await chat.SendTxt("Se ha registrado el número");
 
       //MEMBER DATE JOINED
@@ -121,7 +122,7 @@ export default class AddMemberCommand implements ICommand {
       await Kldb.player.create({
         data: {
           actualRank: selectedRankId,
-          phoneNumber: memberNumber,
+          phoneNumber: rawUserNumberAnswer,
           profilePicturePath: imgName,
           role: selectedRoleId,
           username: name,
@@ -134,7 +135,7 @@ export default class AddMemberCommand implements ICommand {
       m.push("------ Se ha guardado exitosamente los datos siguientes: --------")
       m.push(`Ingame Username: ${name}`)
       m.push(`Role: Administrator | AD`);
-      m.push(`Rango: ${selectedRank}`)
+      m.push(`Rango: ${CapitalizeStr(selectedRank)}`)
       m.push(`WhatsappNickName: ${whatsappName}`)
       m.push(`Antiguedad: ${Dates_GetFormatedDurationDaysSince(dateInputMomentJs.valueOf())}`)
       await chat.SendTxt(m.join("\n"));
@@ -142,7 +143,7 @@ export default class AddMemberCommand implements ICommand {
       await chat.SendTxt("===========Terminado==============");
     } catch (e) {
       if (Msg_IsBotWaitMessageError(e)) {
-        if (e.wasAbortedByUser) await chat.SendTxt("Se ha cancelado el proceso de creación del administrador");
+        if (e.wasAbortedByUser) await chat.SendTxt("Se ha cancelado el proceso de creación del miembro");
         else await chat.SendTxt("Te has tardado demasiado en contestar.. vuelve a intentarlo");
       }
       else {

@@ -10,6 +10,7 @@ import TestCommand from './src/commands/test/test';
 import OtherCommand from './src/commands/test/other';
 import DuelCommand from './src/commands/general/duel';
 import DuelWinCommand from './src/commands/general/duelwin';
+import SeeMembersCommand from './src/commands/general/members';
 
 //For some reason this bot stops working if a group has ( or ) in its name on production server ubuntu server!
 
@@ -28,6 +29,7 @@ async function Main() {
   klBot.AddCommand(new OtherCommand());
   klBot.AddCommand(new DuelCommand());
   klBot.AddCommand(new DuelWinCommand());
+  klBot.AddCommand(new SeeMembersCommand());
 
   klBot.StartBot();
 }

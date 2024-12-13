@@ -7,48 +7,55 @@ import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
 
 export default class HelpCommand implements ICommand {
   commandName: string = 'help';
-  roleCommand: HelperRoleName = "Miembro";
+  roleCommand: HelperRoleName = "Cualquiera";
   description: string = 'Despliega esta pantalla de ayuda';
 
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const strs: string[] = [];
     const maxCmdLength = Math.max(...bot.Commands.map(([_, cmd]) => cmd.commandName.length));
-    const separator = '=================================';
-    const title = '🌟 Lista de comandos disponibles 🌟';
+    const separator = '----------------------------------';
+    const title = '🌟 *Comandos Disponibles* 🌟';
 
-    strs.push(separator);
     strs.push(title);
     strs.push(separator);
-    strs.push(''); // Empty line for spacing
 
-    // Format commands
-    const generalCommands = bot.Commands.filter(com => com[1].roleCommand == "Miembro");
-    const adminCommands = bot.Commands.filter(com => com[1].roleCommand == "Administrador");
-
-    strs.push('');
-    strs.push("=== Comandos Generales ===");
-    for (const cmd of generalCommands) {
+    // Comandos generales (everyone)
+    const everyoneCommands = bot.Commands.filter(com => com[1].roleCommand == "Cualquiera");
+    // strs.push('*Comandos para Todos:*');
+    everyoneCommands.forEach(cmd => {
       const command = cmd[1].commandName.padEnd(maxCmdLength + 2, ' ');
       strs.push(`🔹 ${command}: ${cmd[1].description}`);
-    }
+    });
+    strs.push('');
 
-    //Check if it' admin
+    // Verificar si es miembro o admin
     const memberInfo = await Members_GetMemberInfoFromPhone(Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number);
-    if (memberInfo && memberInfo.role === "AD") {
-      if (adminCommands.length > 0) {
-        strs.push("=== Comandos de administrador ===");
-        for (const cmd of adminCommands) {
+    if (memberInfo) {
+      // Comandos para Miembros
+      const generalCommands = bot.Commands.filter(com => com[1].roleCommand == "Miembro");
+      // strs.push('*Comandos para Miembros:*');
+      generalCommands.forEach(cmd => {
+        const command = cmd[1].commandName.padEnd(maxCmdLength + 2, ' ');
+        strs.push(`🔹 ${command}: ${cmd[1].description}`);
+      });
+      strs.push('');
+
+      // Si es admin, agregar comandos de Admin
+      if (memberInfo.role === "AD") {
+        const adminCommands = bot.Commands.filter(com => com[1].roleCommand == "Administrador");
+        strs.push('*Comandos de Administrador:*');
+        adminCommands.forEach(cmd => {
           const command = cmd[1].commandName.padEnd(maxCmdLength + 2, ' ');
           strs.push(`🔹 ${command}: ${cmd[1].description}`);
-        }
+        });
+        strs.push('');
       }
     }
 
-    strs.push('');
     strs.push(separator);
-    strs.push('Tip: Usa el comando para obtener más detalles.');
+    strs.push('Tip: Usa el comando para más detalles.');
 
-    // Send formatted message
+    // Enviar mensaje formateado
     await bot.Send.Text(args.chatId, strs.join('\n'));
   }
 }

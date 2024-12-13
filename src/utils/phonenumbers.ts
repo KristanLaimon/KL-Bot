@@ -10,8 +10,8 @@ export type WhatsNumber = {
 export const Phone_MentionNumberRegex = /^@\d{13}$/;
 export const Phone_UserIdRegex = /^\d{13}@s.whatsapp.net$/;
 
-export const Phone_MentionNumberRegexStr = "@\d{13}"
-export const Phone_UserIdRegexStr = "\d{13}@s.whatsapp.net";
+export const Phone_MentionNumberRegexStr = "@\\d{13}"
+export const Phone_UserIdRegexStr = "\\d{13}@s.whatsapp.net";
 
 export function Phone_GetFullPhoneInfoFromRawmsg(rawMsg: WAMessage): WhatsNumber | null {
   //Let's check if comes from private msg or group

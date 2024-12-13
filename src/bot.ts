@@ -45,22 +45,7 @@ export default class Bot {
     this.Send = new WhatsMsgSender(this.socket, 5, 1000);
     this.Receive = new WhatsMsgReceiver(this.socket);
     this.socket.onIncommingMessage.Subscribe(this.OnMessageTriggered);
-    this.socket.onReconnect.Subscribe(async () => {
-      let attempts = 0;
-      const maxAttempts = 5;
-      const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-      while (attempts < maxAttempts) {
-        try {
-          await this.StartBot();
-          break; // Exit loop if successful
-        } catch (error) {
-          attempts++;
-          console.error(`Reconnection attempt ${attempts} failed:`, error);
-          await delay(1000 * Math.pow(2, attempts)); // Exponential backoff
-        }
-      }
-    });
+    this.socket.onReconnect.Subscribe(async () => await this.StartBot());
   }
 
   public AddCommand(commandInstance: ICommand) {
@@ -95,7 +80,7 @@ export default class Bot {
         this.Send.Text(chatId, "No tienes permiso para ejecutar este comando");
         return;
       }
-      const userId = rawMsg.participant || chatId || "There's no participant, so strage...";
+      const userId = rawMsg.key.participant || chatId || "There's no participant, so strage...";
       this.CommandsHandler.Execute(command, this, { chatId, commandArgs: args, msgType: type, originalMsg: rawMsg, senderType, userId })
     }
   }
