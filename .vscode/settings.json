@@ -10,16 +10,16 @@
   ],
   "sqltools.useNodeRuntime": true,
   "files.exclude": {
-    ".prettierrc": true,
-    "auth_info": true,
-    "node_modules": true,
-    ".gitignore": true,
-    "LICENSE": true,
-    "package-lock.json": true,
-    "docker-compose.debug.yml": true,
-    "docker-compose.yml": true,
-    ".vscode": true,
-    ".dockerignore": true,
-    "dockerfile": true
+    ".prettierrc": false,
+    "auth_info": false,
+    "node_modules": false,
+    ".gitignore": false,
+    "LICENSE": false,
+    "package-lock.json": false,
+    "docker-compose.debug.yml": false,
+    "docker-compose.yml": false,
+    ".vscode": false,
+    ".dockerignore": false,
+    "dockerfile": false
   }
 }

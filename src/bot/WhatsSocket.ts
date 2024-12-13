@@ -2,6 +2,7 @@ import makeWASocket, { AnyMessageContent, DisconnectReason, MiscMessageGeneratio
 import { BaileysWASocket } from '../types/bot';
 import { Boom } from "@hapi/boom";
 import { MsgType, SenderType } from '../types/commands';
+import P from "pino";
 
 export class Delegate<functType extends (...args: any[]) => any> {
   private functions: functType[] = [];
@@ -36,6 +37,8 @@ export default class WhatsSocket {
     this.socket = makeWASocket({
       auth: state,
       printQRInTerminal: true, // Genera QR en la terminal
+      ///@ts-ignore
+      logger: P({ level: "debug" })
     });
     this.socket.ev.on("creds.update", saveCreds);
   }
