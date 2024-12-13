@@ -19,7 +19,7 @@ export class SpecificChat {
     await this.bot.Send.Img(this.args.chatId, imgPath, caption);
   }
 
-  //================== Receiving =====================
+  //================== Receiving (Basic) =====================
   async WaitNextTxtMsgFromSender(timeout?: number): Promise<string> {
     const rawMsg = await this.bot.Receive.WaitNextRawMsgFromId(this.args.chatId, this.args.userId, MsgType.text, timeout);
     return Msg_GetTextFromRawMsg(rawMsg);
@@ -34,7 +34,9 @@ export class SpecificChat {
     return await WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(this.bot, this.args.chatId, this.args.userId, regexExpecingFormat, wrongMsg, timeout);
   }
 
-  async DialogWaitAnOptionFromList(possibleResults: string[], startMsg: string, errorMsg: string, formatEachElementCallback: (element: string, index?: number) => string, timeout?: number,): Promise<string> {
+  //====================== Dialog (Advanced receiving) ==========================
+
+  async DialogWaitAnOptionFromList(possibleResults: string[], startMsg: string, errorMsg: string, formatEachElementCallback: (element: string, index: number) => string, timeout?: number,): Promise<string> {
     const possibleResultsRegex = new RegExp(`^(${possibleResults.join("|")})$`)
     let fullMsg: string = errorMsg;
     let optionsTxt: string = possibleResults.map(formatEachElementCallback).join("\n");
@@ -43,6 +45,27 @@ export class SpecificChat {
     await this.bot.Send.Text(this.args.chatId, startMsg + "\n\n" + optionsTxt);
     const toReturn = await WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(this.bot, this.args.chatId, this.args.userId, possibleResultsRegex, fullMsg, timeout);
     return toReturn;
+  }
+
+  async DialogWaitAnOptionFromListObj<T>(
+    allOptionsObj: T[],
+    selectPropCallback: (optionObj: T, index: number) => string,
+    startingMsg: string,
+    errorMsg: string,
+    formatElementCallBack: (element: T, index: number) => string,
+    timeout?: number
+  ): Promise<T> {
+    const selectedProps = allOptionsObj.map(selectPropCallback);
+    const selectedByUser = await this.DialogWaitAnOptionFromList(
+      selectedProps,
+      startingMsg,
+      errorMsg,
+      (elementStr, index) => formatElementCallBack(allOptionsObj[index], index),
+      timeout
+    );
+    const selectedObj = allOptionsObj.find((optionObj, index) => selectPropCallback(optionObj, index) === selectedByUser);
+    if (!selectedObj) throw new Error("This shouln't have happened");
+    return selectedObj;
   }
 }
 
