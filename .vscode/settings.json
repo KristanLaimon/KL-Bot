@@ -20,6 +20,7 @@
     "docker-compose.yml": true,
     ".vscode": true,
     ".dockerignore": true,
-    "dockerfile": true
+    "dockerfile": true,
+    "jest.config.js": true
   }
 }
