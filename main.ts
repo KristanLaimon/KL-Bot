@@ -1,20 +1,20 @@
 import Bot from "./src/bot";
 import moment from 'moment';
-import WolfCommand from "./src/commands/test/wolf";
+import WolfCommand from "./src/commands/testing/wolf";
 import HelpCommand from './src/commands/general/help';
-import ReceiveImgCommand from './src/commands/test/img';
+import ReceiveImgCommand from './src/commands/testing/img';
 import AddMemberCommand from './src/commands/admin/addmember';
 import DeleteAdmin from './src/commands/admin/deletemember';
 import GetProfileInfoCommand from './src/commands/general/perfil';
-import TestCommand from './src/commands/test/test';
-import OtherCommand from './src/commands/test/other';
+import TestCommand from './src/commands/testing/prueba';
+import OtherCommand from './src/commands/testing/other';
 import DuelCommand from './src/commands/general/duel';
 import DuelWinCommand from './src/commands/general/duelwin';
 import SeeMembersCommand from './src/commands/general/members';
 
 //For some reason this bot stops working if a group has ( or ) in its name on production server ubuntu server!
 
-async function Main() {
+export function Main() {
   //Set moment library to spanish
   moment.locale("es");
 
@@ -32,6 +32,7 @@ async function Main() {
   klBot.AddCommand(new SeeMembersCommand());
 
   klBot.StartBot();
+  return klBot;
 }
 
 Main();

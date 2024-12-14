@@ -25,7 +25,13 @@ export default class CommandsHandler {
    *                 command registry by adding the new command.
    */
   public AddCommand(commandObj: ICommand) {
-    this._commands[commandObj.commandName] = commandObj;
+    commandObj.commandName = commandObj.commandName.toLowerCase()
+    if (this._commands[commandObj.commandName])
+      throw new Error(`Command with name '${commandObj.commandName}' already exists.`);
+    if (commandObj.roleCommand !== "Administrador" && commandObj.roleCommand !== "Cualquiera" && commandObj.roleCommand !== "Miembro" && commandObj.roleCommand !== "Secreto")
+      throw new Error(`Invalid role command for command '${commandObj.commandName}'. Role command must be 'Administrador', 'Cualquiera', 'Miembro', or 'Secreto'.`);
+
+    this._commands[commandObj.commandName.toLowerCase()] = commandObj;
   }
 
 
@@ -51,6 +57,7 @@ export default class CommandsHandler {
    *          Returns true if the user has the required privilege level to execute the command.
    */
   public HasPermisionToExecute(commandName: string, privilege: HelperRoleName): boolean {
+    commandName = commandName.toLowerCase();
     if (!this.Exists(commandName)) return false;
     const foundCommand = this._commands[commandName];
     if (foundCommand.roleCommand === "Cualquiera") return true;

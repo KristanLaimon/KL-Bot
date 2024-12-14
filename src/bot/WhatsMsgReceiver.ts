@@ -1,3 +1,5 @@
+import fs from 'fs';
+
 import { WAMessage } from '@whiskeysockets/baileys';
 import { BotWaitMessageError } from '../types/bot';
 import { MsgType, SenderType } from '../types/commands';

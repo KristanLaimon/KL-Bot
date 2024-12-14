@@ -1,3 +1,4 @@
+import fs from "fs";
 import WhatsSocket from './bot/WhatsSocket';
 import { WhatsMsgSender } from './bot/WhatsMsgSender';
 import { WhatsMsgReceiver } from './bot/WhatsMsgReceiver';
@@ -81,7 +82,9 @@ export default class Bot {
         return;
       }
       const userId = rawMsg.key.participant || chatId || "There's no participant, so strage...";
-      this.CommandsHandler.Execute(command, this, { chatId, commandArgs: args, msgType: type, originalMsg: rawMsg, senderType, userId })
+      const commandArgs: BotCommandArgs = { chatId, commandArgs: args, msgType: type, originalMsg: rawMsg, senderType, userId }
+      fs.writeFileSync('.FULLINFO.json', JSON.stringify(commandArgs, null, 2));
+      this.CommandsHandler.Execute(command, this, commandArgs);
     }
   }
 }

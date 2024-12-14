@@ -21,6 +21,7 @@
     ".vscode": true,
     ".dockerignore": true,
     "dockerfile": true,
-    "jest.config.js": true
+    "jest.config.js": true,
+    ".devcontainer": true
   }
 }

@@ -6,6 +6,11 @@ import P from "pino";
 
 export class Delegate<functType extends (...args: any[]) => any> {
   private functions: functType[] = [];
+
+  public get Length(): number {
+    return this.functions.length;
+  }
+
   public Subscribe(funct: functType): void {
     this.functions.push(funct);
   }
@@ -26,10 +31,12 @@ export default class WhatsSocket {
   public onIncommingMessage: Delegate<(chatId: string, rawMsg: WAMessage, type: MsgType, senderType: SenderType) => void> = new Delegate();
 
   constructor() {
-    this.InitializeSelf().then(() => {
-      this.ConfigureReconnection();
-      this.ConfigureMessageIncoming();
-    })
+  }
+
+  public async Init() {
+    await this.InitializeSelf();
+    this.ConfigureReconnection();
+    this.ConfigureMessageIncoming();
   }
 
   private async InitializeSelf() {
@@ -37,11 +44,10 @@ export default class WhatsSocket {
     this.socket = makeWASocket({
       auth: state,
       printQRInTerminal: true, // Genera QR en la terminal
-      ///@ts-ignore
-      logger: P({ level: "debug" })
     });
     this.socket.ev.on("creds.update", saveCreds);
   }
+
 
   private ConfigureReconnection() {
     this.socket.ev.on("connection.update", (update) => {
@@ -82,19 +88,15 @@ export default class WhatsSocket {
 
 export function GetMsgTypeFromRawMsg(rawMsg: WAMessage): MsgType {
   if (!rawMsg.message) return MsgType.unknown;
+
   const objMsg = rawMsg.message;
-  if (objMsg.imageMessage)
-    return MsgType.image;
-  else if (objMsg.videoMessage)
-    return MsgType.video;
-  else if (objMsg.audioMessage)
-    return MsgType.audio;
-  else if (objMsg.stickerMessage)
-    return MsgType.sticker;
-  else if (objMsg.conversation || objMsg.extendedTextMessage)
-    return MsgType.text;
-  else
-    return MsgType.unknown;
+  if (objMsg.imageMessage) return MsgType.image;
+  if (objMsg.videoMessage) return MsgType.video;
+  if (objMsg.audioMessage) return MsgType.audio;
+  if (objMsg.stickerMessage) return MsgType.sticker;
+  if (objMsg.conversation || objMsg.extendedTextMessage) return MsgType.text;
+
+  return MsgType.unknown
 }
 
 // case "open": {
