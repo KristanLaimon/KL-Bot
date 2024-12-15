@@ -7,9 +7,10 @@ import { Msg_GetTextFromRawMsg } from '../utils/rawmsgs';
 export class SpecificChat {
   private bot: Bot;
   private args: BotCommandArgs;
-  constructor(bot: Bot, specificArgs: BotCommandArgs) {
+  constructor(bot: Bot, specificArgs: BotCommandArgs, customChatIdToSend?: string) {
     this.bot = bot;
-    this.args = specificArgs;
+    this.args = structuredClone(specificArgs);
+    if (customChatIdToSend) this.args.chatId = customChatIdToSend;
   }
   ///================== Sending ====================
   /**
@@ -47,7 +48,7 @@ export class SpecificChat {
    * @throws {BotWaitMessageError} If the user cancels the operation or if the timeout is reached.
    */
   async WaitNextTxtMsgFromSender(timeout?: number): Promise<string> {
-    const rawMsg = await this.bot.Receive.WaitNextRawMsgFromId(this.args.chatId, this.args.userId, MsgType.text, timeout);
+    const rawMsg = await this.bot.Receive.WaitNextRawMsgFromId(this.args.chatId, this.args.userIdOrChatUserId, MsgType.text, timeout);
     return Msg_GetTextFromRawMsg(rawMsg);
   }
 
@@ -64,7 +65,7 @@ export class SpecificChat {
    * @throws {BotWaitMessageError} If the user cancels the operation or if the timeout is reached.
    */
   async WaitNextTxtMsgFromPhone(phoneNumberCleaned: string, timeout?: number, wrongMsg?: string): Promise<string> {
-    const rawMsg = await this.bot.Receive.WaitNextRawMsgFromPhone(this.args.chatId, this.args.userId, phoneNumberCleaned, MsgType.text, timeout, wrongMsg);
+    const rawMsg = await this.bot.Receive.WaitNextRawMsgFromPhone(this.args.chatId, this.args.userIdOrChatUserId, phoneNumberCleaned, MsgType.text, timeout, wrongMsg);
     return Msg_GetTextFromRawMsg(rawMsg);
   }
 
@@ -80,7 +81,7 @@ export class SpecificChat {
    * @throws {BotWaitMessageError} If the user cancels the operation or if the timeout is reached.
    */
   async WaitNextTxtMsgFromSenderSpecific(regexExpecingFormat: RegExp, wrongMsg: string, timeout?: number): Promise<string> {
-    return await WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(this.bot, this.args.chatId, this.args.userId, regexExpecingFormat, wrongMsg, timeout);
+    return await WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(this.bot, this.args.chatId, this.args.userIdOrChatUserId, regexExpecingFormat, wrongMsg, timeout);
   }
 
 
@@ -106,7 +107,7 @@ export class SpecificChat {
     fullMsg += "\n";
     fullMsg += optionsTxt;
     await this.bot.Send.Text(this.args.chatId, startMsg + "\n\n" + optionsTxt);
-    const toReturn = await WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(this.bot, this.args.chatId, this.args.userId, possibleResultsRegex, fullMsg, timeout);
+    const toReturn = await WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(this.bot, this.args.chatId, this.args.userIdOrChatUserId, possibleResultsRegex, fullMsg, timeout);
     return toReturn;
   }
 

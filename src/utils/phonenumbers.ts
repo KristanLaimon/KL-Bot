@@ -13,11 +13,11 @@ export const Phone_UserIdRegex = /^\d{13}@s.whatsapp.net$/;
 export const Phone_MentionNumberRegexStr = "@\\d{13}"
 export const Phone_UserIdRegexStr = "\\d{13}@s.whatsapp.net";
 
-export function Phone_GetFullPhoneInfoFromRawmsg(rawMsg: WAMessage): WhatsNumber | null {
+export function Phone_GetFullPhoneInfoFromRawmsg(rawMsg: WAMessage): WhatsNumber {
   //Let's check if comes from private msg or group
   let number = rawMsg.key.participant || rawMsg.key.remoteJid || undefined;
-  if (!number) return null;
-  if (!Phone_IsValidNumberStr(number)) return null;
+  if (!number) throw new Error("This shouln't happen, library never gives both participant and remoteJid as undefined, only one of them");
+  if (!Phone_IsValidNumberStr(number)) throw new Error("???, Phone number must be alway valid, just a small validation");
 
   const numberCleaned = number.slice(0, number.indexOf("@"));
   return {
