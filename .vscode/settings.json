@@ -1,14 +1,5 @@
 {
   "deno.enable": false,
-  "sqltools.connections": [
-    {
-      "previewLimit": 50,
-      "driver": "SQLite",
-      "name": "This file",
-      "database": "./db/klbotdb/db"
-    }
-  ],
-  "sqltools.useNodeRuntime": true,
   "files.exclude": {
     ".prettierrc": true,
     "auth_info": true,
