@@ -1,6 +1,6 @@
 import Bot from '../bot';
 import { BotCommandArgs } from '../types/bot';
-import { HelperRoleName, ICommand } from '../types/commands';
+import { HelperRoleName, ICommand, ScopeType } from '../types/commands';
 import { AllUtilsType } from '../utils/index_utils';
 
 
@@ -26,10 +26,9 @@ export default class CommandsHandler {
    */
   public AddCommand(commandObj: ICommand) {
     commandObj.commandName = commandObj.commandName.toLowerCase()
+
     if (this._commands[commandObj.commandName])
       throw new Error(`Command with name '${commandObj.commandName}' already exists.`);
-    if (commandObj.minimumRequiredPrivileges !== "Administrador" && commandObj.minimumRequiredPrivileges !== "Cualquiera" && commandObj.minimumRequiredPrivileges !== "Miembro" && commandObj.minimumRequiredPrivileges !== "Secreto")
-      throw new Error(`Invalid role command for command '${commandObj.commandName}'. Role command must be 'Administrador', 'Cualquiera', 'Miembro', or 'Secreto'.`);
 
     this._commands[commandObj.commandName.toLowerCase()] = commandObj;
   }
@@ -46,26 +45,34 @@ export default class CommandsHandler {
     return !!(this._commands[commandName]);
   }
 
-
   /**
    * Checks if a user has permission to execute a specific command based on their privilege level.
-   * 
+   *
    * @param commandName - The name of the command to check permissions for.
    * @param privilege - The privilege level of the user attempting to execute the command.
    * @returns A boolean indicating whether the user has permission to execute the command.
-   *          Returns false if the command doesn't exist or if the user's privilege level is insufficient.
-   *          Returns true if the user has the required privilege level to execute the command.
    */
-  public HasPermisionToExecute(commandName: string, privilege: HelperRoleName): boolean {
+  public HasPermissionToExecute(commandName: string, privilege: HelperRoleName): boolean {
+    const privilegeRank: Record<HelperRoleName, number> = {
+      "Administrador": 2,
+      "Miembro": 1,
+      "Cualquiera": 0
+    };
     commandName = commandName.toLowerCase();
     if (!this.Exists(commandName)) return false;
     const foundCommand = this._commands[commandName];
-    if (foundCommand.minimumRequiredPrivileges === "Cualquiera") return true;
-    if (foundCommand.minimumRequiredPrivileges === "Administrador" && privilege !== "Administrador") return false;
-    if (foundCommand.minimumRequiredPrivileges === "Miembro" && (privilege !== "Administrador" && privilege !== "Miembro")) return false;
-    return true;
+    const requiredPrivilege = foundCommand.minimumRequiredPrivileges;
+    return privilegeRank[privilege] >= privilegeRank[requiredPrivilege];
   }
 
+
+  public HasCorrectScope(commandName: string, scope: ScopeType): boolean {
+    commandName = commandName.toLowerCase();
+    if (!this.Exists(commandName)) return false;
+    const foundCommand = this._commands[commandName];
+    if (foundCommand.maxScope !== scope) return false;
+    return true;
+  }
 
   /**
    * Executes a command if it exists in the command registry.
