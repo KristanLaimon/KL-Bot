@@ -1,6 +1,6 @@
 import Kldb from '../../utils/db';
 import Bot from '../../bot';
-import { CommandAccessibleRoles, ICommand } from '../../types/commands';
+import { CommandAccessibleRoles, ICommand, ScopeType } from '../../types/commands';
 import { Dates_GetFormatedDurationDaysSince } from '../../utils/dates';
 import { AllUtilsType } from '../../utils/index_utils';
 import { BotCommandArgs } from '../../types/bot';
@@ -13,7 +13,8 @@ import { Db_GetPlayerImagePath } from '../../utils/filesystem';
 export default class GetProfileInfoCommand implements ICommand {
   commandName: string = "perfil"
   description: string = "Obten la información de cualquier miembro del clan etiquetandolo con @ después del comando"
-  roleCommand: CommandAccessibleRoles = "Miembro";
+  minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro";
+  maxScope: ScopeType = "Group"
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     if (args.commandArgs.length > 1) {
       await bot.Send.Text(args.chatId, "Debes etiquetar al miembro al que quieres consultar con el @ o si no mandas nada, se te desplegará tu propia información");

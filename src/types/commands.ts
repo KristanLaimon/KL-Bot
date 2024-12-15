@@ -1,14 +1,15 @@
 import Bot from '../bot';
 import { BotCommandArgs } from './bot';
 
-export type HelperRoleName = "Administrador" | "Miembro" | "Cualquiera";
+export type HelperRoleName = "Administrador" | "Miembro" | "Invitado" | "Cualquiera";
 export type CommandAccessibleRoles = HelperRoleName | "Secreto";
-
+export type ScopeType = "External" | "Group";
 
 export interface ICommand {
   commandName: string;
   description: string;
-  roleCommand: CommandAccessibleRoles;
+  minimumRequiredPrivileges: CommandAccessibleRoles;
+  maxScope: ScopeType;
   onMsgReceived: (bot: Bot, args: BotCommandArgs) => Promise<void>;
 }
 

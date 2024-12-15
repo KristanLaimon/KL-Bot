@@ -1,7 +1,7 @@
 import Bot from '../../bot';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
-import { CommandAccessibleRoles, ICommand } from '../../types/commands';
+import { CommandAccessibleRoles, ICommand, ScopeType } from '../../types/commands';
 import Kldb, { TempPendingMatches } from '../../utils/db';
 import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
 import { Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
@@ -9,7 +9,8 @@ import { Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
 export default class DuelWinCommand implements ICommand {
   commandName: string = "duelwin"
   description: string = "Para registrar un duelo pendiente realizado con !duel con otro miembro del clan"
-  roleCommand: CommandAccessibleRoles = "Miembro"
+  minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro"
+  maxScope: ScopeType = "Group"
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
 

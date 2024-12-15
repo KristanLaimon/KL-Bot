@@ -1,22 +1,23 @@
-import { CommandAccessibleRoles, ICommand, MsgType } from '../../types/commands';
+import { CommandAccessibleRoles, ICommand, MsgType, ScopeType } from '../../../types/commands';
 import fs from 'fs';
-import Kldb from '../../utils/db';
+import Kldb from '../../../utils/db';
 import path from 'path';
-import { CapitalizeStr } from '../../utils/strings';
-import { BotCommandArgs } from '../../types/bot';
-import { AllUtilsType } from '../../utils/index_utils';
-import Bot from '../../bot';
-import { SpecificChat } from '../../bot/SpecificChat';
-import { Db_TryToDownloadMedia } from '../../utils/filesystem';
-import { Phone_GetFullPhoneInfoFromRawmsg, Phone_GetPhoneNumberFromMention as Phone_GetFullPhoneNumberInfoFromMention, Phone_MentionNumberRegexStr } from '../../utils/phonenumbers';
-import { Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
-import { Dates_GetFormatedDurationDaysSince, Dates_SpanishMonthStr, Dates_SpanishMonthToNumber } from '../../utils/dates';
+import { CapitalizeStr } from '../../../utils/strings';
+import { BotCommandArgs } from '../../../types/bot';
+import { AllUtilsType } from '../../../utils/index_utils';
+import Bot from '../../../bot';
+import { SpecificChat } from '../../../bot/SpecificChat';
+import { Db_TryToDownloadMedia } from '../../../utils/filesystem';
+import { Phone_GetFullPhoneInfoFromRawmsg, Phone_GetPhoneNumberFromMention as Phone_GetFullPhoneNumberInfoFromMention, Phone_MentionNumberRegexStr } from '../../../utils/phonenumbers';
+import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
+import { Dates_GetFormatedDurationDaysSince, Dates_SpanishMonthStr, Dates_SpanishMonthToNumber } from '../../../utils/dates';
 import moment from 'moment';
 
 export default class AddMemberCommand implements ICommand {
   commandName: string = "addmember";
   description: string = "Añade un nuevo miembro al bot";
-  roleCommand: CommandAccessibleRoles = "Administrador";
+  minimumRequiredPrivileges: CommandAccessibleRoles = "Administrador";
+  maxScope: ScopeType = "Group";
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
     const separator = "=======================";
@@ -103,7 +104,7 @@ export default class AddMemberCommand implements ICommand {
         isValidImg = await Db_TryToDownloadMedia(
           await bot.Receive.WaitNextRawMsgFromId(
             args.chatId,
-            args.userId,
+            args.userIdOrChatUserId,
             MsgType.image,
             250
           ),

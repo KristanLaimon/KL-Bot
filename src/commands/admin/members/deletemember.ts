@@ -1,16 +1,17 @@
-import Kldb from '../../utils/db';
-import Bot from '../../bot';
-import { CommandAccessibleRoles, ICommand } from '../../types/commands';
-import { BotCommandArgs } from '../../types/bot';
-import { AllUtilsType } from '../../utils/index_utils';
-import { SpecificChat } from '../../bot/SpecificChat';
-import { Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
+import Kldb from '../../../utils/db';
+import Bot from '../../../bot';
+import { CommandAccessibleRoles, ICommand, ScopeType } from '../../../types/commands';
+import { BotCommandArgs } from '../../../types/bot';
+import { AllUtilsType } from '../../../utils/index_utils';
+import { SpecificChat } from '../../../bot/SpecificChat';
+import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
 
 
 export default class DeleteAdmin implements ICommand {
   commandName: string = 'deletemembersssss';
   description: string = "Elimina a un miembro existente en el clan"
-  roleCommand: CommandAccessibleRoles = "Secreto";
+  minimumRequiredPrivileges: CommandAccessibleRoles = "Secreto";
+  maxScope: ScopeType = "Group";
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
 

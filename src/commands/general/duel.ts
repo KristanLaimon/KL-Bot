@@ -1,7 +1,7 @@
 import Bot from '../../bot';
 import Kldb, { TempPendingMatches } from '../../utils/db';
 import { BotCommandArgs } from '../../types/bot';
-import { CommandAccessibleRoles, ICommand, MsgType } from '../../types/commands';
+import { CommandAccessibleRoles, ICommand, MsgType, ScopeType } from '../../types/commands';
 import { AllUtilsType } from '../../utils/index_utils';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { Phone_GetPhoneNumberFromMention, Phone_GetFullPhoneInfoFromRawmsg, Phone_IsAMentionNumber } from '../../utils/phonenumbers';
@@ -13,7 +13,8 @@ import { Msg_GetTextFromRawMsg, Msg_IsBotWaitMessageError } from '../../utils/ra
 export default class DuelCommand implements ICommand {
   commandName: string = "duel";
   description: string = 'Reta a un duelo 1vs1 a otra persona'
-  roleCommand: CommandAccessibleRoles = "Miembro";
+  minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro";
+  maxScope: ScopeType = "Group";
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
 
@@ -74,7 +75,7 @@ export default class DuelCommand implements ICommand {
         ⚔️ ¡El destino del duelo está en tus manos! 🔥
       `);
 
-      const thatPersonRawMsg = await bot.Receive.WaitNextRawMsgFromPhone(args.chatId, args.userId, challengedNumber, MsgType.text, 60);
+      const thatPersonRawMsg = await bot.Receive.WaitNextRawMsgFromPhone(args.chatId, args.userIdOrChatUserId, challengedNumber, MsgType.text, 60);
       const thatPersonTxt = Msg_GetTextFromRawMsg(thatPersonRawMsg).toLowerCase();
 
       //Other used has responded!
