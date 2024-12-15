@@ -1,8 +1,7 @@
-import makeWASocket, { AnyMessageContent, DisconnectReason, MiscMessageGenerationOptions, useMultiFileAuthState, WAMessage } from '@whiskeysockets/baileys';
+import makeWASocket, { AnyMessageContent, DisconnectReason, GroupMetadata, MiscMessageGenerationOptions, useMultiFileAuthState, WAMessage } from '@whiskeysockets/baileys';
 import { BaileysWASocket } from '../types/bot';
 import { Boom } from "@hapi/boom";
 import { MsgType, SenderType } from '../types/commands';
-import P from "pino";
 
 export class Delegate<functType extends (...args: any[]) => any> {
   private functions: functType[] = [];
@@ -83,6 +82,11 @@ export default class WhatsSocket {
 
   public async Send(chatId_JID: string, content: AnyMessageContent, options?: MiscMessageGenerationOptions) {
     await this.socket.sendMessage(chatId_JID, content, options);
+  }
+
+  public async GetGroupMetadata(chatId: string): Promise<GroupMetadata | null> {
+    if (!chatId.endsWith("@g.us")) return null;
+    return await this.socket.groupMetadata(chatId);
   }
 }
 

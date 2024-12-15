@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-import { WAMessage } from '@whiskeysockets/baileys';
+import { GroupMetadata, WAMessage } from '@whiskeysockets/baileys';
 import { BotWaitMessageError } from '../types/bot';
 import { MsgType, SenderType } from '../types/commands';
 import WhatsSocket from './WhatsSocket';
@@ -39,7 +39,7 @@ export class WhatsMsgReceiver {
         if (Msg_GetTextFromRawMsg(msg).includes('cancelar')) {
           this._rawSocket.onIncommingMessage.Unsubsribe(listener);
           clearTimeout(timer);
-          reject({ wasAbortedByUser: true, errorMessage: "User didn't responded in time" });
+          reject({ wasAbortedByUser: true, errorMessage: "User has canceled the dialog" });
           return;
         }
 
@@ -86,5 +86,9 @@ export class WhatsMsgReceiver {
       return isFromExpectedPhoneUser && isMsgFormatExpected;
     }
     return await this._waitNextMsg(cb, chatSenderId, userSenderId, MsgType.text, timeout, wrongTypeMsgFeedback);
+  }
+
+  public async GetGroupMetadata(chatSenderId: string): Promise<GroupMetadata | null> {
+    return await this._rawSocket.GetGroupMetadata(chatSenderId);
   }
 }
