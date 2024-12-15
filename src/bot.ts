@@ -9,6 +9,7 @@ import { Msg_GetTextFromRawMsg } from './utils/rawmsgs';
 import { Members_GetMemberInfoFromPhone } from './utils/members';
 import { Phone_GetFullPhoneInfoFromRawmsg } from './utils/phonenumbers';
 import { BotCommandArgs } from './types/bot';
+import Kldb, { KldbCacheAllowedWhatsappGroups, KldbUpdateCacheAsync } from './utils/db';
 
 type BotArgs = {
   prefix?: string;
@@ -47,6 +48,8 @@ export default class Bot {
     this.Receive = new WhatsMsgReceiver(this.socket);
     this.socket.onIncommingMessage.Subscribe(this.OnMessageTriggered);
     this.socket.onReconnect.Subscribe(async () => await this.StartBot());
+    await KldbUpdateCacheAsync();
+    this.socket.Init();
   }
 
   public AddCommand(commandInstance: ICommand) {
@@ -55,6 +58,13 @@ export default class Bot {
 
   private async OnMessageTriggered(chatId: string, rawMsg: WAMessage, type: MsgType, senderType: SenderType) {
     console.log(rawMsg);
+
+    let botIsAllowedToRespondThisChat = true;
+    if (senderType === SenderType.Group) {
+      const foundChatGroup = KldbCacheAllowedWhatsappGroups.find(groupInfo => groupInfo.chat_id === chatId);
+      if (!foundChatGroup) botIsAllowedToRespondThisChat = false
+    }
+
     if (type === MsgType.text) {
       const fullText = Msg_GetTextFromRawMsg(rawMsg);
 
@@ -72,7 +82,7 @@ export default class Bot {
       const phoneNumber = Phone_GetFullPhoneInfoFromRawmsg(rawMsg)!.number;
       const foundMemberInfo = await Members_GetMemberInfoFromPhone(phoneNumber);
       let roleMember: HelperRoleName;
-      if (foundMemberInfo === null) roleMember = "Cualquiera";
+      if (foundMemberInfo === null) roleMember = "Invitado";
       else {
         if (foundMemberInfo.role === "AD") roleMember = "Administrador";
         else roleMember = "Miembro";
@@ -82,8 +92,8 @@ export default class Bot {
         return;
       }
       const userId = rawMsg.key.participant || chatId || "There's no participant, so strage...";
-      const commandArgs: BotCommandArgs = { chatId, commandArgs: args, msgType: type, originalMsg: rawMsg, senderType, userId }
-      fs.writeFileSync('.FULLINFO.json', JSON.stringify(commandArgs, null, 2));
+      const commandArgs: BotCommandArgs = { chatId, commandArgs: args, msgType: type, originalMsg: rawMsg, senderType, userIdOrChatUserId: userId }
+
       this.CommandsHandler.Execute(command, this, commandArgs);
     }
   }

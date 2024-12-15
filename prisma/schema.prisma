@@ -32,9 +32,9 @@ model Rank {
 }
 
 model Role {
-  id     String   @id
-  name   String   @unique(map: "sqlite_autoindex_Role_2")
-  Player Player[]
+  id                  String                @id
+  name                String                @unique(map: "sqlite_autoindex_Role_2")
+  Player              Player[]
 }
 
 model Tournament {
@@ -79,6 +79,7 @@ model TournamentMatch {
   match_date_id    BigInt @id // Foreign and primary key at the same time
   tournament_id    Int
   referee_verifier Int
+  results_img_name String //New...added
 
   MatchInfo       Match      @relation(fields: [match_date_id], references: [date_id])
   RefereeVerifier Player     @relation(fields: [referee_verifier], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -86,8 +87,8 @@ model TournamentMatch {
 }
 
 model Match_Player {
-  id              Int               @id @default(autoincrement())
-  match_date_id BigInt 
+  id            Int     @id @default(autoincrement())
+  match_date_id BigInt
   player_id     Int
   is_winner     Boolean
   team_color    String
@@ -103,12 +104,9 @@ model TeamColor {
   TournamentMatch_Player Match_Player[]
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model drizzle_migrations {
-  id         Int?     @id
-  hash       String
-  created_at Decimal?
-
-  @@map("__drizzle_migrations")
-  @@ignore
+//AloneTable
+model RegisteredWhatsappGroups {
+  chat_id String @id @unique
+  group_name String
+  date_registered BigInt @unique
 }
