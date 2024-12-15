@@ -1,11 +1,47 @@
 {
   "configurations": [
     {
-      "name": "Docker Node.js Launch",
-      "type": "docker",
+      //TSX | Node && Typescript
+      "type": "node",
       "request": "launch",
-      "preLaunchTask": "docker-run: debug",
-      "platform": "node"
-    }
+      "name": "TSX: Actual File Debugging",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${relativeFile}",
+      "runtimeExecutable": "tsx",
+      "args": [
+        "--inspect-wait"
+      ]
+    },
+    {
+      //TSX | Node && Typescript (Standard main.ts on src/) with ts-node installed globallly
+      "type": "node",
+      "request": "launch",
+      "name": "TSX: Main",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "main.ts",
+      "runtimeExecutable": "tsx",
+      "args": [
+        "--inspect-wait"
+      ]
+    },
+    {
+      //TSX | Node && Typescript (Standard main.ts on src/) with tsx installed as dependency
+      "type": "node",
+      "request": "launch",
+      "name": "TSX: Main (Not global)",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "runtimeExecutable": "npx",
+      "args": [
+        "tsx",
+        "main.ts",
+        "--inspect-wait"
+      ]
+    },
   ]
 }
