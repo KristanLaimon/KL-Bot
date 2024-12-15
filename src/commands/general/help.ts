@@ -5,9 +5,9 @@ import { AllUtilsType } from '../../utils/index_utils';
 import { Members_GetMemberInfoFromPhone } from '../../utils/members';
 import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
 
-export default class HelpCommand implements ICommand {
+export default class Help_GroupCommand implements ICommand {
   commandName: string = 'help';
-  minimumRequiredPrivileges: HelperRoleName = "Invitado";
+  minimumRequiredPrivileges: HelperRoleName = "Cualquiera";
   description: string = 'Despliega esta pantalla de ayuda';
   maxScope: ScopeType = "Group"
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
@@ -20,7 +20,7 @@ export default class HelpCommand implements ICommand {
     strs.push(separator);
 
     // Comandos generales (everyone)
-    const everyoneCommands = bot.Commands.filter(com => com[1].minimumRequiredPrivileges == "Cualquiera");
+    const everyoneCommands = bot.Commands.filter(com => com[1].minimumRequiredPrivileges == "Cualquiera" && com[1].maxScope == "Group");
     // strs.push('*Comandos para Todos:*');
     everyoneCommands.forEach(cmd => {
       const command = cmd[1].commandName.padEnd(maxCmdLength + 2, ' ');
@@ -32,7 +32,7 @@ export default class HelpCommand implements ICommand {
     const memberInfo = await Members_GetMemberInfoFromPhone(Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number);
     if (memberInfo) {
       // Comandos para Miembros
-      const generalCommands = bot.Commands.filter(com => com[1].minimumRequiredPrivileges == "Miembro");
+      const generalCommands = bot.Commands.filter(com => com[1].minimumRequiredPrivileges == "Miembro" && com[1].maxScope == "Group");
       // strs.push('*Comandos para Miembros:*');
       generalCommands.forEach(cmd => {
         const command = cmd[1].commandName.padEnd(maxCmdLength + 2, ' ');
@@ -42,7 +42,7 @@ export default class HelpCommand implements ICommand {
 
       // Si es admin, agregar comandos de Admin
       if (memberInfo.role === "AD") {
-        const adminCommands = bot.Commands.filter(com => com[1].minimumRequiredPrivileges == "Administrador");
+        const adminCommands = bot.Commands.filter(com => com[1].minimumRequiredPrivileges == "Administrador" && com[1].maxScope == "Group");
         strs.push('*Comandos de Administrador:*');
         adminCommands.forEach(cmd => {
           const command = cmd[1].commandName.padEnd(maxCmdLength + 2, ' ');

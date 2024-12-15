@@ -7,7 +7,7 @@ import { SpecificChat } from '../../bot/SpecificChat';
 ///always a command have a commandName -- READY!
 export default class WolfCommand implements ICommand {
   commandName: string = "wolf"
-  minimumRequiredPrivileges: HelperRoleName = "Invitado";
+  minimumRequiredPrivileges: HelperRoleName = "Cualquiera";
   description: string = "Lobitosssss";
   maxScope: ScopeType = "Group"
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
