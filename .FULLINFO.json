@@ -1,0 +1,26 @@
+{
+  "chatId": "120363369589465642@g.us",
+  "commandArgs": [],
+  "msgType": 0,
+  "originalMsg": {
+    "key": {
+      "remoteJid": "120363369589465642@g.us",
+      "fromMe": false,
+      "id": "3FF0E8012FEB7E8EC2DE",
+      "participant": "5216121407908@s.whatsapp.net"
+    },
+    "messageTimestamp": 1734273773,
+    "pushName": "Kristan Ruiz",
+    "broadcast": false,
+    "message": {
+      "extendedTextMessage": {
+        "text": "!registrargrupo",
+        "contextInfo": {
+          "expiration": 0
+        }
+      }
+    }
+  },
+  "senderType": 0,
+  "userIdOrChatUserId": "5216121407908@s.whatsapp.net"
+}

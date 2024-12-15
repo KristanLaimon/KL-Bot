@@ -2,7 +2,7 @@ import moment from 'moment';
 import Bot from '../../bot';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
-import { CommandAccessibleRoles, ICommand } from '../../types/commands';
+import { CommandAccessibleRoles, ICommand, ScopeType } from '../../types/commands';
 import { Dates_SpanishMonthStr, Dates_SpanishMonthToNumber } from '../../utils/dates';
 import { AllUtilsType } from '../../utils/index_utils';
 import { Msg_GetTextFromRawMsg, Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
@@ -13,15 +13,20 @@ import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
 export default class TestCommand implements ICommand {
   commandName: string = "test";
   description: string = "A simple test command";
-  roleCommand: CommandAccessibleRoles = "Administrador"
+  minimumRequiredPrivileges: CommandAccessibleRoles = "Administrador"
+  maxScope: ScopeType = "Group"
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
 
     try {
-      chat.SendTxt("Esperaré hasta que mandes alguna 'tasa'...");
-      const respondedWithTasa = await bot.Receive.WaitUntilRawTxtMsgFromPhone(args.chatId, args.userId, Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number, /tasa/i, 30);
-      chat.SendTxt("Finalmente respondiste tasa cabrón");
-      chat.SendTxt(`Respondiste así: La cagada va en la *${Msg_GetTextFromRawMsg(respondedWithTasa)}*`)
+
+      await chat.SendTxt('Toda la metadata de este chat')
+      const metaData = JSON.stringify(await bot.Receive.GetGroupMetadata(args.chatId), null, 2)
+      await chat.SendTxt(metaData);
+      // chat.SendTxt("Esperaré hasta que mandes alguna 'tasa'...");
+      // const respondedWithTasa = await bot.Receive.WaitUntilRawTxtMsgFromPhone(args.chatId, args.userId, Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number, /tasa/i, 30);
+      // chat.SendTxt("Finalmente respondiste tasa cabrón");
+      // chat.SendTxt(`Respondiste así: La cagada va en la *${Msg_GetTextFromRawMsg(respondedWithTasa)}*`)
 
       // const allMembers = (await Kldb.player.findMany({ include: { Rank: true, Role: true } }));
       // const selectedMember =
