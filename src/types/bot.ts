@@ -12,7 +12,12 @@ export type WaitTextRegexFormat = {
 export type BotCommandArgs = {
   originalMsg: WAMessage,
   chatId: string,
-  userId: string,
+  /**
+   * Apparently for whatsapp, userId works as the same as a chatId for private messages and
+   * works as identifier in groups at the same time, can be used indistinguishable, there are
+   * no problems with that
+   */
+  userIdOrChatUserId: string,
   senderType: SenderType,
   msgType: MsgType,
   commandArgs: string[]
