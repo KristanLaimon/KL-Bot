@@ -1,3 +1,4 @@
+
 //@ts-ignore
 export default class c implements ICommand {
   commandName: string = "";
@@ -6,6 +7,8 @@ export default class c implements ICommand {
   roleCommand: CommandAccessibleRoles = "Cualquiera";
   //@ts-ignore
   maxScope: ScopeType = "Group";
+  //@ts-ignore
+  minimumRequiredPrivileges: CommandAccessibleRoles = "Cualquiera";
   //@ts-ignore
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
 
