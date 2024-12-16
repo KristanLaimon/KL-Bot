@@ -10,6 +10,7 @@ import { Members_GetMemberInfoFromPhone } from './utils/members';
 import { Phone_GetFullPhoneInfoFromRawmsg } from './utils/phonenumbers';
 import { BotCommandArgs } from './types/bot';
 import Kldb, { KldbCacheAllowedWhatsappGroups, KldbUpdateCacheAsync } from './utils/db';
+import KlLogger, { KlCommandLogger, Log_LogRawMsg } from './bot/logger';
 
 type BotArgs = {
   prefix?: string;
@@ -18,15 +19,15 @@ type BotArgs = {
 };
 
 export default class Bot {
-  private socket: WhatsSocket;
-  private config: BotArgs;
   /**
    * This command will be executed when someone talk to this bot
    * without any existing (prefix)command in privatechat. Doesn't apply
    * on groups, that woulf be annoying
    */
   private defaultCommand: ICommand | null;
+  private socket: WhatsSocket;
 
+  public config: BotArgs;
   public Send: WhatsMsgSender;
   public Receive: WhatsMsgReceiver;
   public CommandsHandler: CommandsHandler;
@@ -69,6 +70,7 @@ export default class Bot {
 
   private async OnMessageTriggered(chatId: string, rawMsg: WAMessage, type: MsgType, senderType: SenderType) {
     console.log(rawMsg);
+    Log_LogRawMsg(rawMsg);
 
     let msgComesFromRegisteredGroup = true;
     if (senderType === SenderType.Group) {
@@ -80,22 +82,13 @@ export default class Bot {
     if (type === MsgType.text) {
       const fullText = Msg_GetTextFromRawMsg(rawMsg);
 
+      ///Check if starts with prefix
+      if (!fullText.startsWith(this.config.prefix!)) return;
+
       //Parse the command
       const words = fullText.trim().split(' ');
       const commandNameText = words[0].slice(this.config.prefix!.length).toLowerCase(); //Removes the prefix;
       const args = words.slice(1);
-
-      //Gathering all the data to be able to execute a command
-      const userId = rawMsg.key.participant || chatId || "There's no participant, so strage...";
-      const commandArgs: BotCommandArgs = { chatId, commandArgs: args, msgType: type, originalMsg: rawMsg, senderType, userIdOrChatUserId: userId }
-
-      ///Check if starts with prefix
-      if (!fullText.startsWith(this.config.prefix!)) {
-        //Unique exception to not using Command.Execute()
-        if (senderType === SenderType.Individual && this.defaultCommand)
-          this.defaultCommand.onMsgReceived(this, commandArgs);
-        return;
-      }
 
       //Check if command exists
       if (!this.CommandsHandler.Exists(commandNameText)) return;
@@ -115,18 +108,20 @@ export default class Bot {
 
       //Check Scope
       if (msgComesFromRegisteredGroup) {
-        //If enters here it means it MUST be a group ofc
         if (!this.CommandsHandler.HasCorrectScope(commandNameText, "Group")) {
-          this.Send.Text(chatId, 'No puedes usar un comando externo en un grupo registrado...');
+          if (senderType === SenderType.Group)
+            this.Send.Text(chatId, 'No puedes usar un comando externo en un grupo registrado...');
+          if (senderType === SenderType.Individual)
+            this.Send.Text(chatId, 'No puedes usar un comando para chats no registrados en un chat individual...')
           return;
         }
       } else {
         if ((!this.CommandsHandler.HasCorrectScope(commandNameText, "External"))) {
           //if enters here it means it could be a group or a private chat with someone
           if (senderType === SenderType.Group)
-            this.Send.Text(chatId, 'No puedes usar un comando de grupo en este grupo no registrado por el bot...')
+            this.Send.Text(chatId, 'No puedes usar ese comando en un grupo no registrado por el bot...')
           if (senderType === SenderType.Individual)
-            this.Send.Text(chatId, 'No puedes usar un comando de grupo en un chat individual...');
+            this.Send.Text(chatId, 'No puedes usar ese comando de grupo en un chat individual (??)...');
           return;
         }
       }
@@ -137,7 +132,22 @@ export default class Bot {
         return;
       }
 
+      //Gathering all the data to be able to execute a command
+      const userId = rawMsg.key.participant || chatId || "There's no participant, so strage...";
+      const commandArgs: BotCommandArgs = { chatId, commandArgs: args, msgType: type, originalMsg: rawMsg, senderType, userIdOrChatUserId: userId }
       this.CommandsHandler.Execute(commandNameText, this, commandArgs);
+
+      KlCommandLogger.info({
+        event: 'CommandExecution',
+        command: commandNameText,
+        user: rawMsg.pushName,
+        role: foundMemberInfo?.Role.name || 'Unregistered',
+        phone: phoneNumber,
+        chatId,
+        chatType: senderType === SenderType.Group ? 'Group' : 'Individual',
+        args,
+        status: 'success',
+      });
     }
   }
 }

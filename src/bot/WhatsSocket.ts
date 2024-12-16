@@ -2,6 +2,7 @@ import makeWASocket, { AnyMessageContent, DisconnectReason, GroupMetadata, MiscM
 import { BaileysWASocket } from '../types/bot';
 import { Boom } from "@hapi/boom";
 import { MsgType, SenderType } from '../types/commands';
+import { Msg_GetMsgTypeFromRawMsg } from '../utils/rawmsgs';
 
 export class Delegate<functType extends (...args: any[]) => any> {
   private functions: functType[] = [];
@@ -75,7 +76,7 @@ export default class WhatsSocket {
         let senderType: SenderType = SenderType.Individual;
         if (chatId && chatId.endsWith("@g.us")) senderType = SenderType.Group;
         if (chatId && chatId.endsWith("@s.whatsapp.net")) senderType = SenderType.Individual;
-        this.onIncommingMessage.CallAll(chatId, msg, GetMsgTypeFromRawMsg(msg), senderType);
+        this.onIncommingMessage.CallAll(chatId, msg, Msg_GetMsgTypeFromRawMsg(msg), senderType);
       });
     });
   }
@@ -90,18 +91,8 @@ export default class WhatsSocket {
   }
 }
 
-export function GetMsgTypeFromRawMsg(rawMsg: WAMessage): MsgType {
-  if (!rawMsg.message) return MsgType.unknown;
 
-  const objMsg = rawMsg.message;
-  if (objMsg.imageMessage) return MsgType.image;
-  if (objMsg.videoMessage) return MsgType.video;
-  if (objMsg.audioMessage) return MsgType.audio;
-  if (objMsg.stickerMessage) return MsgType.sticker;
-  if (objMsg.conversation || objMsg.extendedTextMessage) return MsgType.text;
 
-  return MsgType.unknown
-}
 
 // case "open": {
 //   //console.log("Opened connection");

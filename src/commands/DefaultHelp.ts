@@ -5,6 +5,7 @@ import { ICommand, CommandAccessibleRoles, ScopeType, SenderType } from '../type
 import { Str_NormalizeLiteralString } from '../utils/strings';
 
 //Default command to execute when a user is in chat private and doesnt send any valid command!
+//This isn't included inside commands list in commandmanager, its a unique command
 export default class DefaultHelp implements ICommand {
   commandName: string = "---";
   description: string = "---";
