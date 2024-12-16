@@ -20,6 +20,12 @@ type BotArgs = {
 export default class Bot {
   private socket: WhatsSocket;
   private config: BotArgs;
+  /**
+   * This command will be executed when someone talk to this bot
+   * without any existing (prefix)command in privatechat. Doesn't apply
+   * on groups, that woulf be annoying
+   */
+  private defaultCommand: ICommand | null;
 
   public Send: WhatsMsgSender;
   public Receive: WhatsMsgReceiver;
@@ -31,6 +37,7 @@ export default class Bot {
       maxQueueMsgs: args?.maxQueueMsgs || 10,
       prefix: args?.prefix || "!",
     };
+    this.defaultCommand == null;
     this.CommandsHandler = new CommandsHandler();
     this.OnMessageTriggered = this.OnMessageTriggered.bind(this);
     this.StartBot = this.StartBot.bind(this);
@@ -54,6 +61,12 @@ export default class Bot {
     this.CommandsHandler.AddCommand(commandInstance);
   }
 
+  public AddDefaultCommand(commandInstance: ICommand) {
+    if (this.defaultCommand)
+      console.warn('Default command from bot is being replaced!');
+    this.defaultCommand = commandInstance;
+  }
+
   private async OnMessageTriggered(chatId: string, rawMsg: WAMessage, type: MsgType, senderType: SenderType) {
     console.log(rawMsg);
 
@@ -62,20 +75,31 @@ export default class Bot {
       const foundChatGroup = KldbCacheAllowedWhatsappGroups.find(groupInfo => groupInfo.chat_id === chatId);
       if (!foundChatGroup) msgComesFromRegisteredGroup = false
     }
-    if (senderType === SenderType.Individual) msgComesFromRegisteredGroup = false;
+    // If is individual chat doesn't matter, you want to have all bot capabilities when talking to him directly;
 
     if (type === MsgType.text) {
       const fullText = Msg_GetTextFromRawMsg(rawMsg);
-      ///Check if starts with prefix
-      if (!fullText.startsWith(this.config.prefix!)) return
 
       //Parse the command
       const words = fullText.trim().split(' ');
       const commandNameText = words[0].slice(this.config.prefix!.length).toLowerCase(); //Removes the prefix;
       const args = words.slice(1);
 
+      //Gathering all the data to be able to execute a command
+      const userId = rawMsg.key.participant || chatId || "There's no participant, so strage...";
+      const commandArgs: BotCommandArgs = { chatId, commandArgs: args, msgType: type, originalMsg: rawMsg, senderType, userIdOrChatUserId: userId }
+
+      ///Check if starts with prefix
+      if (!fullText.startsWith(this.config.prefix!)) {
+        //Unique exception to not using Command.Execute()
+        if (senderType === SenderType.Individual && this.defaultCommand)
+          this.defaultCommand.onMsgReceived(this, commandArgs);
+        return;
+      }
+
       //Check if command exists
       if (!this.CommandsHandler.Exists(commandNameText)) return;
+      //TODO: Make a try to guess what the user tried really to type and give feedback
 
       //Check sender phone number
       const phoneNumber = Phone_GetFullPhoneInfoFromRawmsg(rawMsg)!.number;
@@ -113,8 +137,6 @@ export default class Bot {
         return;
       }
 
-      const userId = rawMsg.key.participant || chatId || "There's no participant, so strage...";
-      const commandArgs: BotCommandArgs = { chatId, commandArgs: args, msgType: type, originalMsg: rawMsg, senderType, userIdOrChatUserId: userId }
       this.CommandsHandler.Execute(commandNameText, this, commandArgs);
     }
   }
