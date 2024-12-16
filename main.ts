@@ -11,9 +11,11 @@ import OtherCommand from './src/commands/testing/other';
 import DuelCommand from './src/commands/general/duel';
 import DuelWinCommand from './src/commands/general/duelwin';
 import VerMiembrosCommand from './src/commands/general/miembros';
-import RegistrarGrupoCommand from './src/commands/admin/groups/registrargrupo';
-import RegisteredGroupsCommand from './src/commands/admin/groups/gruposregistrados';
-
+import SeeGroupsSubscribedCommand from './src/commands/admin/groups/suscripciones';
+import SubscribeGroupCommand from './src/commands/admin/groups/suscribirgrupo';
+import DefaultHelp from './src/commands/DefaultHelp';
+import UnsubscribeGroupCommand from './src/commands/admin/groups/desuscribirgrupo';
+import ExternalHelp_AyudaCommand from './src/commands/ayuda';
 
 //For some reason this bot stops working if a group has ( or ) in its name on production server ubuntu server!
 
@@ -21,6 +23,8 @@ import RegisteredGroupsCommand from './src/commands/admin/groups/gruposregistrad
 moment.locale("es");
 
 const klBot = new Bot({ prefix: "!", coolDownSecondsTime: 1, maxQueueMsgs: 5 });
+
+klBot.AddDefaultCommand(new DefaultHelp());
 klBot.AddCommand(new WolfCommand());
 klBot.AddCommand(new HelpCommand());
 klBot.AddCommand(new ReceiveImgCommand());
@@ -32,7 +36,9 @@ klBot.AddCommand(new OtherCommand());
 klBot.AddCommand(new DuelCommand());
 klBot.AddCommand(new DuelWinCommand());
 klBot.AddCommand(new VerMiembrosCommand());
-klBot.AddCommand(new RegistrarGrupoCommand());
-klBot.AddCommand(new RegisteredGroupsCommand());
+klBot.AddCommand(new SubscribeGroupCommand());
+klBot.AddCommand(new SeeGroupsSubscribedCommand());
+klBot.AddCommand(new UnsubscribeGroupCommand());
+klBot.AddCommand(new ExternalHelp_AyudaCommand());
 
 klBot.StartBot();

@@ -5,12 +5,10 @@ import { PendingMatch } from '../types/db';
 const Kldb = new PrismaClient();
 export default Kldb
 
-//Expose temp PendingMatches mini db in memory
+// ---------------- In RAM Db ------------------------
 export const TempPendingMatches: PendingMatch[] = [];
 
-
 // ------------------ Cache ------------------------
-//Declarations
 export let KldbCacheAllowedWhatsappGroups: NonNullable<Awaited<ReturnType<typeof Kldb.registeredWhatsappGroups.findFirst>>>[] = [];
 
 export async function KldbUpdateCacheAsync() {

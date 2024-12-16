@@ -2,17 +2,17 @@ import Bot from '../../../bot';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
 import { CommandAccessibleRoles, ICommand, MsgType, ScopeType, SenderType } from '../../../types/commands';
-import Kldb from '../../../utils/db';
-import { Msg_GetTextFromRawMsg, Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
+import Kldb, { KldbCacheAllowedWhatsappGroups, KldbUpdateCacheAsync } from '../../../utils/db';
+import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
 import SecretAdminPassword from '../../../../db/secretAdminPassword';
 import { Members_GetMemberInfoFromPhone } from '../../../utils/members';
 import { Phone_GetFullPhoneInfoFromRawmsg } from '../../../utils/phonenumbers';
 import moment from 'moment';
 
 
-export default class RegistrarGrupoCommand implements ICommand {
-  commandName: string = "registrargrupo";
-  description: string = "Registra el grupo actual como uno de miembros (o el principal) o como un grupo de admins, para que el bot pueda tomarlos en cuenta";
+export default class SubscribeGroupCommand implements ICommand {
+  commandName: string = "suscribirgrupo";
+  description: string = "Registra el grupo (chat) actual para que el bot pueda interactuar con este chat.";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Administrador";
   maxScope: ScopeType = "External";
 
@@ -22,6 +22,12 @@ export default class RegistrarGrupoCommand implements ICommand {
 
     if (args.senderType === SenderType.Individual) {
       await groupChat.SendTxt("No tiene sentido usar este comando en un chat privado, intentalo en un grupo...");
+      return;
+    }
+
+    const alreadyExists = KldbCacheAllowedWhatsappGroups.find(allowedGroupObj => allowedGroupObj.chat_id === args.chatId);
+    if (alreadyExists) {
+      await groupChat.SendTxt("Este grupo ya está registrado en este bot, no es necesario volver a hacerlo");
       return;
     }
 
@@ -55,6 +61,8 @@ export default class RegistrarGrupoCommand implements ICommand {
       Fecha de registro: ${moment().format('dddd, MMMM Do YYYY, h:mm A')}
       /// 🦊 fin 🦊 ///
     `);
+      await KldbUpdateCacheAsync();
+
     } catch (e) {
       if (Msg_IsBotWaitMessageError(e)) {
         if (e.wasAbortedByUser) await groupChat.SendTxt("Se ha cancelado la operación");

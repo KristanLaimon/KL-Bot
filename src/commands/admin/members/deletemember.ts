@@ -7,8 +7,8 @@ import { SpecificChat } from '../../../bot/SpecificChat';
 import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
 
 
-export default class DeleteAdmin implements ICommand {
-  commandName: string = 'deletemembersssss';
+export default class DeleteMemberCommand implements ICommand {
+  commandName: string = 'borrarmiembro';
   description: string = "Elimina a un miembro existente en el clan"
   minimumRequiredPrivileges: CommandAccessibleRoles = "Secreto";
   maxScope: ScopeType = "Group";

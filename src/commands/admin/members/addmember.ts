@@ -14,7 +14,7 @@ import { Dates_GetFormatedDurationDaysSince, Dates_SpanishMonthStr, Dates_Spanis
 import moment from 'moment';
 
 export default class AddMemberCommand implements ICommand {
-  commandName: string = "addmember";
+  commandName: string = "añadirmiembro";
   description: string = "Añade un nuevo miembro al bot";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Administrador";
   maxScope: ScopeType = "Group";
