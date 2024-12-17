@@ -86,7 +86,7 @@ export default class AddMemberCommand implements ICommand {
       `);
       const dateInput = await chat.WaitNextTxtMsgFromSenderSpecific(
         new RegExp(`^\\s*\\d{4}\\/${Dates_SpanishMonthStr}\\/\\d{1,2}\\s*$`, "i"),
-        "Formato de fecha incorrecta. Ejemplo de como debería ser: 2024/diciembre/01",
+        "Formato de fecha incorrecta. Ejemplo de como debería ser: 2024/diciembre/01 ó 2024/diciembre/1",
         250
       )
       const dateInputPartes = dateInput.trim().split('/');

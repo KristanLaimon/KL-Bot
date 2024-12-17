@@ -2,7 +2,6 @@ import Kldb from '../../../utils/db';
 import Bot from '../../../bot';
 import { CommandAccessibleRoles, ICommand, ScopeType } from '../../../types/commands';
 import { BotCommandArgs } from '../../../types/bot';
-import { AllUtilsType } from '../../../utils/index_utils';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
 
