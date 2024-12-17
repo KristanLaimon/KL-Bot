@@ -8,6 +8,26 @@ export function Msg_GetTextFromRawMsg(rawMsg: WAMessage): string {
   return rawMsg.message.conversation || rawMsg.message.extendedTextMessage?.text || "There's no text in that message";
 }
 
+
+/**
+ * Default error handler for when an error occurs in a command.
+ * @param bot The bot instance.
+ * @param chatId The chatId where the error occurred.
+ * @param errorGeneric The error that occurred.
+ * bot and chatId are mandatory because we need to send a message to the chat where the error
+ * occurred. errorGeneric is mandatory because we need to know what error occurred to handle it
+ * properly. If errorGeneric is a BotWaitMessageError, we send a message to the chat telling the
+ * user if they cancelled the operation or if the timeout was reached. If errorGeneric is not a
+ * BotWaitMessageError, we send a message to the chat with the error message.
+ */
+export function Msg_DefaultHandleError(bot: Bot, chatId: string, errorGeneric: any) {
+  if (Msg_IsBotWaitMessageError(errorGeneric)) {
+    if (errorGeneric.wasAbortedByUser) bot.Send.Text(chatId, "Se ha cancelado el comando...");
+    else bot.Send.Text(chatId, "Te has tardado mucho en contestar...");
+  }
+  else bot.Send.Text(chatId, 'Ocurrio un error al ejecutar el comando... ' + JSON.stringify(errorGeneric, null, 2));
+}
+
 export function Msg_IsBotWaitMessageError(error: unknown): error is BotWaitMessageError {
   return (
     typeof error === "object" &&

@@ -5,11 +5,12 @@ import { downloadMediaMessage, WAMessage } from '@whiskeysockets/baileys';
 const playersImgsPath = path.join("db", "players");
 const getFullPlayerImgPath = (imgPlayer: string) => path.join("db", "players", imgPlayer);
 export function Db_GetPlayerImagePath(playerName: string): string | null {
+  if (!playerName) return null;
   const allImgsNames = fs.readdirSync(playersImgsPath);
   const playerImgName = allImgsNames.find(imgName => {
     const threeParts = imgName.split("-");
     const playerNameFound = threeParts[1]; //Second part is the player name
-    return playerName === playerNameFound;
+    return playerNameFound.includes(playerName);
   })
   if (playerImgName) return getFullPlayerImgPath(playerImgName); else return null;
 }
