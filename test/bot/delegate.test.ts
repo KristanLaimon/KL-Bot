@@ -1,4 +1,4 @@
-import { Delegate } from '../src/bot/WhatsSocket';
+import { Delegate } from '../../src/bot/WhatsSocket';
 
 const functy = () => { };
 let del: Delegate<() => void>;

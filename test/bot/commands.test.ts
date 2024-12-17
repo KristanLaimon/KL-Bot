@@ -1,5 +1,5 @@
-import CommandsHandler from '../src/bot/Commands';
-import { ICommand } from '../src/types/commands';
+import CommandsHandler from '../../src/bot/Commands';
+import { ICommand } from '../../src/types/commands';
 
 let commandsHandler: CommandsHandler;
 const everyoneCommandName = "LOWERCASECOMMAND";

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
-import _rawMsgMock from './_rawMsgMock';
-import { Log_LogRawMsg } from '../src/bot/logger';
+import _rawMsgMock from '../_rawMsgMock';
+import { Log_LogRawMsg } from '../../src/bot/logger';
 
 it("Should read a json file", () => {
   expect(() => {
