@@ -2,7 +2,7 @@ import * as winston from 'winston';
 import { format } from 'date-fns'; // Use date-fns for timestamp formatting
 import { WAMessage } from '@whiskeysockets/baileys';
 import { MsgType, SenderType } from '../types/commands';
-import { Msg_GetChatIdFromRawMsg, Msg_GetMsgTypeFromRawMsg, Msg_GetSenderTypeFromRawMsg, Msg_GetTextFromRawMsg } from '../utils/rawmsgs';
+import { Msg_GetChatIdFromRawMsg, Msg_GetMsgTypeFromRawMsg, Msg_GetSenderTypeFromRawMsg } from '../utils/rawmsgs';
 
 /**
  * Creates and configures the default KL Bot logger for logging messages with custom timestamp formatting.
@@ -42,8 +42,7 @@ export const KlCommandLogger = winston.createLogger({
 // ------------------------------------------------------------------------------------
 
 import * as fs from "fs";
-import Bot from '../bot';
-import Kldb, { KldbCacheAllowedWhatsappGroups, KldbUpdateCacheAsync } from '../utils/db';
+import { KldbCacheAllowedWhatsappGroups } from '../utils/db';
 
 const Default_Log_Msg_ObjectJson = {
   Individual: {

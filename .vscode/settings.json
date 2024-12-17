@@ -13,6 +13,7 @@
     ".dockerignore": true,
     "dockerfile": true,
     "jest.config.js": true,
-    ".devcontainer": true
+    ".devcontainer": true,
+    "tsconfig.json": true
   }
 }

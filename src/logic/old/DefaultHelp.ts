@@ -1,8 +1,8 @@
-import Bot from '../bot';
-import { SpecificChat } from '../bot/SpecificChat';
-import { BotCommandArgs } from '../types/bot';
-import { ICommand, CommandAccessibleRoles, ScopeType, SenderType } from '../types/commands';
-import { Str_NormalizeLiteralString } from '../utils/strings';
+import Bot from '../../bot';
+import { SpecificChat } from '../../bot/SpecificChat';
+import { BotCommandArgs } from '../../types/bot';
+import { ICommand, CommandAccessibleRoles, ScopeType, SenderType } from '../../types/commands';
+import { Str_NormalizeLiteralString } from '../../utils/strings';
 
 //Default command to execute when a user is in chat private and doesnt send any valid command!
 //This isn't included inside commands list in commandmanager, its a unique command

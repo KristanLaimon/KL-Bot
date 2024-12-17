@@ -5,7 +5,8 @@ module.exports = {
     "^.+.tsx?$": ["ts-jest", {
       diagnostics: {
         ignoreCodes: [151001], // Suppress TS151001
-      }
+      },
+      // tsconfig: "test/tsconfig.jest.json",
     }],
   },
 };

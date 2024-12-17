@@ -3,8 +3,8 @@ import moment from 'moment';
 import WolfCommand from "./src/commands/testing/wolf";
 import HelpCommand from './src/commands/general/help';
 import ReceiveImgCommand from './src/commands/testing/img';
-import AddMemberCommand from './src/commands/admin/members/addmember';
-import DeleteAdmin from './src/commands/admin/members/deletemember';
+import AddMemberCommand from './src/commands/admin/members/añadirmiembro';
+import DeleteAdmin from './src/commands/admin/members/borrarmiembro';
 import GetProfileInfoCommand from './src/commands/general/perfil';
 import TestCommand from './src/commands/testing/prueba';
 import OtherCommand from './src/commands/testing/other';
@@ -13,9 +13,9 @@ import DuelWinCommand from './src/commands/general/duelwin';
 import VerMiembrosCommand from './src/commands/general/miembros';
 import SeeGroupsSubscribedCommand from './src/commands/admin/groups/suscripciones';
 import SubscribeGroupCommand from './src/commands/admin/groups/suscribirgrupo';
-import DefaultHelp from './src/commands/DefaultHelp';
 import UnsubscribeGroupCommand from './src/commands/admin/groups/desuscribirgrupo';
 import ExternalHelp_AyudaCommand from './src/commands/ayuda';
+import CreateTournamentCommand from './src/commands/admin/tournaments/creartorneo';
 
 //For some reason this bot stops working if a group has ( or ) in its name on production server ubuntu server!
 
@@ -24,7 +24,6 @@ moment.locale("es");
 
 const klBot = new Bot({ prefix: "!", coolDownSecondsTime: 1, maxQueueMsgs: 5 });
 
-klBot.AddDefaultCommand(new DefaultHelp());
 klBot.AddCommand(new WolfCommand());
 klBot.AddCommand(new HelpCommand());
 klBot.AddCommand(new ReceiveImgCommand());
@@ -40,5 +39,6 @@ klBot.AddCommand(new SubscribeGroupCommand());
 klBot.AddCommand(new SeeGroupsSubscribedCommand());
 klBot.AddCommand(new UnsubscribeGroupCommand());
 klBot.AddCommand(new ExternalHelp_AyudaCommand());
+klBot.AddCommand(new CreateTournamentCommand());
 
 klBot.StartBot();

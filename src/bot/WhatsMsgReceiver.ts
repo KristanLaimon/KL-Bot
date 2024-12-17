@@ -4,16 +4,16 @@ import { GroupMetadata, WAMessage } from '@whiskeysockets/baileys';
 import { BotWaitMessageError } from '../types/bot';
 import { MsgType, SenderType } from '../types/commands';
 import WhatsSocket from './WhatsSocket';
-import { Msg_GetTextFromRawMsg, Msg_MsgTypeToString } from '../utils/rawmsgs';
+import { Msg_GetTextFromRawMsg, Msg_IsBotWaitMessageError, Msg_MsgTypeToString } from '../utils/rawmsgs';
 import { Phone_GetFullPhoneInfoFromRawmsg } from '../utils/phonenumbers';
 
 type SuccessConditionCallback = (chatId: string, incomingRawMsg: WAMessage, incomingMsgType: MsgType, incomingSenderType: SenderType) => boolean;
 
 export class WhatsMsgReceiver {
-  private _rawSocket: WhatsSocket;
+  private _whatsSocket: WhatsSocket;
 
   constructor(socket: WhatsSocket) {
-    this._rawSocket = socket;
+    this._whatsSocket = socket;
   }
 
 
@@ -26,7 +26,7 @@ export class WhatsMsgReceiver {
       const resetTimeout = () => {
         if (timer) clearTimeout(timer);
         timer = setTimeout(() => {
-          this._rawSocket.onIncommingMessage.Unsubsribe(listener);
+          this._whatsSocket.onIncommingMessage.Unsubsribe(listener);
           reject({ wasAbortedByUser: false, errorMessage: "User didn't responded in time" });
         }, timeout * 1000);
       }
@@ -37,7 +37,7 @@ export class WhatsMsgReceiver {
 
         resetTimeout();
         if (Msg_GetTextFromRawMsg(msg).includes('cancelar')) {
-          this._rawSocket.onIncommingMessage.Unsubsribe(listener);
+          this._whatsSocket.onIncommingMessage.Unsubsribe(listener);
           clearTimeout(timer);
           reject({ wasAbortedByUser: true, errorMessage: "User has canceled the dialog" });
           return;
@@ -46,11 +46,11 @@ export class WhatsMsgReceiver {
         if (!successConditionCallback(chatId, msg, msgType, senderType)) return;
 
         if (msgType !== expectedMsgType) {
-          this._rawSocket.Send(chatId, { text: wrongTypeMsgFeedback })
+          this._whatsSocket.Send(chatId, { text: wrongTypeMsgFeedback })
           return;
         }
 
-        this._rawSocket.onIncommingMessage.Unsubsribe(listener);
+        this._whatsSocket.onIncommingMessage.Unsubsribe(listener);
         clearTimeout(timer);
         resolve(msg);
         return;
@@ -59,7 +59,7 @@ export class WhatsMsgReceiver {
       resetTimeout();
 
       // Start listening for msgs
-      this._rawSocket.onIncommingMessage.Subscribe(listener);
+      this._whatsSocket.onIncommingMessage.Subscribe(listener);
     });
   }
 
@@ -69,6 +69,7 @@ export class WhatsMsgReceiver {
   }
 
   public async WaitNextRawMsgFromPhone(chatSenderId: string, userSenderId: string, expectedCleanedPhoneNumber: string, expectedMsgType: MsgType, timeout?: number, wrongTypeMsgFeedback?: string): Promise<WAMessage> {
+
     const cb: SuccessConditionCallback = (chatId, msg, msgType, senderType) => {
       const phoneNumber = Phone_GetFullPhoneInfoFromRawmsg(msg)!.number;
       return phoneNumber === expectedCleanedPhoneNumber;
@@ -89,6 +90,6 @@ export class WhatsMsgReceiver {
   }
 
   public async GetGroupMetadata(chatSenderId: string): Promise<GroupMetadata | null> {
-    return await this._rawSocket.GetGroupMetadata(chatSenderId);
+    return await this._whatsSocket.GetGroupMetadata(chatSenderId);
   }
 }

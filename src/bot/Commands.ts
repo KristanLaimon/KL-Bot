@@ -1,7 +1,7 @@
 import Bot from '../bot';
 import { BotCommandArgs } from '../types/bot';
 import { HelperRoleName, ICommand, ScopeType } from '../types/commands';
-import { AllUtilsType } from '../utils/index_utils';
+import { Msg_IsBotWaitMessageError } from '../utils/rawmsgs';
 
 
 export default class CommandsHandler {
@@ -86,7 +86,9 @@ export default class CommandsHandler {
   public Execute(commandName: string, bot: Bot, commandArgs: BotCommandArgs): boolean {
     if (!this.Exists(commandName)) return false;
     const foundCommand = this._commands[commandName];
+
     foundCommand.onMsgReceived(bot, commandArgs);
+
     return true;
   }
 

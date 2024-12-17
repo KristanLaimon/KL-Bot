@@ -32,9 +32,9 @@ model Rank {
 }
 
 model Role {
-  id                  String                @id
-  name                String                @unique(map: "sqlite_autoindex_Role_2")
-  Player              Player[]
+  id     String   @id
+  name   String   @unique(map: "sqlite_autoindex_Role_2")
+  Player Player[]
 }
 
 model Tournament {
@@ -45,6 +45,10 @@ model Tournament {
   beginDate       Int
   matchPeriodTime Int
   endDate         Int
+  cover_img_name  String?
+  tournament_type String
+  is_open         Boolean
+  TournamentType  TournamentType    @relation(fields: [tournament_type], references: [id])
   Player          Player[]
   TournamentMatch TournamentMatch[]
 }
@@ -106,7 +110,13 @@ model TeamColor {
 
 //AloneTable
 model RegisteredWhatsappGroups {
-  chat_id String @id @unique
-  group_name String
+  chat_id         String @id @unique
+  group_name      String
   date_registered BigInt @unique
+}
+
+model TournamentType {
+  id         String       @id @unique
+  name       String
+  Tournament Tournament[]
 }
