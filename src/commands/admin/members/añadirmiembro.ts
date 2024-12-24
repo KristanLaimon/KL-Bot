@@ -4,7 +4,6 @@ import Kldb from '../../../utils/db';
 import path from 'path';
 import { CapitalizeStr } from '../../../utils/strings';
 import { BotCommandArgs } from '../../../types/bot';
-import { AllUtilsType } from '../../../utils/index_utils';
 import Bot from '../../../bot';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { Db_TryToDownloadMedia } from '../../../utils/filesystem';

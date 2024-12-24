@@ -58,9 +58,9 @@ export default class DuelWinCommand implements ICommand {
     try {
       await chat.SendTxt("Todo el proceso ocurrió exitosamente");
       //1. Store match in db
-      await Kldb.match.create({
+      await Kldb.matchPlayed.create({
         data: {
-          date_id: pendingMatch.dateTime,
+          date_played: pendingMatch.dateTime,
           blue_scoreboard: winnerTeamColor === "BLU" ? winnerScore : loserScore,
           orange_scoreboard: !(winnerTeamColor === "BLU") ? winnerScore : loserScore,
           match_type: "1S"
@@ -68,19 +68,19 @@ export default class DuelWinCommand implements ICommand {
       })
 
       //2. Store match_players
-      await Kldb.match_Player.createMany({
+      await Kldb.matchPlayed_Player.createMany({
         data: [
           {
             player_id: winnerPlayer.id,
             is_winner: true,
-            match_date_id: pendingMatch.dateTime,
-            team_color: winnerTeamColor === "BLU" ? "BLU" : "ORA"
+            match_played_date_id: pendingMatch.dateTime,
+            team_color_winner: winnerTeamColor === "BLU" ? "BLU" : "ORA"
           },
           {
             player_id: loserPlayer.id,
             is_winner: false,
-            match_date_id: pendingMatch.dateTime,
-            team_color: !(winnerTeamColor === "BLU") ? "BLU" : "ORA"
+            match_played_date_id: pendingMatch.dateTime,
+            team_color_winner: !(winnerTeamColor === "BLU") ? "BLU" : "ORA"
           }
         ]
       })

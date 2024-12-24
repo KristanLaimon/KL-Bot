@@ -2,7 +2,6 @@ import Bot from '../../bot';
 import Kldb, { TempPendingMatches } from '../../utils/db';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand, MsgType, ScopeType } from '../../types/commands';
-import { AllUtilsType } from '../../utils/index_utils';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { Phone_GetPhoneNumberFromMention, Phone_GetFullPhoneInfoFromRawmsg, Phone_IsAMentionNumber } from '../../utils/phonenumbers';
 import { Members_GetMemberInfoFromPhone } from '../../utils/members';

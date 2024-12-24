@@ -7,28 +7,32 @@ datasource db {
   url      = "file:../db/klbotdb.db"
 }
 
+//OK
 model Player {
-  id                     Int               @id @default(autoincrement())
-  username               String            @unique(map: "sqlite_autoindex_Player_1")
-  profilePicturePath     String            @unique(map: "sqlite_autoindex_Player_2")
-  actualRank             String
-  tournamentSelected     Int?
-  phoneNumber            String            @unique(map: "sqlite_autoindex_Player_3")
-  whatsappNickName       String
-  role                   String
-  joined_date            BigInt            @default(-1)
-  Role                   Role              @relation(fields: [role], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Rank                   Rank              @relation(fields: [actualRank], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Tournament             Tournament?       @relation(fields: [tournamentSelected], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  TournamentMatch        TournamentMatch[]
-  TournamentMatch_Player Match_Player[]
+  id                      Int                     @id @default(autoincrement())
+  username                String                  @unique(map: "sqlite_autoindex_Player_1")
+  profilePicturePath      String                  @unique(map: "sqlite_autoindex_Player_2")
+  actualRank              String
+  tournamentSelected      Int?
+  phoneNumber             String                  @unique(map: "sqlite_autoindex_Player_3")
+  whatsappNickName        String
+  role                    String
+  joined_date             BigInt                  @default(-1)
+  Role                    Role                    @relation(fields: [role], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Rank                    Rank                    @relation(fields: [actualRank], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Tournament              Tournament?             @relation(fields: [tournamentSelected], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  TournamentMatch         TournamentMatch[]
+  TournamentPlayed_Player MatchPlayed_Player[]
+  ScheduledMatch_Player   ScheduledMatch_Player[]
 }
 
+//OK
 model Rank {
-  id            String   @unique(map: "sqlite_autoindex_Rank_1")
-  name          String   @unique(map: "sqlite_autoindex_Rank_2")
-  logoImagePath String   @unique(map: "sqlite_autoindex_Rank_3")
-  Player        Player[]
+  id                            String                          @unique(map: "sqlite_autoindex_Rank_1")
+  name                          String                          @unique(map: "sqlite_autoindex_Rank_2")
+  logoImagePath                 String                          @unique(map: "sqlite_autoindex_Rank_3")
+  Player                        Player[]
+  Tournament_Rank_RanksAdmitted Tournament_Rank_RanksAdmitted[]
 }
 
 model Role {
@@ -37,77 +41,138 @@ model Role {
   Player Player[]
 }
 
+//OK
 model Tournament {
-  id              Int               @id @default(autoincrement())
-  name            String            @unique(map: "sqlite_autoindex_Tournament_1")
-  description     String
-  creationDate    Int
-  beginDate       Int
-  matchPeriodTime Int
-  endDate         Int
-  cover_img_name  String?
-  tournament_type String
-  is_open         Boolean
-  TournamentType  TournamentType    @relation(fields: [tournament_type], references: [id])
-  Player          Player[]
-  TournamentMatch TournamentMatch[]
+  id                            Int                             @id @default(autoincrement())
+  name                          String                          @unique(map: "sqlite_autoindex_Tournament_1")
+  description                   String
+  creationDate                  Int
+  beginDate                     Int
+  matchPeriodTime               Int
+  endDate                       Int
+  cover_img_name                String?
+  tournament_type               String
+  is_open                       Boolean
+  TournamentType                TournamentType                  @relation(fields: [tournament_type], references: [id])
+  Player                        Player[]
+  TournamentMatch               TournamentMatch[]
+  ScheduledMatchWindow          ScheduledMatchWindow[]
+  Tournament_Rank_RanksAdmitted Tournament_Rank_RanksAdmitted[]
 }
 
+//OK
 model Tournament_Rank_RanksAdmitted {
-  tournamentID Int
-  rankID       String
+  tournament_id Int
+  rank_id       String
+  Tournament    Tournament @relation(fields: [tournament_id], references: [id])
+  Rank          Rank       @relation(fields: [rank_id], references: [id])
 
-  @@id([tournamentID, rankID])
+  @@id([tournament_id, rank_id])
 }
 
+//OK
 model MatchType {
-  id    String  @id
-  name  String
-  Match Match[]
+  id             String           @id
+  name           String
+  ScheduledMatch ScheduledMatch[]
+  MatchPlayed    MatchPlayed[]
 }
 
+//---------------------------Inheritance #1 "Match"---------------------------------------
 //Father table | Inheritance
-model Match {
-  date_id           BigInt @id
-  match_type        String
-  blue_scoreboard   Int
-  orange_scoreboard Int
+//**
+// * This doesn't belong to a generic match nor a tournament match, it's abstract in what they have in common
+//* model Match {
+// * match_type: String
+//* MatchType MatchType @relation(fields:[match_type], references:[id])
+//* }
+//*/
 
-  MathType        MatchType         @relation(fields: [match_type], references: [id])
-  TournamentMatch TournamentMatch[]
-  Match_Player    Match_Player[]
+//Inheritance (Copying attributes) from abstract "Match"
+//It's a pending/future matched planned, depends on ScheduledMatchWindow and for tournament planning (For tournaments, so it's no generic)
+model ScheduledMatch {
+  //Inherited
+  match_type String
+  MatchType  MatchType @relation(fields: [match_type], references: [id])
+
+  //Own
+  scheduled_match_window_id Int                     @id
+  ScheduledMatchWindow      ScheduledMatchWindow    @relation(fields: [scheduled_match_window_id], references: [id])
+  ScheduledMatch_Player     ScheduledMatch_Player[]
+}
+
+model ScheduledMatchWindow {
+  id            Int    @id @default(autoincrement())
+  tournament_id Int
+  starting_date BigInt
+  ending_date   BigInt
+
+  Tournament     Tournament       @relation(fields: [tournament_id], references: [id])
+  ScheduledMatch ScheduledMatch[]
+}
+
+//Its relation M:N with player table
+model ScheduledMatch_Player {
+  scheduled_match_date_id Int @id
+  player_id               Int
+
+  Player                       Player           @relation(fields: [player_id], references: [id])
+  ScheduledMatch               ScheduledMatch   @relation(fields: [scheduled_match_date_id], references: [scheduled_match_window_id])
+  TournamentMatch              TournamentMatch? @relation(fields: [tournamentMatchMatch_date_id], references: [match_date_id])
+  tournamentMatchMatch_date_id BigInt?
+}
+
+//Inheritance (Copying attributes) from abstract "Match"
+//It its a generic match info storing (Not belonging necesarily to a tournament) its very independent
+model MatchPlayed {
+  //Inherited
+  match_type String
+  MatchType  MatchType @relation(fields: [match_type], references: [id])
+
+  //Own
+  date_played        BigInt               @id
+  blue_scoreboard    Int
+  orange_scoreboard  Int
+  MatchPlayed_Player MatchPlayed_Player[]
+  TournamentMatch    TournamentMatch[]
+}
+
+//Inheritance from ScheduledMatch_Player
+model MatchPlayed_Player {
+  match_played_date_id BigInt      @id
+  player_id            Int
+  Player               Player      @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Match                MatchPlayed @relation(fields: [match_played_date_id], references: [date_played], onDelete: NoAction, onUpdate: NoAction)
+
+  //OwnProps
+  is_winner         Boolean
+  team_color_winner String
+  TeamColor         TeamColor @relation(fields: [team_color_winner], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 //Child table  OK
+//Inheritance (Normalized and referencing to father ID, with no copying anything) from "MatchPlayed"
 model TournamentMatch {
   match_date_id    BigInt @id // Foreign and primary key at the same time
   tournament_id    Int
   referee_verifier Int
   results_img_name String //New...added
 
-  MatchInfo       Match      @relation(fields: [match_date_id], references: [date_id])
-  RefereeVerifier Player     @relation(fields: [referee_verifier], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Tournament      Tournament @relation(fields: [tournament_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Match                 MatchPlayed             @relation(fields: [match_date_id], references: [date_played])
+  RefereeVerifier       Player                  @relation(fields: [referee_verifier], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Tournament            Tournament              @relation(fields: [tournament_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  ScheduledMatch_Player ScheduledMatch_Player[]
 }
 
-model Match_Player {
-  id            Int     @id @default(autoincrement())
-  match_date_id BigInt
-  player_id     Int
-  is_winner     Boolean
-  team_color    String
-
-  TeamColor       TeamColor @relation(fields: [team_color], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  TournamentMatch Match     @relation(fields: [match_date_id], references: [date_id], onDelete: NoAction, onUpdate: NoAction)
-  Player          Player    @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-}
-
+//------------------------------------------------------------------
+//OK
 model TeamColor {
-  id                     String         @id
+  id                     String               @id
   name                   String
-  TournamentMatch_Player Match_Player[]
+  TournamentMatch_Player MatchPlayed_Player[]
 }
 
+//OK
 //AloneTable
 model RegisteredWhatsappGroups {
   chat_id         String @id @unique
@@ -115,6 +180,7 @@ model RegisteredWhatsappGroups {
   date_registered BigInt @unique
 }
 
+//OK
 model TournamentType {
   id         String       @id @unique
   name       String
