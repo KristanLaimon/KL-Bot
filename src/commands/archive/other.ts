@@ -2,7 +2,6 @@ import Bot from '../../bot';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ScopeType } from '../../types/commands';
 import { ICommand, MsgType } from '../../types/commands';
-import { AllUtilsType } from '../../utils/index_utils';
 import { Phone_GetPhoneNumberFromMention, Phone_IsAMentionNumber } from '../../utils/phonenumbers';
 import { Msg_GetTextFromRawMsg, Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
 

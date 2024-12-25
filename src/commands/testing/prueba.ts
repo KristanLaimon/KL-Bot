@@ -4,7 +4,6 @@ import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand, ScopeType } from '../../types/commands';
 import { Dates_SpanishMonthStr, Dates_SpanishMonthToNumber } from '../../utils/dates';
-import { AllUtilsType } from '../../utils/index_utils';
 import { Msg_GetTextFromRawMsg, Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
 import Kldb from '../../utils/db';
 import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';

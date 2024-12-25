@@ -2,6 +2,15 @@ import path from 'path';
 import fs from 'fs'
 import { downloadMediaMessage, WAMessage } from '@whiskeysockets/baileys';
 
+export function ReadJson<T>(jsonPath: string): T | null {
+  try {
+    const jsonData = JSON.parse(fs.readFileSync(jsonPath).toString());
+    return jsonData as T;
+  } catch (error) {
+    return null;
+  }
+}
+
 const playersImgsPath = path.join("db", "players");
 const getFullPlayerImgPath = (imgPlayer: string) => path.join("db", "players", imgPlayer);
 export function Db_GetPlayerImagePath(playerName: string): string | null {

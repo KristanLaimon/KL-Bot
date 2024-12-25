@@ -10,7 +10,7 @@ jest.mock('fs', () => ({
   readdirSync: jest.fn(),
 }));
 
-describe('Db_GetPlayerImagePath', () => {
+describe('Get player image name path from local resources', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

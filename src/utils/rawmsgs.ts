@@ -1,4 +1,4 @@
-import { BotCommandArgs, BotWaitMessageError, WaitTextRegexFormat } from '../types/bot';
+import { BotWaitMessageError } from '../types/bot';
 import { WAMessage } from '@whiskeysockets/baileys';
 import { MsgType, SenderType } from '../types/commands';
 import Bot from '../bot';
@@ -7,7 +7,6 @@ export function Msg_GetTextFromRawMsg(rawMsg: WAMessage): string {
   if (!rawMsg.message) return "There's no text in that message";
   return rawMsg.message.conversation || rawMsg.message.extendedTextMessage?.text || "There's no text in that message";
 }
-
 
 /**
  * Default error handler for when an error occurs in a command.

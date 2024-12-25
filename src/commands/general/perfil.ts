@@ -2,7 +2,6 @@ import Kldb from '../../utils/db';
 import Bot from '../../bot';
 import { CommandAccessibleRoles, ICommand, ScopeType } from '../../types/commands';
 import { Dates_GetFormatedDurationDaysSince } from '../../utils/dates';
-import { AllUtilsType } from '../../utils/index_utils';
 import { BotCommandArgs } from '../../types/bot';
 import { Phone_GetFullPhoneInfoFromRawmsg, Phone_GetPhoneNumberFromMention } from '../../utils/phonenumbers';
 import { Members_GetMemberInfoFromPhone } from '../../utils/members';

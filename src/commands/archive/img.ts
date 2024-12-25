@@ -1,7 +1,6 @@
 import { HelperRoleName, ICommand, MsgType, ScopeType } from '../../types/commands';
 import Bot from '../../bot';
 import { BotCommandArgs } from '../../types/bot';
-import { AllUtilsType } from '../../utils/index_utils';
 import { Db_TryToDownloadMedia } from '../../utils/filesystem';
 import { Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
 

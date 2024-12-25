@@ -13,6 +13,26 @@ export const Phone_UserIdRegex = /^\d{13}@s.whatsapp.net$/;
 export const Phone_MentionNumberRegexStr = "@\\d{13}"
 export const Phone_UserIdRegexStr = "\\d{13}@s.whatsapp.net";
 
+/**
+ * Extracts detailed phone number information from a raw WhatsApp message.
+ *
+ * @param rawMsg - The raw WhatsApp message from which to extract the phone number.
+ * @returns An object containing the phone number details, including country code, 
+ *          full number, number without country code, and WhatsApp ID.
+ *
+ * @throws {Error} If the phone number is invalid or both participant and remoteJid are undefined.
+ *
+ * @example
+ * const rawMsg = { key: { participant: '1234567890123@s.whatsapp.net' } };
+ * const phoneInfo = Phone_GetFullPhoneInfoFromRawmsg(rawMsg);
+ * // phoneInfo = {
+ * //   countryCode: '123',
+ * //   number: '1234567890123',
+ * //   numberWithNoCountryCode: '4567890123',
+ * //   whatsappId: '4567890123@s.whatsapp.net'
+ * // }
+ */
+
 export function Phone_GetFullPhoneInfoFromRawmsg(rawMsg: WAMessage): WhatsNumber {
   //Let's check if comes from private msg or group
   let number = rawMsg.key.participant || rawMsg.key.remoteJid || undefined;

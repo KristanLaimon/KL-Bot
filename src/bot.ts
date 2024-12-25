@@ -1,16 +1,15 @@
-import fs from "fs";
-import WhatsSocket from './bot/WhatsSocket';
-import { WhatsMsgSender } from './bot/WhatsMsgSender';
-import { WhatsMsgReceiver } from './bot/WhatsMsgReceiver';
-import CommandsHandler from './bot/Commands';
-import { HelperRoleName, ICommand, MsgType, SenderType } from './types/commands';
 import { WAMessage } from '@whiskeysockets/baileys';
-import { Msg_GetTextFromRawMsg } from './utils/rawmsgs';
+import CommandsHandler from './bot/Commands';
+import { KlCommandLogger, Log_LogRawMsg } from './bot/logger';
+import { WhatsMsgReceiver } from './bot/WhatsMsgReceiver';
+import { WhatsMsgSender } from './bot/WhatsMsgSender';
+import WhatsSocket from './bot/WhatsSocket';
+import { BotCommandArgs } from './types/bot';
+import { HelperRoleName, ICommand, MsgType, SenderType } from './types/commands';
+import { KldbCacheAllowedWhatsappGroups, KldbUpdateCacheAsync } from './utils/db';
 import { Members_GetMemberInfoFromPhone } from './utils/members';
 import { Phone_GetFullPhoneInfoFromRawmsg } from './utils/phonenumbers';
-import { BotCommandArgs } from './types/bot';
-import Kldb, { KldbCacheAllowedWhatsappGroups, KldbUpdateCacheAsync } from './utils/db';
-import KlLogger, { KlCommandLogger, Log_LogRawMsg } from './bot/logger';
+import { Msg_GetTextFromRawMsg } from './utils/rawmsgs';
 
 type BotArgs = {
   prefix?: string;

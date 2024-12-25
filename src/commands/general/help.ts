@@ -1,7 +1,6 @@
 import { HelperRoleName, ICommand, ScopeType } from '../../types/commands';
 import Bot from '../../bot';
 import { BotCommandArgs } from '../../types/bot';
-import { AllUtilsType } from '../../utils/index_utils';
 import { Members_GetMemberInfoFromPhone } from '../../utils/members';
 import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
 

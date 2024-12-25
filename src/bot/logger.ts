@@ -58,7 +58,7 @@ const Default_Log_Msg_ObjectJson = {
     media: [],
   }
 }
-type LogMsgObjectJson = {
+export type Logger_Type_MsgsLogJson = {
   Individual: {
     text: WAMessage[];
     media: WAMessage[];
@@ -98,7 +98,7 @@ const ensureFileWithDefaultContentExists = (filePath: string, defaultObj: Record
 const saveIntoMsgJsonFile = (rawMsg: WAMessage, senderType: SenderType, msgType: MsgType) => {
   const pathh = 'logs/msgslog.json'
   ensureFileWithDefaultContentExists(pathh, Default_Log_Msg_ObjectJson);
-  const currentData = JSON.parse(fs.readFileSync(pathh).toString()) as LogMsgObjectJson;
+  const currentData = JSON.parse(fs.readFileSync(pathh).toString()) as Logger_Type_MsgsLogJson;
 
   if (senderType === SenderType.Individual) {
     if (msgType === MsgType.text)
