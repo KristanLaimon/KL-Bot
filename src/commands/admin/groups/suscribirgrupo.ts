@@ -2,7 +2,7 @@ import Bot from '../../../bot';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
 import { CommandAccessibleRoles, ICommand, MsgType, ScopeType, SenderType } from '../../../types/commands';
-import Kldb, { KldbCacheAllowedWhatsappGroups, KldbUpdateCacheAsync } from '../../../utils/db';
+import Kldb, { KldbCacheAllowedWhatsappGroups, Kldb_UpdateStartupCacheAsync } from '../../../utils/db';
 import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
 import SecretAdminPassword from '../../../../db/secretAdminPassword';
 import { Members_GetMemberInfoFromPhone } from '../../../utils/members';
@@ -61,7 +61,7 @@ export default class SubscribeGroupCommand implements ICommand {
       Fecha de registro: ${moment().format('dddd, MMMM Do YYYY, h:mm A')}
       /// 🦊 fin 🦊 ///
     `);
-      await KldbUpdateCacheAsync();
+      await Kldb_UpdateStartupCacheAsync();
 
     } catch (e) {
       if (Msg_IsBotWaitMessageError(e)) {

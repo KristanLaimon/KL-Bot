@@ -3,5 +3,6 @@ export function CapitalizeStr(str: string): string {
 }
 
 export function Str_NormalizeLiteralString(str: string): string {
+  if (!str) return '';
   return str.trim().split("\n").map((line) => line.trim() || line).join("\n");
 }

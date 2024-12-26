@@ -1,40 +1,40 @@
 import moment from 'moment';
-import { Dates_Add12hrsTimeToMomentObj, Dates_GetFormatedDurationDaysSince, Dates_GetTimePassedSinceDuelMatchPending, Dates_SpanishMonthToNumber } from '../../src/utils/dates';
+import { Dates_Add12hrsTimeToMomentObj, Dates_GetFormatedDurationTimeFrom, Dates_GetTimePassedSinceDuelMatchPending, Dates_SpanishMonthToNumber } from '../../src/utils/dates';
 import { Dates_12HrsInputRegex } from '../../src/utils/dates';
 
 describe('Getting formated duration days since a date in spanish', () => {
   it('should return a string with the time passed since a date in the past', () => {
     const pastDate = moment().subtract(1, 'year').valueOf();
-    const result = Dates_GetFormatedDurationDaysSince(pastDate);
+    const result = Dates_GetFormatedDurationTimeFrom(pastDate);
     expect(result).toContain('año');
   });
 
   it('should throw an error with a date in the future', () => {
     const futureDate = moment().add(1, 'day').valueOf();
-    expect(() => Dates_GetFormatedDurationDaysSince(futureDate)).toThrow('For some reason, GetFormatedDuration has got a future date!');
+    expect(() => Dates_GetFormatedDurationTimeFrom(futureDate)).toThrow('For some reason, GetFormatedDuration has got a future date!');
   });
 
   it('should return "Se unió el día de hoy" with a date that is the same as the current date', () => {
     const currentDate = moment().valueOf();
-    const result = Dates_GetFormatedDurationDaysSince(currentDate);
+    const result = Dates_GetFormatedDurationTimeFrom(currentDate);
     expect(result).toBe('Se unió el día de hoy');
   });
 
   it('should return a string with the time passed since a date that is one day in the past', () => {
     const pastDate = moment().subtract(1, 'day').valueOf();
-    const result = Dates_GetFormatedDurationDaysSince(pastDate);
+    const result = Dates_GetFormatedDurationTimeFrom(pastDate);
     expect(result).toContain('día');
   });
 
   it('should return a string with the time passed since a date that is one month in the past', () => {
     const pastDate = moment().subtract(1, 'month').subtract(4, 'day').valueOf();
-    const result = Dates_GetFormatedDurationDaysSince(pastDate);
+    const result = Dates_GetFormatedDurationTimeFrom(pastDate);
     expect(result).toContain('mes');
   });
 
   it('should return a string with the time passed since a date that is one year in the past', () => {
     const pastDate = moment().subtract(1, 'year').valueOf();
-    const result = Dates_GetFormatedDurationDaysSince(pastDate);
+    const result = Dates_GetFormatedDurationTimeFrom(pastDate);
     expect(result).toContain('año');
   });
 });

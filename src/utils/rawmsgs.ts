@@ -24,7 +24,7 @@ export function Msg_DefaultHandleError(bot: Bot, chatId: string, errorGeneric: a
     if (errorGeneric.wasAbortedByUser) bot.Send.Text(chatId, "Se ha cancelado el comando...");
     else bot.Send.Text(chatId, "Te has tardado mucho en contestar...");
   }
-  else bot.Send.Text(chatId, 'Ocurrio un error al ejecutar el comando... ' + JSON.stringify(errorGeneric, null, 2));
+  else bot.Send.Text(chatId, 'Ocurrio un error al ejecutar el comando... \n' + JSON.stringify(errorGeneric, null, 4));
 }
 
 export function Msg_IsBotWaitMessageError(error: unknown): error is BotWaitMessageError {

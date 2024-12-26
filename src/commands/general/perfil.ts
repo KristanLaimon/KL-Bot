@@ -1,7 +1,7 @@
 import Kldb from '../../utils/db';
 import Bot from '../../bot';
 import { CommandAccessibleRoles, ICommand, ScopeType } from '../../types/commands';
-import { Dates_GetFormatedDurationDaysSince } from '../../utils/dates';
+import { Dates_GetFormatedDurationTimeFrom } from '../../utils/dates';
 import { BotCommandArgs } from '../../types/bot';
 import { Phone_GetFullPhoneInfoFromRawmsg, Phone_GetPhoneNumberFromMention } from '../../utils/phonenumbers';
 import { Members_GetMemberInfoFromPhone } from '../../utils/members';
@@ -42,7 +42,7 @@ export default class GetProfileInfoCommand implements ICommand {
       Username: ${member?.username}
       Rango: ${member?.Rank.name}
       Rol: ${member.Role.name}
-      Antiguedad: ${Dates_GetFormatedDurationDaysSince(member.joined_date)}
+      Antiguedad: ${Dates_GetFormatedDurationTimeFrom(member.joined_date)}
     `);
     await chat.SendImg(Db_GetPlayerImagePath(member.username)!);
   }

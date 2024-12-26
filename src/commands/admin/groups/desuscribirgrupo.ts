@@ -2,7 +2,7 @@ import Bot from '../../../bot';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
 import { ICommand, CommandAccessibleRoles, ScopeType, SenderType } from '../../../types/commands';
-import Kldb, { KldbCacheAllowedWhatsappGroups, KldbUpdateCacheAsync } from '../../../utils/db';
+import Kldb, { KldbCacheAllowedWhatsappGroups, Kldb_UpdateStartupCacheAsync } from '../../../utils/db';
 import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
 
 export default class UnsubscribeGroupCommand implements ICommand {
@@ -39,7 +39,7 @@ export default class UnsubscribeGroupCommand implements ICommand {
             chat_id: args.chatId
           }
         })
-        await KldbUpdateCacheAsync();
+        await Kldb_UpdateStartupCacheAsync();
         await chat.SendTxt("El grupo ha sido desuscrito exitosamente!, adios 🦊🥲");
       }
       else {

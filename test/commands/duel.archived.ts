@@ -1,7 +1,8 @@
+import Bot from '../../src/bot';
 import { Logger_Type_MsgsLogJson } from '../../src/bot/logger';
 import DuelCommand from '../../src/commands/general/duel';
 import { BotCommandArgs } from '../../src/types/bot';
-import Kldb from '../../src/utils/db';
+import Kldb, { Kldb_Ram_PendingMatches } from '../../src/utils/db';
 import { ReadJson } from '../../src/utils/filesystem';
 import { Members_GetMemberInfoFromPhone } from '../../src/utils/members';
 
@@ -12,6 +13,7 @@ jest.mock("../../src/utils/db", () => ({
     create: jest.fn(),
   },
 }));
+
 const bot = { Send: { Text: jest.fn() } };
 
 //Mocking data to use
@@ -32,18 +34,21 @@ beforeEach(() => {
 //Test!
 it('should create a member in the database', async () => {
   const memberInfo = { id: 1, username: 'testuser', role: 'AD' };
-  (Members_GetMemberInfoFromPhone as jest.Mock).mockResolvedValue(memberInfo);
-  (Kldb.player.findMany as jest.Mock).mockResolvedValue(memberInfo);
+  bot.Send.Text = TalkingAsyncMock(bot.Send.Text, [
+    "Ahora se está esperando que conteste...",
+  ])
 
   await duelCommand.onMsgReceived(bot as any, args as any);
 
-  expect(Kldb.player.create).toHaveBeenCalledTimes(1);
-  expect(Kldb.player.create).toHaveBeenCalledWith({
-    username: expect.any(String),
-    role: expect.any(String),
-    phoneNumber: expect.any(String),
-  });
+  expect(Kldb_Ram_PendingMatches.length).toBe(1);
 });
+
+function TalkingAsyncMock(functionMock: jest.Mock, msgs: string[]) {
+  for (const msg of msgs) {
+    functionMock.mockResolvedValueOnce(msg);
+  }
+  return functionMock;
+}
 
 // it('should send a message to the chat if the member is already registered', async () => {
 //   const duelCommand = new DuelCommand();

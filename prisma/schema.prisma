@@ -9,21 +9,21 @@ datasource db {
 
 //OK
 model Player {
-  id                      Int                     @id @default(autoincrement())
-  username                String                  @unique(map: "sqlite_autoindex_Player_1")
-  profilePicturePath      String                  @unique(map: "sqlite_autoindex_Player_2")
-  actualRank              String
-  tournamentSelected      Int?
-  phoneNumber             String                  @unique(map: "sqlite_autoindex_Player_3")
-  whatsappNickName        String
-  role                    String
-  joined_date             BigInt                  @default(-1)
-  Role                    Role                    @relation(fields: [role], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Rank                    Rank                    @relation(fields: [actualRank], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Tournament              Tournament?             @relation(fields: [tournamentSelected], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  TournamentMatch         TournamentMatch[]
-  TournamentPlayed_Player MatchPlayed_Player[]
-  ScheduledMatch_Player   ScheduledMatch_Player[]
+  id                              Int                               @id @default(autoincrement())
+  username                        String                            @unique(map: "sqlite_autoindex_Player_1")
+  profilePicturePath              String                            @unique(map: "sqlite_autoindex_Player_2")
+  actualRank                      String
+  phoneNumber                     String                            @unique(map: "sqlite_autoindex_Player_3")
+  whatsappNickName                String
+  role                            String
+  joined_date                     BigInt                            @default(-1)
+  Role                            Role                              @relation(fields: [role], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Rank                            Rank                              @relation(fields: [actualRank], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  TournamentMatch                 TournamentMatch[]
+  TournamentPlayed_Player         MatchPlayed_Player[]
+  ScheduledMatch_Player           ScheduledMatch_Player[]
+  tournamentId                    Int?
+  Tournament_Player_Subscriptions Tournament_Player_Subscriptions[]
 }
 
 //OK
@@ -43,29 +43,39 @@ model Role {
 
 //OK
 model Tournament {
-  id                            Int                             @id @default(autoincrement())
-  name                          String                          @unique(map: "sqlite_autoindex_Tournament_1")
-  description                   String
-  creationDate                  Int
-  beginDate                     Int
-  matchPeriodTime               Int
-  endDate                       Int
-  cover_img_name                String?
-  tournament_type               String
-  is_open                       Boolean
-  TournamentType                TournamentType                  @relation(fields: [tournament_type], references: [id])
-  Player                        Player[]
-  TournamentMatch               TournamentMatch[]
-  ScheduledMatchWindow          ScheduledMatchWindow[]
-  Tournament_Rank_RanksAdmitted Tournament_Rank_RanksAdmitted[]
+  id                              Int                               @id @default(autoincrement())
+  name                            String                            @unique(map: "sqlite_autoindex_Tournament_1")
+  description                     String
+  creationDate                    BigInt
+  beginDate                       BigInt
+  matchPeriodTime                 Int
+  endDate                         BigInt?
+  cover_img_name                  String?
+  tournament_type                 String
+  max_players                     Int
+  TournamentType                  TournamentType                    @relation(fields: [tournament_type], references: [id])
+  TournamentMatch                 TournamentMatch[]
+  ScheduledMatchWindow            ScheduledMatchWindow[]
+  Tournament_Rank_RanksAdmitted   Tournament_Rank_RanksAdmitted[]
+  Tournament_Player_Subscriptions Tournament_Player_Subscriptions[]
+}
+
+model Tournament_Player_Subscriptions {
+  tournament_id     Int
+  player_id         Int
+  subscription_date BigInt
+  Tournament        Tournament @relation(fields: [tournament_id], references: [id])
+  Player            Player     @relation(fields: [player_id], references: [id])
+
+  @@id([tournament_id, player_id])
 }
 
 //OK
 model Tournament_Rank_RanksAdmitted {
   tournament_id Int
   rank_id       String
-  Tournament    Tournament @relation(fields: [tournament_id], references: [id])
-  Rank          Rank       @relation(fields: [rank_id], references: [id])
+  Tournament    Tournament @relation(fields: [tournament_id], references: [id], onDelete: Cascade)
+  Rank          Rank       @relation(fields: [rank_id], references: [id], onDelete: Cascade)
 
   @@id([tournament_id, rank_id])
 }
@@ -97,7 +107,7 @@ model ScheduledMatch {
 
   //Own
   scheduled_match_window_id Int                     @id
-  ScheduledMatchWindow      ScheduledMatchWindow    @relation(fields: [scheduled_match_window_id], references: [id])
+  ScheduledMatchWindow      ScheduledMatchWindow    @relation(fields: [scheduled_match_window_id], references: [id], onDelete: Cascade)
   ScheduledMatch_Player     ScheduledMatch_Player[]
 }
 
@@ -107,7 +117,7 @@ model ScheduledMatchWindow {
   starting_date BigInt
   ending_date   BigInt
 
-  Tournament     Tournament       @relation(fields: [tournament_id], references: [id])
+  Tournament     Tournament       @relation(fields: [tournament_id], references: [id], onDelete: Cascade)
   ScheduledMatch ScheduledMatch[]
 }
 
@@ -117,7 +127,7 @@ model ScheduledMatch_Player {
   player_id               Int
 
   Player                       Player           @relation(fields: [player_id], references: [id])
-  ScheduledMatch               ScheduledMatch   @relation(fields: [scheduled_match_date_id], references: [scheduled_match_window_id])
+  ScheduledMatch               ScheduledMatch   @relation(fields: [scheduled_match_date_id], references: [scheduled_match_window_id], onDelete: Cascade)
   TournamentMatch              TournamentMatch? @relation(fields: [tournamentMatchMatch_date_id], references: [match_date_id])
   tournamentMatchMatch_date_id BigInt?
 }

@@ -1,5 +1,5 @@
 import Bot from '../../bot';
-import Kldb, { TempPendingMatches } from '../../utils/db';
+import Kldb, { Kldb_Ram_PendingMatches } from '../../utils/db';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand, MsgType, ScopeType } from '../../types/commands';
 import { SpecificChat } from '../../bot/SpecificChat';
@@ -92,10 +92,10 @@ export default class DuelCommand implements ICommand {
         );
         const matchPendingIdentifier = Date.now();
         const timerOnEnd = setTimeout(() => {
-          const foundIndex = TempPendingMatches.findIndex(match => match.dateTime === matchPendingIdentifier);
+          const foundIndex = Kldb_Ram_PendingMatches.findIndex(match => match.dateTime === matchPendingIdentifier);
           if (foundIndex !== -1) {
             //It means the match never was completed it but still pending, so lets delete it
-            TempPendingMatches.splice(foundIndex, 1);
+            Kldb_Ram_PendingMatches.splice(foundIndex, 1);
             chat.SendTxt(`
               ⏳💔 **El tiempo ha terminado** 💔⏳  
               El duelo entre *${challengerInfo.username}* y *${challengedInfo.username}* no se completó a tiempo.  
@@ -104,7 +104,7 @@ export default class DuelCommand implements ICommand {
           }
         }, 1000 * 60 * 20 /* 20 minutes */);
 
-        TempPendingMatches.push({
+        Kldb_Ram_PendingMatches.push({
           dateTime: matchPendingIdentifier,
           countDownTimer: timerOnEnd,
           challenger: challengerInfo,

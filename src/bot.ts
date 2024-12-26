@@ -6,7 +6,7 @@ import { WhatsMsgSender } from './bot/WhatsMsgSender';
 import WhatsSocket from './bot/WhatsSocket';
 import { BotCommandArgs } from './types/bot';
 import { HelperRoleName, ICommand, MsgType, SenderType } from './types/commands';
-import { KldbCacheAllowedWhatsappGroups, KldbUpdateCacheAsync } from './utils/db';
+import { KldbCacheAllowedWhatsappGroups, Kldb_UpdateStartupCacheAsync } from './utils/db';
 import { Members_GetMemberInfoFromPhone } from './utils/members';
 import { Phone_GetFullPhoneInfoFromRawmsg } from './utils/phonenumbers';
 import { Msg_GetTextFromRawMsg } from './utils/rawmsgs';
@@ -53,7 +53,7 @@ export default class Bot {
     this.Receive = new WhatsMsgReceiver(this.socket);
     this.socket.onIncommingMessage.Subscribe(this.OnMessageTriggered);
     this.socket.onReconnect.Subscribe(async () => await this.StartBot());
-    await KldbUpdateCacheAsync();
+    await Kldb_UpdateStartupCacheAsync();
     this.socket.Init();
   }
 

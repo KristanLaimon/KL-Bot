@@ -60,28 +60,28 @@ export function Dates_Add12hrsTimeToMomentObj(momentObj: Moment, TwelveHrsTimeSt
 }
 
 /**
- * Given a date in the past, returns a string with a human-readable representation of how much time has passed since then.
- * @param pastDate The date in the past to calculate the time passed since.
- * @returns A string with the time passed since the given date, e.g.:
+ * Given a date in the past, returns a string with a human-readable representation of how much time is left to reach that date.
+ * @param pastDate The date in the past or the future to calculate the time until that date
+ * @returns A string with the time between now and the given date, e.g.:
  * - "3 años, 2 meses y 5 días".
  * - "1 mes y 2 días".
  * - "Se unió el día de hoy".
  * - "X horas, Y minutos y Z segundos".
  */
-export function Dates_GetFormatedDurationDaysSince(pastDate: bigint | number) {
+export function Dates_GetFormatedDurationTimeFrom(pastDate: bigint | number) {
   const pastTime = moment(Number(pastDate));
   const now = moment();
 
-  if (pastTime.isAfter(now))
-    throw new Error("For some reason, GetFormatedDuration has got a future date!");
-
-  const timePassed = moment.duration(now.diff(pastTime));
+  const timePassed = moment.duration(Math.abs(now.diff(pastTime, 'milliseconds')), 'milliseconds');
   let finalMsg: string[] = [];
-  if (timePassed.years() != 0) finalMsg.push(timePassed.years() + " años");
-  if (timePassed.months() != 0) finalMsg.push(timePassed.months() + " meses");
-  if (timePassed.days() != 0) finalMsg.push(timePassed.days() + " días");
+  if (timePassed.years() != 0) finalMsg.push(Math.abs(timePassed.years()) + " años");
+  if (timePassed.months() != 0) finalMsg.push(Math.abs(timePassed.months()) + " meses");
+  if (timePassed.days() != 0) {
+    const days = timePassed.days();
+    finalMsg.push(`${days} ${days === 1 ? "día" : "días"}`);
+  }
 
-  if (finalMsg.length === 0) finalMsg.push("Se unió el día de hoy");
+  if (finalMsg.length === 0) finalMsg.push("hoy mismo");
   return finalMsg.join(", ");
 }
 

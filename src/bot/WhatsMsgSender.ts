@@ -1,3 +1,4 @@
+import { Str_NormalizeLiteralString } from '../utils/strings';
 import WhatsSocket from './WhatsSocket';
 import WhatsSendingMsgQueue from './WhatsSocketMsgQueue';
 import fs from "fs";
@@ -8,14 +9,14 @@ export class WhatsMsgSender {
     this.queue = new WhatsSendingMsgQueue(socket, maxSendingQueueLimit, timeBetweenMsgsInMiliseconds);
   }
   public async Text(chatId: string, text: string) {
-    text = text.trim().split("\n").map((line) => line.trim() || line).join("\n");
+    text = Str_NormalizeLiteralString(text);
     await this.queue.Enqueue(chatId, { text });
   }
 
   public async Img(chatId: string, imagePath: string, caption?: string) {
     this.queue.Enqueue(chatId, {
       image: fs.readFileSync(imagePath),
-      caption: caption || '',
+      caption: Str_NormalizeLiteralString(caption) || '',
     });
   }
 }

@@ -11,7 +11,7 @@ const Responses_Negative = ['no', 'n', 'nope', 'nop'];
  * @param {string} rawResponse - the string to check
  * @returns {boolean} - true if the string is an affirmative response, false otherwise
  */
-export function Reponse_isAfirmativeAnswer(rawResponse: string): boolean {
+export function Response_isAfirmativeAnswer(rawResponse: string): boolean {
   return Responses_Affirmative.includes(rawResponse.toLowerCase());
 }
 

@@ -1,16 +1,10 @@
-import Kldb from '../utils/db';
-
-export const TournamentTypes = new Map<string, Tournament>([
-  // ["SE", new Tournament()],
-]);
-
-type Player = NonNullable<Awaited<ReturnType<typeof Kldb.player.findFirst>>>
+import { KlPlayer, KlTournament } from '../types/db';
 
 type ScheduledMatch = {
   /*PlannedTimeWindows it belongs to ID PRIMARY KEY*/
   MatchTypeId: string; /* 1S for 1vs1 or 2S for 2vs2*/
-  Team1: Player[];
-  Team2: Player[];
+  Team1: KlPlayer[];
+  Team2: KlPlayer[];
 }
 
 type ScheduledMatchWindow = {
@@ -26,6 +20,17 @@ type TournamentSchedule = {
 }
 
 abstract class Tournament {
-  public abstract CreatePlanning();
-
+  public abstract CreatePlanningFrom(fullTournamentInfo: KlTournament): TournamentSchedule;
 }
+
+class TournamentSingleElimination extends Tournament {
+  public CreatePlanningFrom(fullTournamentInfo: KlTournament): TournamentSchedule {
+    throw new Error('Method not implemented.');
+  }
+}
+
+const TournamentsTypesSelector = new Map<string, Tournament>([
+  ["SE", new TournamentSingleElimination()],
+]);
+export default TournamentsTypesSelector;
+

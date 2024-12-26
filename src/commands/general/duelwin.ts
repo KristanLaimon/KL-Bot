@@ -2,7 +2,7 @@ import Bot from '../../bot';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand, ScopeType } from '../../types/commands';
-import Kldb, { TempPendingMatches } from '../../utils/db';
+import Kldb, { Kldb_Ram_PendingMatches } from '../../utils/db';
 import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
 import { Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
 
@@ -16,7 +16,7 @@ export default class DuelWinCommand implements ICommand {
 
     //Check if sender is on a pending duel
     const numberSender = Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number;
-    const pendingMatchFoundIndex = TempPendingMatches.findIndex(a => a.challenger.phoneNumber === numberSender || a.challenged.phoneNumber === numberSender);
+    const pendingMatchFoundIndex = Kldb_Ram_PendingMatches.findIndex(a => a.challenger.phoneNumber === numberSender || a.challenged.phoneNumber === numberSender);
     if (pendingMatchFoundIndex === -1) {
       await chat.SendTxt("❌ *No tienes un duelo pendiente con nadie.*\nPara iniciar uno, usa *!duel @persona* y retar a alguien");
       return;
@@ -33,7 +33,7 @@ export default class DuelWinCommand implements ICommand {
       return;
     }
 
-    const pendingMatch = TempPendingMatches.at(pendingMatchFoundIndex)!;
+    const pendingMatch = Kldb_Ram_PendingMatches.at(pendingMatchFoundIndex)!;
 
     //Two arguments: score and colorTeam given
     const score = args.commandArgs.at(0)!.split(/[-|_]/).map(scoreStr => parseInt(scoreStr));
@@ -53,7 +53,7 @@ export default class DuelWinCommand implements ICommand {
     //This is already handled so, lets remove his countdown
     clearTimeout(pendingMatch.countDownTimer);
     //Remove the pending match from the IN MEMORY LIST;
-    TempPendingMatches.splice(pendingMatchFoundIndex, 1);
+    Kldb_Ram_PendingMatches.splice(pendingMatchFoundIndex, 1);
 
     try {
       await chat.SendTxt("Todo el proceso ocurrió exitosamente");

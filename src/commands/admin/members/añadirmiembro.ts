@@ -9,7 +9,7 @@ import { SpecificChat } from '../../../bot/SpecificChat';
 import { Db_TryToDownloadMedia } from '../../../utils/filesystem';
 import { Phone_GetFullPhoneInfoFromRawmsg, Phone_GetPhoneNumberFromMention as Phone_GetFullPhoneNumberInfoFromMention, Phone_MentionNumberRegexStr } from '../../../utils/phonenumbers';
 import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
-import { Dates_GetFormatedDurationDaysSince, Dates_SpanishMonthStr, Dates_SpanishMonthToNumber } from '../../../utils/dates';
+import { Dates_GetFormatedDurationTimeFrom, Dates_SpanishMonthStr, Dates_SpanishMonthToNumber } from '../../../utils/dates';
 import moment from 'moment';
 
 export default class AddMemberCommand implements ICommand {
@@ -92,7 +92,7 @@ export default class AddMemberCommand implements ICommand {
       const monthNumber = Dates_SpanishMonthToNumber(dateInputPartes.at(1)!)!;
       const dateParsed = dateInput.replace(dateInputPartes.at(1)!, monthNumber.toString());
       const dateInputMomentJs = moment(dateParsed); // Suponiendo que dateInput es válido
-      await chat.SendTxt(`Antiguedad detectada: ${Dates_GetFormatedDurationDaysSince(dateInputMomentJs.valueOf())}`);
+      await chat.SendTxt(`Antiguedad detectada: ${Dates_GetFormatedDurationTimeFrom(dateInputMomentJs.valueOf())}`);
 
       //MEMBER PROFILE PHOTO
       await chat.SendTxt("Brinda una captura/foto de su perfil dentro Rocket League Sideswipe:");
@@ -137,7 +137,7 @@ export default class AddMemberCommand implements ICommand {
       m.push(`Role: Administrator | AD`);
       m.push(`Rango: ${CapitalizeStr(selectedRank)}`)
       m.push(`WhatsappNickName: ${whatsappName}`)
-      m.push(`Antiguedad: ${Dates_GetFormatedDurationDaysSince(dateInputMomentJs.valueOf())}`)
+      m.push(`Antiguedad: ${Dates_GetFormatedDurationTimeFrom(dateInputMomentJs.valueOf())}`)
       await chat.SendTxt(m.join("\n"));
 
       await chat.SendTxt("===========Terminado==============");

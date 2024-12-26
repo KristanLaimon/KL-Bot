@@ -1,3 +1,5 @@
+import Kldb from '../utils/db';
+
 export type HelperRankId =
   "BR" |
   "PL" |
@@ -18,6 +20,11 @@ export type HelperRankName =
 
 export type HelperRoleId = "AD" | "MB";
 
+export type PendingTournamentStart = {
+  tournamentInfo: KlTournament;
+  countdownTimer: NodeJS.Timeout;
+}
+
 export type PendingMatch = {
   dateTime: number;
   countDownTimer: NodeJS.Timeout
@@ -36,3 +43,5 @@ export type KlPlayer = {
   role: string;
   joined_date: bigint;
 } & { Role: { id: string; name: string; }; Rank: { id: string; name: string; logoImagePath: string; }; }
+
+export type KlTournament = NonNullable<Awaited<ReturnType<typeof Kldb.tournament.findFirst>>>
