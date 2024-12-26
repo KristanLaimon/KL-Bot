@@ -9,15 +9,15 @@ describe('Getting formated duration days since a date in spanish', () => {
     expect(result).toContain('año');
   });
 
-  it('should throw an error with a date in the future', () => {
-    const futureDate = moment().add(1, 'day').valueOf();
-    expect(() => Dates_GetFormatedDurationTimeFrom(futureDate)).toThrow('For some reason, GetFormatedDuration has got a future date!');
+  it('should accept future dates in absolute value', () => {
+    const futureDate = moment().add(1, 'day').add(1, 'hour').valueOf();
+    expect(Dates_GetFormatedDurationTimeFrom(futureDate)).toBe('1 día')
   });
 
-  it('should return "Se unió el día de hoy" with a date that is the same as the current date', () => {
+  it('should return "hoy mismo" with a date that is the same as the current date', () => {
     const currentDate = moment().valueOf();
     const result = Dates_GetFormatedDurationTimeFrom(currentDate);
-    expect(result).toBe('Se unió el día de hoy');
+    expect(result).toBe('hoy mismo');
   });
 
   it('should return a string with the time passed since a date that is one day in the past', () => {

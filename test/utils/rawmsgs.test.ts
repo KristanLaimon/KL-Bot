@@ -57,7 +57,7 @@ describe('Handling default try catch error for commands in general', () => {
     const error = { message: 'test error' };
     Msg_DefaultHandleError(bot as any, chatId, error);
     expect(bot.Send.Text).toHaveBeenCalledTimes(1);
-    expect(bot.Send.Text).toHaveBeenCalledWith(chatId, 'Ocurrio un error al ejecutar el comando... ' + JSON.stringify(error, null, 2));
+    expect(bot.Send.Text).toHaveBeenCalledWith(chatId, 'Ocurrio un error al ejecutar el comando... \n' + JSON.stringify(error, null, 4));
   });
 
   it('should call bot.Send.Text with correct arguments', () => {

@@ -4,7 +4,7 @@ import { Log_LogRawMsg } from '../../src/bot/logger';
 
 it("Should read a json file", () => {
   expect(() => {
-    const jsonData = JSON.parse(fs.readFileSync("test/_test.json").toString());
+    const jsonData = JSON.parse(fs.readFileSync("test/mocks/_test.json").toString());
     expect(jsonData).toBeTruthy();
   }).not.toThrow();
 })
