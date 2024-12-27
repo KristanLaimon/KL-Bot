@@ -44,10 +44,6 @@ export default class Bot {
     this.StartBot = this.StartBot.bind(this);
   }
 
-  get Commands() {
-    return this.CommandsHandler.Commands;
-  }
-
   public async StartBot() {
     this.socket = new WhatsSocket();
     this.Send = new WhatsMsgSender(this.socket, 5, 1000);

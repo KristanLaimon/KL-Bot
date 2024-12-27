@@ -1,3 +1,4 @@
+import KlLogger from '../bot/logger';
 import { KlPlayer, KlTournament } from '../types/db';
 
 type ScheduledMatch = {
@@ -25,6 +26,7 @@ abstract class Tournament {
 
 class TournamentSingleElimination extends Tournament {
   public CreatePlanningFrom(fullTournamentInfo: KlTournament): TournamentSchedule {
+    KlLogger.error("TournamentSingleElimination has executed its planning method but not implemented yet");
     throw new Error('Method not implemented.');
   }
 }

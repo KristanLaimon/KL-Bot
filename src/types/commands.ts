@@ -17,6 +17,23 @@ export interface ICommand {
   description: string;
   minimumRequiredPrivileges: CommandAccessibleRoles;
   maxScope: ScopeType;
+  helpMessage?: {
+    /**
+     * General info and notes
+     */
+    info: string,
+    /**
+     * Structure/sintaxis of the help message
+     * !command [optional argument] mandatoryargument(número) etc... 
+     */
+    structure: string,
+    /**
+     * Examples of how to use the command. These will be shown in the help message.
+     * Should be an array of strings, each string should be a different example of how to use the command
+     * For example, if your command is !hello, you should add an example like "!hello (without arguments)"
+     */
+    examples: string[]
+  }
   onMsgReceived: (bot: Bot, args: BotCommandArgs) => Promise<void>;
 }
 
