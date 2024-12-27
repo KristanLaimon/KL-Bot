@@ -1,0 +1,14 @@
+=== 🌟 *¡Bienvenido a KL BOT!* 🌟 ===
+
+¡Hola! Soy el asistente oficial del clan KL, diseñado para ofrecerte herramientas avanzadas para gestionar el clan *Kings Of Logic*. 🚀
+
+🛠️ *Funciones Destacadas:*
+- Administración del clan
+- Organización de torneos personalizados
+- Y mucho más
+
+🔍 Para descubrir todos mis comandos, escribe *!ayuda*.
+🦊 Encuéntrame en el grupo oficial del clan y mantente al tanto de todas las novedades.
+
+⚠️Este bot no interactuará ni desbloqueará sus funcionalidades en este grupo hasta que se haya registrado en este bot.
+Para registrarlo utiliza el comando !suscribirgrupo o consulta !ayuda para ver todo lo que puedes hacer de momento

@@ -3,6 +3,8 @@ import { BaileysWASocket } from '../types/bot';
 import { Boom } from "@hapi/boom";
 import { MsgType, SenderType } from '../types/commands';
 import { Msg_GetMsgTypeFromRawMsg } from '../utils/rawmsgs';
+import KlLogger from './logger';
+import moment from 'moment';
 
 export class Delegate<functType extends (...args: any[]) => any> {
   private functions: functType[] = [];
@@ -29,14 +31,15 @@ export default class WhatsSocket {
   private socket: BaileysWASocket; //It's initialized in "initializeSelf"
   public onReconnect: Delegate<() => void> = new Delegate();
   public onIncommingMessage: Delegate<(chatId: string, rawMsg: WAMessage, type: MsgType, senderType: SenderType) => void> = new Delegate();
+  public onEnteringGroup: Delegate<(groupInfo: GroupMetadata) => void> = new Delegate();
 
-  constructor() {
-  }
+  constructor() { }
 
   public async Init() {
     await this.InitializeSelf();
     this.ConfigureReconnection();
     this.ConfigureMessageIncoming();
+    this.ConfigureEnteringGroups();
   }
 
   private async InitializeSelf() {
@@ -49,7 +52,7 @@ export default class WhatsSocket {
   }
 
 
-  private ConfigureReconnection() {
+  private ConfigureReconnection(): void {
     this.socket.ev.on("connection.update", (update) => {
       const { connection, lastDisconnect } = update;
       const disconect = lastDisconnect!;
@@ -59,13 +62,23 @@ export default class WhatsSocket {
           const shouldReconnect =
             (disconect.error as Boom)?.output?.statusCode !==
             DisconnectReason.loggedOut;
+          KlLogger.info('Connection closed, reconnecting...');
           if (shouldReconnect) this.onReconnect.CallAll();
         }
       }
     });
   }
 
-  private ConfigureMessageIncoming() {
+  private ConfigureEnteringGroups(): void {
+    this.socket.ev.on('groups.upsert', async (groupsUpserted: GroupMetadata[]) => {
+      for (const group of groupsUpserted) {
+        this.onEnteringGroup.CallAll(group);
+        KlLogger.info(`Joined to a new group ${group.subject} at ${moment().format('YYYY-MM-DD HH:mm:ss')}`);
+      }
+    })
+  }
+
+  private ConfigureMessageIncoming(): void {
     this.socket.ev.on("messages.upsert", async (messageUpdate) => {
       if (!messageUpdate.messages) return;
       messageUpdate.messages.forEach(async (msg) => {

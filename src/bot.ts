@@ -1,6 +1,7 @@
-import { WAMessage } from '@whiskeysockets/baileys';
+import fs from "fs";
+import { GroupMetadata, WAMessage } from '@whiskeysockets/baileys';
 import CommandsHandler from './bot/Commands';
-import { KlCommandLogger, Log_LogRawMsg } from './bot/logger';
+import KlLogger, { KlCommandLogger, Log_LogRawMsg } from './bot/logger';
 import { WhatsMsgReceiver } from './bot/WhatsMsgReceiver';
 import { WhatsMsgSender } from './bot/WhatsMsgSender';
 import WhatsSocket from './bot/WhatsSocket';
@@ -51,8 +52,13 @@ export default class Bot {
     this.socket = new WhatsSocket();
     this.Send = new WhatsMsgSender(this.socket, 5, 1000);
     this.Receive = new WhatsMsgReceiver(this.socket);
-    this.socket.onIncommingMessage.Subscribe(this.OnMessageTriggered);
+
     this.socket.onReconnect.Subscribe(async () => await this.StartBot());
+    this.OnMessageTriggered = this.OnMessageTriggered.bind(this);
+    this.socket.onIncommingMessage.Subscribe(this.OnMessageTriggered);
+    this.OnEnteringGroup = this.OnEnteringGroup.bind(this);
+    this.socket.onEnteringGroup.Subscribe(this.OnEnteringGroup);
+
     await Kldb_UpdateStartupCacheAsync();
     this.socket.Init();
   }
@@ -61,10 +67,22 @@ export default class Bot {
     this.CommandsHandler.AddCommand(commandInstance);
   }
 
-  public AddDefaultCommand(commandInstance: ICommand) {
-    if (this.defaultCommand)
-      console.warn('Default command from bot is being replaced!');
-    this.defaultCommand = commandInstance;
+  get Commands() {
+    return this.CommandsHandler.Commands;
+  }
+
+  private async OnEnteringGroup(groupInfo: GroupMetadata) {
+    try {
+      const defaultWelcomeMsgGroupPath = "resources/default_welcome/group/msg.txt"
+      const defaultWelcomeCoverGroupPath = "resources/default_welcome/group/cover.jpg"
+      // const defaultWelcomeMsgUserPath = "resources/default_welcome/user/msg.txt"
+      // const defaultWelcomeCoverUserPath = "resources/default_welcome/user/cover.jpg"
+      const text = fs.readFileSync(defaultWelcomeMsgGroupPath).toString();
+      this.Send.Img(groupInfo.id, defaultWelcomeCoverGroupPath, text);
+
+    } catch (e) {
+      KlLogger.error(`There was an error loading default welcome: ${JSON.stringify(e, null, 0)}`)
+    }
   }
 
   private async OnMessageTriggered(chatId: string, rawMsg: WAMessage, type: MsgType, senderType: SenderType) {
