@@ -2,7 +2,7 @@ import { CommandAccessibleRoles, ICommand, MsgType, ScopeType } from '../../../t
 import fs from 'fs';
 import Kldb from '../../../utils/db';
 import path from 'path';
-import { CapitalizeStr } from '../../../utils/strings';
+import { Str_CapitalizeStr } from '../../../utils/strings';
 import { BotCommandArgs } from '../../../types/bot';
 import Bot from '../../../bot';
 import { SpecificChat } from '../../../bot/SpecificChat';
@@ -135,7 +135,7 @@ export default class AddMemberCommand implements ICommand {
       m.push("------ Se ha guardado exitosamente los datos siguientes: --------")
       m.push(`Ingame Username: ${name}`)
       m.push(`Role: Administrator | AD`);
-      m.push(`Rango: ${CapitalizeStr(selectedRank)}`)
+      m.push(`Rango: ${Str_CapitalizeStr(selectedRank)}`)
       m.push(`WhatsappNickName: ${whatsappName}`)
       m.push(`Antiguedad: ${Dates_GetFormatedDurationTimeFrom(dateInputMomentJs.valueOf())}`)
       await chat.SendTxt(m.join("\n"));

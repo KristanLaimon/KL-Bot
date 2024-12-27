@@ -11,9 +11,10 @@ import { Msg_GetTextFromRawMsg, Msg_IsBotWaitMessageError } from '../../utils/ra
 //TODO: !duelpending? && !duellose
 export default class DuelCommand implements ICommand {
   commandName: string = "duel";
-  description: string = 'Reta a un duelo 1vs1 a otra persona'
+  description: string = 'Reta a un duelo 1vs1 a otra persona del clan'
   minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro";
   maxScope: ScopeType = "Group";
+
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
 
