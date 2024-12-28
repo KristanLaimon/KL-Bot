@@ -40,19 +40,20 @@ export const Dates_12HrsInputRegex = new RegExp(`^${Dates_HoursStr}:${Dates_Minu
  * @returns A new moment object with the resulting time.
  * @throws Will throw an error if the given 12-hour time does not match the expected format.
  */
-export function Dates_Add12hrsTimeToMomentObj(momentObj: Moment, TwelveHrsTimeStr: string): boolean {
+export function Dates_Add24hrsFormatTimeToMomentObj(momentObj: Moment, TwelveHrsTimeStr: string): boolean {
   if (!Dates_12HrsInputRegex.test(TwelveHrsTimeStr)) return false;
   const numbers = TwelveHrsTimeStr.match(/\d+/g);
   let hours = parseInt(numbers[0]!);
   let minutes = parseInt(numbers[1]!);
+  const isAM = TwelveHrsTimeStr.toUpperCase().includes('AM');
 
   if (hours === 12) {
-    if (TwelveHrsTimeStr.includes('PM')) hours = 12;
-    else hours = 0;
+    if (isAM) hours = 0;
+    else hours = 12;
   } else {
-    if (TwelveHrsTimeStr.includes('PM')) hours += 12;
+    if (!isAM) hours += 12;
   }
-  (momentObj).add(hours, 'hours').add(minutes, 'minutes');
+  momentObj.add(hours, 'hours').add(minutes, 'minutes');
   return true;
 }
 
@@ -64,7 +65,7 @@ export function Dates_Add12hrsTimeToMomentObj(momentObj: Moment, TwelveHrsTimeSt
  * - "1 mes y 2 días".
  * - "X horas, Y minutos y Z segundos".
  */
-export function Dates_GetFormatedDurationTimeFrom(pastDate: bigint | number, options?: { includingSeconds?: boolean }): string {
+export function Dates_GetFormatedDurationTimeFrom(pastDate: bigint | number, options?: { includingSeconds?: boolean, includingHours?: boolean }): string {
   const pastTime = moment(Number(pastDate));
   const now = moment();
   const rawDiff = now.diff(pastTime, 'milliseconds');
@@ -74,6 +75,8 @@ export function Dates_GetFormatedDurationTimeFrom(pastDate: bigint | number, opt
 
   if (options && options.includingSeconds)
     return prefix + Dates_HumanizeDatesUntilSeconds(timePassed.asMilliseconds());
+  else if (options && options.includingHours)
+    return prefix + Dates_HumanizeDatesUntilHours(timePassed.asMilliseconds());
   else
     return prefix + Dates_HumanizeDatesUntilDays(timePassed.asMilliseconds());
 }
@@ -146,6 +149,16 @@ export const Dates_HumanizeDatesUntilDays = humanizeDuration.humanizer(
     round: true,
     conjunction: " y ",
     units: ["y", "mo", "w", "d"],
+    serialComma: false
+  }
+);
+
+export const Dates_HumanizeDatesUntilHours = humanizeDuration.humanizer(
+  {
+    language: 'es', fallbacks: ['en'],
+    round: true,
+    conjunction: " y ",
+    units: ["y", "mo", "w", "d", "h"],
     serialComma: false
   }
 );

@@ -14,6 +14,14 @@ export default class EnterToTournamentCommand implements ICommand {
   description: string = "Te permite entrar en algun torneo que esté abierto actualmente";
   maxScope: CommandScopeType = "Group";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro";
+  helpMessage?: CommandHelpInfo = {
+    structure: "entrartorneo",
+    examples: [
+      { text: "entrartorneo", isOk: true },
+      { text: "entrartorneo algunargumentoextra", isOk: false }
+    ],
+    notes: 'Solo se podrá entrar en torneos que no hayan iniciado todavía, mucho menos los que ya terminaron'
+  }
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
 

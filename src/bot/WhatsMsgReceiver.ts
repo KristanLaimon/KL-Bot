@@ -36,6 +36,14 @@ export class WhatsMsgReceiver {
         if (msg.key.remoteJid !== chatSenderId) return;
 
         resetTimeout();
+
+        if (Msg_GetTextFromRawMsg(msg).length > 1000) {
+          this._whatsSocket.onIncommingMessage.Unsubsribe(listener);
+          clearTimeout(timer);
+          reject({ wasAbortedByUser: false, errorMessage: "User has sent too much text" });
+          return;
+        }
+
         if (Msg_GetTextFromRawMsg(msg).toLowerCase().includes('cancelar')) {
           this._whatsSocket.onIncommingMessage.Unsubsribe(listener);
           clearTimeout(timer);

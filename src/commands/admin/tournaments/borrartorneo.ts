@@ -3,7 +3,7 @@ import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
 import { CommandAccessibleRoles, CommandHelpInfo, CommandScopeType, ICommand } from '../../../types/commands';
 import { Dates_GetFormatedDurationTimeFrom } from '../../../utils/dates';
-import Kldb from '../../../utils/db';
+import Kldb, { Db_DeleteTournamentById } from '../../../utils/db';
 import { Msg_DefaultHandleError } from '../../../utils/rawmsgs';
 import { Response_isAfirmativeAnswer } from '../../../utils/responses';
 
@@ -70,8 +70,8 @@ export default class DeleteTournamentCommand implements ICommand {
       `);
       const confirmation = Response_isAfirmativeAnswer(await chat.WaitNextTxtMsgFromSender(60));
       if (confirmation) {
-        const justDeleted = await Kldb.tournament.delete({ where: { id: selectedToDelete.id } });
-        await chat.SendTxt(`Torneo, todas sus partidas planeadas y partidas jugadas de este torneo exitosamente borrado: ${justDeleted.name}`);
+        Db_DeleteTournamentById(selectedToDelete.id);
+        await chat.SendTxt(`Torneo, todas sus partidas planeadas y partidas jugadas de este torneo exitosamente borrado: ${selectedToDelete.name}`);
       } else {
         await chat.SendTxt("Se ha cancelado el borrado del torneo, no ha pasado nada aquí...🐺");
       }

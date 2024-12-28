@@ -5,7 +5,7 @@ import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
 import { ICommand, CommandScopeType, CommandAccessibleRoles, MsgType, CommandHelpInfo } from '../../../types/commands';
 import { KlTournament } from '../../../types/db';
-import { Dates_12HrsInputRegex, Dates_Add12hrsTimeToMomentObj, Dates_ConvertDateInputToMomentJs, Dates_DateInputRegex } from '../../../utils/dates';
+import { Dates_12HrsInputRegex, Dates_Add24hrsFormatTimeToMomentObj, Dates_ConvertDateInputToMomentJs, Dates_DateInputRegex } from '../../../utils/dates';
 import Kldb from '../../../utils/db';
 import { GenerateInstructionSteps } from '../../../utils/dialog';
 import { Db_TryToDownloadMedia } from '../../../utils/filesystem';
@@ -123,7 +123,7 @@ export default class CreateTournamentCommand implements ICommand {
         if (remainderPlayers === 0) {
           break;
         } else {
-          await chat.SendTxt(`El número de jugadores por equipo debe ser un concordar con el tamaño de ${__playersPerTeamNeeded}, si hiciera equipos de ${__playersPerTeamNeeded} jugadores, terminaría sobrando ${remainderPlayers} jugadores...`);
+          await chat.SendTxt(`El número de jugadores por equipo debe concordar con el tamaño de ${__playersPerTeamNeeded} integrantes, si se hicieran equipos de ${__playersPerTeamNeeded} jugadores, terminaría sobrando ${remainderPlayers} jugadores...`);
         }
       }
 
@@ -143,7 +143,7 @@ export default class CreateTournamentCommand implements ICommand {
         "No has ingresado una hora valida, recuerda que el formato debe ser 'hora:minutos AM/PM', por ejemplo: '10:30 AM', prueba de nuevo: ",
         defaultTimeout
       );
-      Dates_Add12hrsTimeToMomentObj(STARTDATESELECTED, _formatedHour);
+      Dates_Add24hrsFormatTimeToMomentObj(STARTDATESELECTED, _formatedHour);
 
       // Period/Window time in days to play each match (2 digits number)
       await chat.SendTxt(step());
@@ -234,7 +234,6 @@ export default class CreateTournamentCommand implements ICommand {
         tournament_type: TYPESELECTED,
         max_players: MAXPLAYERSSELECTED,
         match_format: SELECTEDGAMETYPE,
-        is_custom: SELECTED_IS_CUSTOM,
         custom_players_per_team: SELECTED_custom_players_per_team
       }
 

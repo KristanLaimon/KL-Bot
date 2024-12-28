@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { Dates_Add12hrsTimeToMomentObj, Dates_GetFormatedDurationTimeFrom, Dates_GetTimePassedSinceDuelMatchPending, Dates_SpanishMonthToNumber } from '../../src/utils/dates';
+import { Dates_Add24hrsFormatTimeToMomentObj, Dates_GetFormatedDurationTimeFrom, Dates_GetTimePassedSinceDuelMatchPending, Dates_SpanishMonthToNumber } from '../../src/utils/dates';
 import { Dates_12HrsInputRegex } from '../../src/utils/dates';
 
 describe('Getting formated duration days since a date in spanish', () => {
@@ -106,7 +106,7 @@ describe('Add12hrsTimeToMomentObj', () => {
   it('should add valid 12-hour time to moment object', () => {
     const momentObj = moment('2022-01-01 00:00:00');
     const twelveHrsTimeStr = '08:30 AM';
-    const rusult = Dates_Add12hrsTimeToMomentObj(momentObj, twelveHrsTimeStr);
+    const rusult = Dates_Add24hrsFormatTimeToMomentObj(momentObj, twelveHrsTimeStr);
     expect(rusult).toBe(true);
     expect(momentObj.format('HH:mm')).toBe('08:30');
   });
@@ -114,13 +114,13 @@ describe('Add12hrsTimeToMomentObj', () => {
   it('should give false for invalid 12-hour time format', () => {
     const momentObj = moment('2022-01-01 00:00:00');
     const twelveHrsTimeStr = '08:30';
-    expect(Dates_Add12hrsTimeToMomentObj(momentObj, twelveHrsTimeStr)).toBe(false);
+    expect(Dates_Add24hrsFormatTimeToMomentObj(momentObj, twelveHrsTimeStr)).toBe(false);
   });
 
   it('should convert AM to 24-hour format', () => {
     const momentObj = moment('2022-01-01 00:00:00');
     const twelveHrsTimeStr = '08:30 AM';
-    const result = Dates_Add12hrsTimeToMomentObj(momentObj, twelveHrsTimeStr);
+    const result = Dates_Add24hrsFormatTimeToMomentObj(momentObj, twelveHrsTimeStr);
     expect(result).toBe(true);
     expect(momentObj.format('HH:mm')).toBe('08:30');
   });
@@ -128,7 +128,7 @@ describe('Add12hrsTimeToMomentObj', () => {
   it('should convert PM to 24-hour format', () => {
     const momentObj = moment('2022-01-01 00:00:00');
     const twelveHrsTimeStr = '08:30 PM';
-    const result = Dates_Add12hrsTimeToMomentObj(momentObj, twelveHrsTimeStr);
+    const result = Dates_Add24hrsFormatTimeToMomentObj(momentObj, twelveHrsTimeStr);
     expect(result).toBe(true);
     expect(momentObj.format('HH:mm')).toBe('20:30');
   });
@@ -136,7 +136,7 @@ describe('Add12hrsTimeToMomentObj', () => {
   it('should handle edge case 12:00 AM', () => {
     const momentObj = moment('2022-01-01 00:00:00');
     const twelveHrsTimeStr = '12:00 AM';
-    const result = Dates_Add12hrsTimeToMomentObj(momentObj, twelveHrsTimeStr);
+    const result = Dates_Add24hrsFormatTimeToMomentObj(momentObj, twelveHrsTimeStr);
     expect(result).toBe(true);
     expect(momentObj.format('HH:mm')).toBe('00:00');
   });
@@ -144,7 +144,7 @@ describe('Add12hrsTimeToMomentObj', () => {
   it('should handle edge case 12:00 PM', () => {
     const momentObj = moment('2022-01-01 00:00:00');
     const twelveHrsTimeStr = '12:00 PM';
-    const result = Dates_Add12hrsTimeToMomentObj(momentObj, twelveHrsTimeStr);
+    const result = Dates_Add24hrsFormatTimeToMomentObj(momentObj, twelveHrsTimeStr);
     expect(result).toBe(true);
     expect(momentObj.format('HH:mm')).toBe('12:00');
   });

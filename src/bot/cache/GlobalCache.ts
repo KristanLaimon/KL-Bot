@@ -1,4 +1,5 @@
-import TournamentsTypesSelector, { AbstractTournament } from '../../logic/TournamentTypos';
+import { AbstractTournament } from '../../logic/TournamentSingleElimination';
+import TournamentsTypesSelector from '../../logic/TournamentTypos';
 import { KlScheduledMatch_Player, KlTournament, ParticipantInfo, PendingMatch, PendingTournamentStart, TeamColor } from '../../types/db';
 import Kldb from '../../utils/db';
 import KlLogger from '../logger';
@@ -7,6 +8,7 @@ export default class GlobalCache {
   // ---------------- Automatic Cache ------------------------
   // No need to handle it with UpdateCache(), it works by itself
   public static Auto_PendingMatches: PendingMatch[] = [];
+  public static Auto_IdUsersUsingCommands: string[] = [];
 
   constructor() { throw new Error("Cache class is not meant to be instantiated, is static class!") }
 
@@ -14,6 +16,15 @@ export default class GlobalCache {
   // Needs to be updated with UpdateCache()
   public static SemiAuto_PendingTournamentsTimers: PendingTournamentStart[] = [];
   public static SemiAuto_AllowedWhatsappGroups: NonNullable<Awaited<ReturnType<typeof Kldb.registeredWhatsappGroups.findFirst>>>[] = [];
+
+  public static RemoveIdUserUsingCommand(userId: string): boolean {
+    const index = this.Auto_IdUsersUsingCommands.indexOf(userId);
+    if (index !== -1) {
+      this.Auto_IdUsersUsingCommands.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
 
   public static async UpdateCache() {
     this.SemiAuto_AllowedWhatsappGroups = await Kldb.registeredWhatsappGroups.findMany();

@@ -16,6 +16,8 @@ import VerMiembrosCommand from './src/commands/general/miembros';
 import GetProfileInfoCommand from './src/commands/general/perfil';
 import SeeTournamentsCommand from './src/commands/general/torneos';
 import TestCommand from './src/commands/testing/prueba';
+import ExitATournamentCommand from './src/commands/general/salirtorneo';
+import SeeMySubscribedTournamentsCommand from './src/commands/general/mistorneos';
 
 //For some reason this bot stops working if a group has ( or ) in its name on production server ubuntu server!
 
@@ -40,5 +42,7 @@ klBot.AddCommand(new CreateTournamentCommand());
 klBot.AddCommand(new SeeTournamentsCommand());
 klBot.AddCommand(new DeleteTournamentCommand());
 klBot.AddCommand(new EnterToTournamentCommand());
+klBot.AddCommand(new ExitATournamentCommand());
+klBot.AddCommand(new SeeMySubscribedTournamentsCommand());
 
 klBot.StartBot();

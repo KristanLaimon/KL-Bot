@@ -83,11 +83,11 @@ export default class CommandsHandler {
    * @returns A boolean indicating whether the command was successfully executed.
    *          Returns false if the command doesn't exist, true otherwise.
    */
-  public Execute(commandName: string, bot: Bot, commandArgs: BotCommandArgs): boolean {
+  public async Execute(commandName: string, bot: Bot, commandArgs: BotCommandArgs): Promise<boolean> {
     if (!this.Exists(commandName)) return false;
     const foundCommand = this._commands[commandName];
 
-    foundCommand.onMsgReceived(bot, commandArgs);
+    await foundCommand.onMsgReceived(bot, commandArgs);
 
     return true;
   }

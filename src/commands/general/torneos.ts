@@ -41,10 +41,12 @@ export default class SeeTournamentsCommand implements ICommand {
 
         60
       );
-
       const imgCaptionInfo = await Db_GetTournamentFormattedInfo(selectedTournament.id);
-      await chat.SendImg(`db/tournaments_covers/${selectedTournament.cover_img_name}`, imgCaptionInfo);
-
+      if (selectedTournament.cover_img_name) {
+        await chat.SendImg(`db/tournaments_covers/${selectedTournament.cover_img_name}`, imgCaptionInfo);
+      } else {
+        await chat.SendTxt(imgCaptionInfo);
+      }
     } catch (e) {
       Msg_DefaultHandleError(bot, args.chatId, e);
     }

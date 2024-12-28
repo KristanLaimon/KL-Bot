@@ -92,11 +92,20 @@ export default class Bot {
     }
     // If is individual chat doesn't matter, you want to have all bot capabilities when talking to him directly;
 
+
     if (type === MsgType.text) {
       const fullText = Msg_GetTextFromRawMsg(rawMsg);
 
       ///Check if starts with prefix
       if (!fullText.startsWith(this.config.prefix!)) return;
+
+      if (fullText.length > 1500) {
+        this.Send.Text(chatId, 'El mensaje es demasiado largo, (¿Cómo por qué mandarías algo así?) ...');
+        return;
+      }
+
+      const userId = rawMsg.key.participant || chatId || "There's no participant, so strage...";
+      if (GlobalCache.Auto_IdUsersUsingCommands.includes(userId)) return;
 
       //Parse the command
       const words = fullText.trim().split(' ');
@@ -145,10 +154,11 @@ export default class Bot {
         return;
       }
 
-      //Gathering all the data to be able to execute a command
-      const userId = rawMsg.key.participant || chatId || "There's no participant, so strage...";
+
       const commandArgs: BotCommandArgs = { chatId, commandArgs: args, msgType: type, originalMsg: rawMsg, senderType, userIdOrChatUserId: userId }
-      this.CommandsHandler.Execute(commandNameText, this, commandArgs);
+
+      GlobalCache.Auto_IdUsersUsingCommands.push(userId);
+      this.CommandsHandler.Execute(commandNameText, this, commandArgs).then(() => GlobalCache.RemoveIdUserUsingCommand(userId));
 
       KlCommandLogger.info({
         event: 'CommandExecution',
