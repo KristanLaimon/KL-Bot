@@ -1,11 +1,12 @@
 import Bot from '../../bot';
-import Kldb, { Kldb_Ram_PendingMatches } from '../../utils/db';
+import Kldb from '../../utils/db';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand, MsgType, CommandScopeType, CommandHelpInfo } from '../../types/commands';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { Phone_GetPhoneNumberFromMention, Phone_GetFullPhoneInfoFromRawmsg, Phone_IsAMentionNumber } from '../../utils/phonenumbers';
 import { Members_GetMemberInfoFromPhone } from '../../utils/members';
 import { Msg_GetTextFromRawMsg, Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
+import GlobalCache from '../../bot/cache/GlobalCache';
 
 export default class DuelCommand implements ICommand {
   commandName: string = "duel";
@@ -101,10 +102,10 @@ export default class DuelCommand implements ICommand {
         );
         const matchPendingIdentifier = Date.now();
         const timerOnEnd = setTimeout(() => {
-          const foundIndex = Kldb_Ram_PendingMatches.findIndex(match => match.dateTime === matchPendingIdentifier);
+          const foundIndex = GlobalCache.Auto_PendingMatches.findIndex(match => match.dateTime === matchPendingIdentifier);
           if (foundIndex !== -1) {
             //It means the match never was completed it but still pending, so lets delete it
-            Kldb_Ram_PendingMatches.splice(foundIndex, 1);
+            GlobalCache.Auto_PendingMatches.splice(foundIndex, 1);
             chat.SendTxt(`
               ⏳💔 **El tiempo ha terminado** 💔⏳  
               El duelo entre *${challengerInfo.username}* y *${challengedInfo.username}* no se completó a tiempo.  
@@ -113,13 +114,12 @@ export default class DuelCommand implements ICommand {
           }
         }, 1000 * 60 * 20 /* 20 minutes */);
 
-        Kldb_Ram_PendingMatches.push({
+        GlobalCache.Auto_PendingMatches.push({
           dateTime: matchPendingIdentifier,
           countDownTimer: timerOnEnd,
           challenger: challengerInfo,
           challenged: challengedInfo,
         })
-
       }
     } catch (e) {
       if (Msg_IsBotWaitMessageError(e)) {

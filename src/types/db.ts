@@ -43,7 +43,17 @@ export type KlPlayer = {
 } & { Role: { id: string; name: string; }; Rank: { id: string; name: string; logoImagePath: string; }; }
 
 export type KlGetTableType<T extends (...args: any[]) => any> = NonNullable<Awaited<ReturnType<T>>>;
+
 export type KlTournament = KlGetTableType<typeof Kldb.tournament.findFirst>;
+
 export type KlScheduledMatchWindow = KlGetTableType<typeof Kldb.scheduledMatchWindow.findFirst>;
-
-
+export type KlScheduledMatch = KlGetTableType<typeof Kldb.scheduledMatch.findFirst>;
+export type KlScheduledMatch_Player = KlGetTableType<typeof Kldb.scheduledMatch_Player.findFirst>;
+export enum TeamColor {
+  Blue = 'BLU',
+  Orange = 'ORA'
+}
+export type ParticipantInfo =
+  KlGetTableType<typeof Kldb.tournament_Player_Subscriptions.findFirst> & {
+    Player: KlPlayer
+  }

@@ -1,8 +1,9 @@
 import Bot from '../../bot';
+import GlobalCache from '../../bot/cache/GlobalCache';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand, CommandScopeType, CommandHelpInfo } from '../../types/commands';
-import Kldb, { Kldb_Ram_PendingMatches } from '../../utils/db';
+import Kldb from '../../utils/db';
 import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
 import { Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
 
@@ -31,7 +32,7 @@ export default class DuelWinCommand implements ICommand {
 
     //Check if sender is on a pending duel
     const numberSender = Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number;
-    const pendingMatchFoundIndex = Kldb_Ram_PendingMatches.findIndex(a => a.challenger.phoneNumber === numberSender || a.challenged.phoneNumber === numberSender);
+    const pendingMatchFoundIndex = GlobalCache.Auto_PendingMatches.findIndex(a => a.challenger.phoneNumber === numberSender || a.challenged.phoneNumber === numberSender);
     if (pendingMatchFoundIndex === -1) {
       await chat.SendTxt("❌ *No tienes un duelo pendiente con nadie.*\nPara iniciar uno, usa *!duel @persona* y retar a alguien");
       return;
@@ -48,7 +49,7 @@ export default class DuelWinCommand implements ICommand {
       return;
     }
 
-    const pendingMatch = Kldb_Ram_PendingMatches.at(pendingMatchFoundIndex)!;
+    const pendingMatch = GlobalCache.Auto_PendingMatches.at(pendingMatchFoundIndex)!;
 
     //Two arguments: score and colorTeam given
     const score = args.commandArgs.at(0)!.split(/[-|_]/).map(scoreStr => parseInt(scoreStr));
@@ -68,7 +69,7 @@ export default class DuelWinCommand implements ICommand {
     //This is already handled so, lets remove his countdown
     clearTimeout(pendingMatch.countDownTimer);
     //Remove the pending match from the IN MEMORY LIST;
-    Kldb_Ram_PendingMatches.splice(pendingMatchFoundIndex, 1);
+    GlobalCache.Auto_PendingMatches.splice(pendingMatchFoundIndex, 1);
 
     try {
       await chat.SendTxt("Todo el proceso ocurrió exitosamente");

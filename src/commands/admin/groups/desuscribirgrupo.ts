@@ -1,8 +1,9 @@
 import Bot from '../../../bot';
+import GlobalCache from '../../../bot/cache/GlobalCache';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
 import { ICommand, CommandAccessibleRoles, CommandScopeType, SenderType, CommandHelpInfo } from '../../../types/commands';
-import Kldb, { KldbCacheAllowedWhatsappGroups, Kldb_UpdateStartupCacheAsync } from '../../../utils/db';
+import Kldb from '../../../utils/db';
 import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
 
 export default class UnsubscribeGroupCommand implements ICommand {
@@ -27,7 +28,7 @@ export default class UnsubscribeGroupCommand implements ICommand {
       return;
     }
 
-    if (KldbCacheAllowedWhatsappGroups.length === 0) {
+    if (GlobalCache.SemiAuto_AllowedWhatsappGroups.length === 0) {
       await chat.SendTxt("No hay grupos que borrar...(?), esto no debería pasar");
       return;
     }
@@ -47,7 +48,7 @@ export default class UnsubscribeGroupCommand implements ICommand {
             chat_id: args.chatId
           }
         })
-        await Kldb_UpdateStartupCacheAsync();
+        await GlobalCache.UpdateCache();
         await chat.SendTxt("El grupo ha sido desuscrito exitosamente!, adios 🦊🥲");
       }
       else {

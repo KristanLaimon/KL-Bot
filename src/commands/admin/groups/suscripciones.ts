@@ -3,7 +3,7 @@ import Bot from '../../../bot';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
 import { ICommand, CommandAccessibleRoles, CommandScopeType, CommandHelpInfo } from '../../../types/commands';
-import { KldbCacheAllowedWhatsappGroups } from '../../../utils/db';
+import GlobalCache from '../../../bot/cache/GlobalCache';
 
 export default class RegisteredGroupsCommand implements ICommand {
   commandName: string = "suscripciones";
@@ -18,11 +18,11 @@ export default class RegisteredGroupsCommand implements ICommand {
 
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
-    if (KldbCacheAllowedWhatsappGroups.length === 0) {
+    if (GlobalCache.SemiAuto_AllowedWhatsappGroups.length === 0) {
       await chat.SendTxt("No hay grupos registrados todavía...");
       return
     }
-    const msgToSend = KldbCacheAllowedWhatsappGroups
+    const msgToSend = GlobalCache.SemiAuto_AllowedWhatsappGroups
       .map((info, i) =>
         `${i + 1}. ${info.group_name} | Registrado en: ${moment(Number(info.date_registered)).format('dddd, MMMM Do YYYY, h:mm A')}`)
 

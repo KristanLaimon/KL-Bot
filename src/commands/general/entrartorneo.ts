@@ -36,7 +36,7 @@ export default class EnterToTournamentCommand implements ICommand {
             }
           },
           TournamentType: true,
-          Tournament_Rank_RanksAdmitted: {
+          Tournament_Rank_RanksAdmitteds: {
             include: { Rank: true },
             orderBy: { Rank: { id: "asc" } }
           }
@@ -71,7 +71,7 @@ export default class EnterToTournamentCommand implements ICommand {
             - 🎮 *Tipo:* ${tournament.TournamentType.name}  
             - 📅 *Fecha de inicio:* ${Dates_GetFormatedDurationTimeFrom(tournament.beginDate, { includingSeconds: true })}  
             - 🏅 *Rangos admitidos:*  
-              ${tournament.Tournament_Rank_RanksAdmitted.map(rank => `• ${rank.Rank.name}`).join("\n     ")}
+              ${tournament.Tournament_Rank_RanksAdmitteds.map(rank => `• ${rank.Rank.name}`).join("\n     ")}
             - 👥 *Cupo actual:* ${tournament.Tournament_Player_Subscriptions.length}/${tournament.max_players}
             .
           `.trim());
@@ -106,7 +106,7 @@ export default class EnterToTournamentCommand implements ICommand {
       if (Response_isAfirmativeAnswer(await chat.WaitNextTxtMsgFromSender(60))) {
 
 
-        const isRankAdmitted = selectedTournament.Tournament_Rank_RanksAdmitted
+        const isRankAdmitted = selectedTournament.Tournament_Rank_RanksAdmitteds
           .find(info => info.rank_id === senderPlayerInfo.actualRank);
 
         if (!isRankAdmitted) {

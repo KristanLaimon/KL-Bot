@@ -19,26 +19,26 @@ model Player {
   joined_date                     BigInt                            @default(-1)
   Role                            Role                              @relation(fields: [role], references: [id], onDelete: NoAction, onUpdate: NoAction)
   Rank                            Rank                              @relation(fields: [actualRank], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  TournamentMatch                 TournamentMatch[]
-  TournamentPlayed_Player         MatchPlayed_Player[]
-  ScheduledMatch_Player           ScheduledMatch_Player[]
+  TournamentMatches               TournamentMatch[]
+  TournamentPlayed_Players        MatchPlayed_Player[]
+  ScheduledMatch_Players          ScheduledMatch_Player[]
   tournamentId                    Int?
   Tournament_Player_Subscriptions Tournament_Player_Subscriptions[]
 }
 
 //OK
 model Rank {
-  id                            String                          @unique(map: "sqlite_autoindex_Rank_1")
-  name                          String                          @unique(map: "sqlite_autoindex_Rank_2")
-  logoImagePath                 String                          @unique(map: "sqlite_autoindex_Rank_3")
-  Player                        Player[]
-  Tournament_Rank_RanksAdmitted Tournament_Rank_RanksAdmitted[]
+  id                             String                          @unique(map: "sqlite_autoindex_Rank_1")
+  name                           String                          @unique(map: "sqlite_autoindex_Rank_2")
+  logoImagePath                  String                          @unique(map: "sqlite_autoindex_Rank_3")
+  Players                        Player[]
+  Tournament_Rank_RanksAdmitteds Tournament_Rank_RanksAdmitted[]
 }
 
 model Role {
-  id     String   @id
-  name   String   @unique(map: "sqlite_autoindex_Role_2")
-  Player Player[]
+  id      String   @id
+  name    String   @unique(map: "sqlite_autoindex_Role_2")
+  Players Player[]
 }
 
 //OK
@@ -54,9 +54,9 @@ model Tournament {
   tournament_type                 String
   max_players                     Int
   TournamentType                  TournamentType                    @relation(fields: [tournament_type], references: [id])
-  TournamentMatch                 TournamentMatch[]
-  ScheduledMatchWindow            ScheduledMatchWindow[]
-  Tournament_Rank_RanksAdmitted   Tournament_Rank_RanksAdmitted[]
+  TournamentMatches               TournamentMatch[]
+  ScheduledMatchWindows           ScheduledMatchWindow[]
+  Tournament_Rank_RanksAdmitteds  Tournament_Rank_RanksAdmitted[]
   Tournament_Player_Subscriptions Tournament_Player_Subscriptions[]
 }
 
@@ -82,10 +82,10 @@ model Tournament_Rank_RanksAdmitted {
 
 //OK
 model MatchType {
-  id             String           @id
-  name           String
-  ScheduledMatch ScheduledMatch[]
-  MatchPlayed    MatchPlayed[]
+  id               String           @id
+  name             String
+  ScheduledMatches ScheduledMatch[]
+  MatchesPlayed    MatchPlayed[]
 }
 
 //---------------------------Inheritance #1 "Match"---------------------------------------
@@ -108,7 +108,7 @@ model ScheduledMatch {
   //Own
   scheduled_match_window_id Int                     @id
   ScheduledMatchWindow      ScheduledMatchWindow    @relation(fields: [scheduled_match_window_id], references: [id], onDelete: Cascade)
-  ScheduledMatch_Player     ScheduledMatch_Player[]
+  ScheduledMatch_Players    ScheduledMatch_Player[]
 }
 
 model ScheduledMatchWindow {
@@ -117,19 +117,19 @@ model ScheduledMatchWindow {
   starting_date BigInt
   ending_date   BigInt
 
-  Tournament     Tournament       @relation(fields: [tournament_id], references: [id], onDelete: Cascade)
-  ScheduledMatch ScheduledMatch[]
+  Tournament       Tournament       @relation(fields: [tournament_id], references: [id], onDelete: Cascade)
+  ScheduledMatches ScheduledMatch[]
 }
 
 //Its relation M:N with player table
 model ScheduledMatch_Player {
-  scheduled_match_date_id Int @id
-  player_id               Int
+  scheduled_match_id Int    @id
+  player_id          Int
+  team_color_id      String
 
-  Player                       Player           @relation(fields: [player_id], references: [id])
-  ScheduledMatch               ScheduledMatch   @relation(fields: [scheduled_match_date_id], references: [scheduled_match_window_id], onDelete: Cascade)
-  TournamentMatch              TournamentMatch? @relation(fields: [tournamentMatchMatch_date_id], references: [match_date_id])
-  tournamentMatchMatch_date_id BigInt?
+  Player         Player         @relation(fields: [player_id], references: [id])
+  ScheduledMatch ScheduledMatch @relation(fields: [scheduled_match_id], references: [scheduled_match_window_id], onDelete: Cascade)
+  TeamColor      TeamColor      @relation(fields: [team_color_id], references: [id])
 }
 
 //Inheritance (Copying attributes) from abstract "Match"
@@ -140,11 +140,11 @@ model MatchPlayed {
   MatchType  MatchType @relation(fields: [match_type], references: [id])
 
   //Own
-  date_played        BigInt               @id
-  blue_scoreboard    Int
-  orange_scoreboard  Int
-  MatchPlayed_Player MatchPlayed_Player[]
-  TournamentMatch    TournamentMatch[]
+  date_played         BigInt               @id
+  blue_scoreboard     Int
+  orange_scoreboard   Int
+  MatchPlayed_Players MatchPlayed_Player[]
+  TournamentMatches   TournamentMatch[]
 }
 
 //Inheritance from ScheduledMatch_Player
@@ -168,18 +168,18 @@ model TournamentMatch {
   referee_verifier Int
   results_img_name String //New...added
 
-  Match                 MatchPlayed             @relation(fields: [match_date_id], references: [date_played], onDelete: Cascade)
-  RefereeVerifier       Player                  @relation(fields: [referee_verifier], references: [id], onDelete: NoAction)
-  Tournament            Tournament              @relation(fields: [tournament_id], references: [id], onDelete: Cascade)
-  ScheduledMatch_Player ScheduledMatch_Player[]
+  Match           MatchPlayed @relation(fields: [match_date_id], references: [date_played], onDelete: Cascade)
+  RefereeVerifier Player      @relation(fields: [referee_verifier], references: [id], onDelete: NoAction)
+  Tournament      Tournament  @relation(fields: [tournament_id], references: [id], onDelete: Cascade)
 }
 
 //------------------------------------------------------------------
 //OK
 model TeamColor {
-  id                     String               @id
-  name                   String
-  TournamentMatch_Player MatchPlayed_Player[]
+  id                      String                  @id
+  name                    String
+  TournamentMatch_Players MatchPlayed_Player[]
+  ScheduledMatch_Player   ScheduledMatch_Player[]
 }
 
 //OK
@@ -192,7 +192,7 @@ model RegisteredWhatsappGroups {
 
 //OK
 model TournamentType {
-  id         String       @id @unique
-  name       String
-  Tournament Tournament[]
+  id          String       @id @unique
+  name        String
+  Tournaments Tournament[]
 }

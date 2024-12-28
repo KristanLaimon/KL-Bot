@@ -2,12 +2,13 @@ import Bot from '../../../bot';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
 import { CommandAccessibleRoles, ICommand, MsgType, CommandScopeType, SenderType, CommandHelpInfo } from '../../../types/commands';
-import Kldb, { KldbCacheAllowedWhatsappGroups, Kldb_UpdateStartupCacheAsync } from '../../../utils/db';
+import Kldb from '../../../utils/db';
 import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
 import SecretAdminPassword from '../../../../db/secretAdminPassword';
 import { Members_GetMemberInfoFromPhone } from '../../../utils/members';
 import { Phone_GetFullPhoneInfoFromRawmsg } from '../../../utils/phonenumbers';
 import moment from 'moment';
+import GlobalCache from '../../../bot/cache/GlobalCache';
 
 
 export default class SubscribeGroupCommand implements ICommand {
@@ -33,7 +34,7 @@ export default class SubscribeGroupCommand implements ICommand {
       return;
     }
 
-    const alreadyExists = KldbCacheAllowedWhatsappGroups.find(allowedGroupObj => allowedGroupObj.chat_id === args.chatId);
+    const alreadyExists = GlobalCache.SemiAuto_AllowedWhatsappGroups.find(allowedGroupObj => allowedGroupObj.chat_id === args.chatId);
     if (alreadyExists) {
       await groupChat.SendTxt("Este grupo ya está registrado en este bot, no es necesario volver a hacerlo");
       return;
@@ -69,7 +70,7 @@ export default class SubscribeGroupCommand implements ICommand {
       Fecha de registro: ${moment().format('dddd, MMMM Do YYYY, h:mm A')}
       /// 🦊 fin 🦊 ///
     `);
-      await Kldb_UpdateStartupCacheAsync();
+      await GlobalCache.UpdateCache();
 
     } catch (e) {
       if (Msg_IsBotWaitMessageError(e)) {

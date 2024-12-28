@@ -9,7 +9,6 @@ import { SpecificChat } from '../../bot/SpecificChat';
 import { Db_GetPlayerImagePath } from '../../utils/filesystem';
 import moment from 'moment';
 
-// TODO: Implement a 'usageInfo' for each command and make it accesible with some "helpCommand" function or something like that
 export default class GetProfileInfoCommand implements ICommand {
   commandName: string = "perfil"
   description: string = "Obten la información de cualquier miembro del clan etiquetandolo con @ después del comando"

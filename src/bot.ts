@@ -7,10 +7,10 @@ import { WhatsMsgSender } from './bot/WhatsMsgSender';
 import WhatsSocket from './bot/WhatsSocket';
 import { BotCommandArgs } from './types/bot';
 import { HelperRoleName, ICommand, MsgType, SenderType } from './types/commands';
-import { KldbCacheAllowedWhatsappGroups, Kldb_UpdateStartupCacheAsync } from './utils/db';
 import { Members_GetMemberInfoFromPhone } from './utils/members';
 import { Phone_GetFullPhoneInfoFromRawmsg } from './utils/phonenumbers';
 import { Msg_GetTextFromRawMsg } from './utils/rawmsgs';
+import GlobalCache from './bot/cache/GlobalCache';
 
 type BotArgs = {
   prefix?: string;
@@ -55,7 +55,7 @@ export default class Bot {
     this.OnEnteringGroup = this.OnEnteringGroup.bind(this);
     this.socket.onEnteringGroup.Subscribe(this.OnEnteringGroup);
 
-    await Kldb_UpdateStartupCacheAsync();
+    await GlobalCache.UpdateCache();
     this.socket.Init();
   }
 
@@ -87,7 +87,7 @@ export default class Bot {
 
     let msgComesFromRegisteredGroup = true;
     if (senderType === SenderType.Group) {
-      const foundChatGroup = KldbCacheAllowedWhatsappGroups.find(groupInfo => groupInfo.chat_id === chatId);
+      const foundChatGroup = GlobalCache.SemiAuto_AllowedWhatsappGroups.find(groupInfo => groupInfo.chat_id === chatId);
       if (!foundChatGroup) msgComesFromRegisteredGroup = false
     }
     // If is individual chat doesn't matter, you want to have all bot capabilities when talking to him directly;

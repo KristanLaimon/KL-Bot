@@ -42,7 +42,6 @@ export const KlCommandLogger = winston.createLogger({
 // ------------------------------------------------------------------------------------
 
 import * as fs from "fs";
-import { KldbCacheAllowedWhatsappGroups } from '../utils/db';
 
 const Default_Log_Msg_ObjectJson = {
   Individual: {
@@ -75,6 +74,7 @@ export type Logger_Type_MsgsLogJson = {
 };
 
 import * as path from 'path';
+import GlobalCache from './cache/GlobalCache';
 const ensureFileWithDefaultContentExists = (filePath: string, defaultObj: Record<string, unknown>): void => {
   try {
     // Check if the file exists
@@ -108,7 +108,7 @@ const saveIntoMsgJsonFile = (rawMsg: WAMessage, senderType: SenderType, msgType:
   }
   else if (senderType === SenderType.Group) {
     const chatId = Msg_GetChatIdFromRawMsg(rawMsg);
-    const isRegisteredGroup = KldbCacheAllowedWhatsappGroups.find(chats => chats.chat_id === chatId);
+    const isRegisteredGroup = GlobalCache.SemiAuto_AllowedWhatsappGroups.find(chats => chats.chat_id === chatId);
 
     if (isRegisteredGroup) {
       if (msgType === MsgType.text)

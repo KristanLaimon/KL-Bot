@@ -121,7 +121,6 @@ export default class WhatsSocket {
 
 //   //Member users or admins with admins commands
 //   if (isACommand) {
-//     //TODO: This logic already exists in isAdminUser() util method, replace it!
 //     //Check is user has privileges to use this (administrator||secret) command
 //     if (isACommand.roleCommand === "Administrador" || isACommand.roleCommand === "Secreto") {
 //       let senderIsAnAdminAsWell: boolean = false;
