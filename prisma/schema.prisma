@@ -43,16 +43,20 @@ model Role {
 
 //OK
 model Tournament {
-  id                              Int                               @id @default(autoincrement())
-  name                            String                            @unique(map: "sqlite_autoindex_Tournament_1")
-  description                     String
-  creationDate                    BigInt
-  beginDate                       BigInt
-  matchPeriodTime                 Int
-  endDate                         BigInt?
-  cover_img_name                  String?
-  tournament_type                 String
-  max_players                     Int
+  id              Int     @id @default(autoincrement())
+  name            String  @unique(map: "sqlite_autoindex_Tournament_1")
+  description     String
+  creationDate    BigInt
+  beginDate       BigInt
+  matchPeriodTime Int
+  endDate         BigInt?
+  cover_img_name  String?
+  tournament_type String
+  max_players     Int
+  match_format    String
+  is_custom       Boolean @default(false)
+
+  MatchFormat                     MatchType                         @relation(fields: [match_format], references: [id])
   TournamentType                  TournamentType                    @relation(fields: [tournament_type], references: [id])
   TournamentMatches               TournamentMatch[]
   ScheduledMatchWindows           ScheduledMatchWindow[]
@@ -84,8 +88,10 @@ model Tournament_Rank_RanksAdmitted {
 model MatchType {
   id               String           @id
   name             String
+  players_per_team Int              @default(-1)
   ScheduledMatches ScheduledMatch[]
   MatchesPlayed    MatchPlayed[]
+  Tournament       Tournament[]
 }
 
 //---------------------------Inheritance #1 "Match"---------------------------------------

@@ -42,7 +42,6 @@ export default class EnterToTournamentCommand implements ICommand {
           }
         }
       });
-
       if (activeTournaments.length === 0) {
         await chat.SendTxt("No hay ningun torneo activo por el momento, intentalo después...");
         return;

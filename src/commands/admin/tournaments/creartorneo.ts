@@ -2,6 +2,7 @@ import Bot from '../../../bot';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
 import { ICommand, CommandScopeType, CommandAccessibleRoles, MsgType, CommandHelpInfo } from '../../../types/commands';
+import { KlTournament } from '../../../types/db';
 import { Dates_12HrsInputRegex, Dates_Add12hrsTimeToMomentObj, Dates_ConvertDateInputToMomentJs, Dates_DateInputRegex } from '../../../utils/dates';
 import Kldb from '../../../utils/db';
 import { GenerateInstructionSteps } from '../../../utils/dialog';
@@ -33,10 +34,11 @@ export default class CreateTournamentCommand implements ICommand {
         "Ingresa el nombre del torneo:",
         "Ingresa la descripción del torneo:",
         "Ingresa la cantidad de jugadores máximo del torneo:",
+        "Ingresa el tipo de partidas que tendrá el torneo:",
         "Ingresa la fecha de inicio: (Formato: 'año/mes/día', por ejemplo: '2022/enero/25')",
         "Ingresa la hora de inicio: (Formato: 'hora:minutos AM o PM', por ejemplo: '8:00 AM' ó '5:00 PM')",
         //Period/Window time in days to play each match (2 digits number)
-        'Ingresa la ventana de juego del torneo (el tiempo que tendrá cada jugador para realizar su partido): (En días, por ejemplo: 10, 15, 20, 30, 45, 60, 90 pero no más de 99)',
+        'Ingresa la ventana de juego del torneo (el tiempo que tendrá cada jugador para realizar su partido): (En días, por ejemplo: 1, 2 ó 6 días)',
         'Ahora elige la lista de rangos que serán admitidos para jugar en el torneo:',
         'Deseas ingresar una foto como portada del torneo? (Contesta si u ok, puedes omitirlo mandando cualquier otro msg)'
       ])
@@ -70,6 +72,19 @@ export default class CreateTournamentCommand implements ICommand {
         defaultTimeout
       );
       const MAXPLAYERSSELECTED = parseInt(_maxPlayers);
+
+      //GAME TYPE / MATCH FORMAT
+      await chat.SendTxt(step());
+      const _gameTypes = await Kldb.matchType.findMany({ orderBy: { id: "asc" } });
+      const _gameTypeSelected = await chat.DialogWaitAnOptionFromListObj(
+        _gameTypes,
+        (info, index) => (index + 1).toString(),
+        "Lista de tipos de partidas disponibles:",
+        "Ese tipo no existe, selecciona el número de la lista, e.g: '1' para 1vs1, prueba de nuevo:",
+        (info, index) => `${index + 1}. ${info.id} | ${info.name}`,
+        defaultTimeout
+      );
+      const SELECTEDGAMETYPE = _gameTypeSelected.id;
 
       // START DATE
       await chat.SendTxt(step());
@@ -164,16 +179,18 @@ export default class CreateTournamentCommand implements ICommand {
         await chat.SendTxt("Omitiendo imagen de portada...");
       }
 
-      const tournamentObj = {
+      const tournamentObj: KlTournament = {
+        id: undefined,
         name: NAMESELECTED,
         description: DESCRIPTIONSELECTED,
-        creationDate: CREATIONDATESELECTED,
-        beginDate: STARTDATESELECTED.valueOf(),
+        creationDate: BigInt(CREATIONDATESELECTED),
+        beginDate: BigInt(STARTDATESELECTED.valueOf()),
         matchPeriodTime: WINDOWDAYSSELECTED,
         endDate: null,
         cover_img_name: COVERIMAGENAMESELECTED,
         tournament_type: TYPESELECTED,
         max_players: MAXPLAYERSSELECTED,
+        match_format: SELECTEDGAMETYPE
       }
 
       await chat.SendTxt(`
