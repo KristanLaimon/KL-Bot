@@ -36,7 +36,7 @@ export class WhatsMsgReceiver {
         if (msg.key.remoteJid !== chatSenderId) return;
 
         resetTimeout();
-        if (Msg_GetTextFromRawMsg(msg).includes('cancelar')) {
+        if (Msg_GetTextFromRawMsg(msg).toLowerCase().includes('cancelar')) {
           this._whatsSocket.onIncommingMessage.Unsubsribe(listener);
           clearTimeout(timer);
           reject({ wasAbortedByUser: true, errorMessage: "User has canceled the dialog" });

@@ -20,89 +20,100 @@ export default class Help_GroupCommand implements ICommand {
     notes: "No tiene mucho chiste, es solo el comando de ayuda, como se te ocurrió pedir ayuda de esto (!?) 🦊"
   }
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
-    //If there are arguments
-    //Feature: Get info about how to use a command
+    // Si hay argumentos
     if (args.commandArgs.length > 0) {
       const chat = new SpecificChat(bot, args);
       if (args.commandArgs.length > 1) {
-        await chat.SendTxt("Para ver la ayuda y el cómo usar un comando solo se permite un argumento: El nombre del comando en cuestión. Ejemplo: !help miembros")
+        await chat.SendTxt(
+          "Para ver la ayuda de un comando, usa solo un argumento: el nombre del comando. Ejemplo: !help miembros"
+        );
+        return;
       }
-      const commandName = args.commandArgs[0];
 
-      const command = bot.Commands.find(cmd => cmd[1].commandName.toLowerCase() == commandName.toLowerCase());
+      const commandName = args.commandArgs[0];
+      const command = bot.Commands.find(
+        cmd => cmd[1].commandName.toLowerCase() === commandName.toLowerCase()
+      );
+
       if (command) {
         if (!command[1].helpMessage) {
-          await chat.SendTxt("No hay ayuda disponible para este comando, intentalo con un comando diferente.");
+          await chat.SendTxt("No hay ayuda disponible para este comando. Intenta con otro.");
+        } else {
+          const helpMessage = `
+            === 🌟 Ayuda: ${Str_CapitalizeStr(command[0])} 🌟 ===
+            📖 ${command[1].description}
+
+            🛠️ *Estructura:*
+            \`\`\`
+            ${bot.config.prefix}${Str_NormalizeLiteralString(command[1].helpMessage.structure)}
+            \`\`\`
+            💡 *Ejemplos:*
+            ${command[1].helpMessage.examples
+              .map(example => `  ${example.isOk ? "✅" : "❌"} ${bot.config.prefix}${Str_NormalizeLiteralString(example.text)}`)
+              .join("\n")}
+
+            ${command[1].helpMessage.notes && "ℹ️ *Información adicional:*"}
+            ${Str_NormalizeLiteralString(command[1].helpMessage.notes)}
+          `;
+          await chat.SendTxt(helpMessage.trim());
         }
-        else {
-          await chat.SendTxt(`
-          === 🌟 Ayuda: ${Str_CapitalizeStr(command[0])} 🌟 ===
-          ${command[1].description}
-
-          🛠️ *Estructura:*
-          \`\`\`${bot.config.prefix}${Str_NormalizeLiteralString(command[1].helpMessage.structure)}\`\`\`
-
-          💡 *Ejemplos:*
-          ${command[1].helpMessage.examples
-              .map(example => "  - " + (example.isOk ? "✅" : "❌") + " " + bot.config.prefix + Str_NormalizeLiteralString(example.text)).join("\n")}
-
-          ℹ️ *Información Adicional:*
-          ${Str_NormalizeLiteralString(command[1].helpMessage.notes)}
-        `);
-
-        }
-      }
-      else {
-        await chat.SendTxt("Ese comando no existe (?), checa los comandos disponibles con !help");
+      } else {
+        await chat.SendTxt(
+          "Ese comando no existe. Consulta los comandos disponibles con !help."
+        );
       }
       return;
     }
 
+    // Construcción del mensaje de ayuda general
     const strs: string[] = [];
-    const maxCmdLength = Math.max(...bot.Commands.map(([_, cmd]) => cmd.commandName.length));
-    const separator = '----------------------------------';
-    const title = '🌟 *Comandos Disponibles* 🌟';
+    const separator = "----------------------------------";
+    const title = "🌟 *Comandos Disponibles* 🌟";
 
-    strs.push(title);
-    strs.push(separator);
+    strs.push(title, separator);
 
-    // Comandos generales (everyone)
-    const everyoneCommands = bot.Commands.filter(com => com[1].minimumRequiredPrivileges == "Cualquiera" && com[1].maxScope == "Group");
-    // strs.push('*Comandos para Todos:*');
-    everyoneCommands.forEach(cmd => {
-      const command = cmd[1].commandName.padEnd(maxCmdLength + 2, ' ');
-      strs.push(`🔹 ${command}: ${cmd[1].description}`);
-    });
-    strs.push('');
+    const formatCommand = cmd => `🔹 ${cmd.commandName}: ${cmd.description}`;
+
+    // Comandos generales (todos)
+    const everyoneCommands = bot.Commands.filter(
+      com => com[1].minimumRequiredPrivileges === "Cualquiera" && com[1].maxScope === "Group"
+    );
+    if (everyoneCommands.length > 0) {
+      strs.push("*🔓 Comandos para todos:*");
+      strs.push(...everyoneCommands.map(cmd => formatCommand(cmd[1])));
+    }
 
     // Verificar si es miembro o admin
-    const memberInfo = await Members_GetMemberInfoFromPhone(Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number);
-    if (memberInfo) {
-      // Comandos para Miembros
-      const generalCommands = bot.Commands.filter(com => com[1].minimumRequiredPrivileges == "Miembro" && com[1].maxScope == "Group");
-      // strs.push('*Comandos para Miembros:*');
-      generalCommands.forEach(cmd => {
-        const command = cmd[1].commandName.padEnd(maxCmdLength + 2, ' ');
-        strs.push(`🔹 ${command}: ${cmd[1].description}`);
-      });
-      strs.push('');
+    const memberInfo = await Members_GetMemberInfoFromPhone(
+      Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number
+    );
 
-      // Si es admin, agregar comandos de Admin
+    if (memberInfo) {
+      // Comandos para miembros
+      const memberCommands = bot.Commands.filter(
+        com => com[1].minimumRequiredPrivileges === "Miembro" && com[1].maxScope === "Group"
+      );
+      if (memberCommands.length > 0) {
+        strs.push("\n*🛡️ Comandos para miembros:*");
+        strs.push(...memberCommands.map(cmd => formatCommand(cmd[1])));
+      }
+
+      // Comandos para administradores
       if (memberInfo.role === "AD") {
-        const adminCommands = bot.Commands.filter(com => com[1].minimumRequiredPrivileges == "Administrador" && com[1].maxScope == "Group");
-        strs.push('*Comandos de Administrador:*');
-        adminCommands.forEach(cmd => {
-          const command = cmd[1].commandName.padEnd(maxCmdLength + 2, ' ');
-          strs.push(`🔹 ${command}: ${cmd[1].description}`);
-        });
-        strs.push('');
+        const adminCommands = bot.Commands.filter(
+          com => com[1].minimumRequiredPrivileges === "Administrador" && com[1].maxScope === "Group"
+        );
+        if (adminCommands.length > 0) {
+          strs.push("\n*⚙️ Comandos de administrador:*");
+          strs.push(...adminCommands.map(cmd => formatCommand(cmd[1])));
+        }
       }
     }
 
-    strs.push(separator);
-    strs.push('🦊 Tip: Usa el comando !help [nombrecomando] para ver más detalles de como se utiliza');
+    strs.push(separator, "🦊 Tip: Usa `!help [nombrecomando]` para detalles.");
 
     // Enviar mensaje formateado
-    await bot.Send.Text(args.chatId, strs.join('\n'));
+    await bot.Send.Text(args.chatId, strs.join("\n"));
   }
+
 }

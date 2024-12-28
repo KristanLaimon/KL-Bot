@@ -3,7 +3,7 @@ import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand, CommandScopeType, CommandHelpInfo } from '../../types/commands';
 import { Dates_GetFormatedDurationTimeFrom } from '../../utils/dates';
-import Kldb from '../../utils/db';
+import Kldb, { Db_GetTournamentFormattedInfo } from '../../utils/db';
 import { Msg_DefaultHandleError } from '../../utils/rawmsgs';
 import { Str_NormalizeLiteralString } from '../../utils/strings';
 
@@ -30,46 +30,19 @@ export default class SeeTournamentsCommand implements ICommand {
       const selectedTournament = await chat.DialogWaitAnOptionFromListObj(
         allTournaments,
         (tournament, index) => (index + 1).toString(),
-        "====== 🏆 Torneos Creados 🏆 ======\n\n💡 Selecciona el torneo que deseas ver a detalle escogiendo su número",
+        "====== 🏆 Torneos Creados 🏆 ======\n💡 Selecciona el torneo que deseas ver a detalle escogiendo su número",
         "🚫 Número inválido 🚫\nEse número no corresponde a ningún torneo. Por favor, selecciona un número válido de la lista ('1', '2', etc). ¡Inténtalo de nuevo! 🔄\n\n",
-        (tournament, index) => `${index + 1}. ${tournament.name} | ${tournament.TournamentType.name} | Creado hace: ${Dates_GetFormatedDurationTimeFrom(tournament.creationDate)}`,
+        (tournament, index) => `
+          ${index + 1}. 🏆 *${tournament.name}*  
+            - 🎮 *Tipo:* ${tournament.TournamentType.name}  
+            - 📅 *Creado hace:* ${Dates_GetFormatedDurationTimeFrom(tournament.creationDate, { includingSeconds: true })}
+            .
+          `.trim(),
+
         60
       );
 
-      const admittedRanks = await Kldb.tournament_Rank_RanksAdmitted.findMany({
-        where: { tournament_id: selectedTournament.id },
-        include: { Rank: true }
-      });
-
-      const playersSubscribed = await Kldb.tournament_Player_Subscriptions.findMany({
-        where: { tournament_id: selectedTournament.id },
-        include: { Player: { include: { Rank: true } } } //It's a 'join', omg
-
-      })
-
-      const imgCaptionInfo = `
-        🌟====== *${selectedTournament.name.toUpperCase()}* ======🌟
-
-        📖 *Descripción:* ${selectedTournament.description}
-        👥 *Cantidad máxima de jugadores:* ${selectedTournament.max_players}
-        📊 *Capacidad actual:* ${playersSubscribed.length}/${selectedTournament.max_players}
-        🎮 *Tipo de torneo:* ${selectedTournament.TournamentType.name}
-        📝 *Abierto a inscripciones:* ${Date.now() < selectedTournament.beginDate ? "✅ Sí" : "❌ No"}
-        ⌛ *Duración de cada ventana de juego:* ${selectedTournament.matchPeriodTime} días
-
-        🕒 *Creado hace:* ${Dates_GetFormatedDurationTimeFrom(selectedTournament.creationDate)}
-        📅 *Fecha de inicio:* ${Dates_GetFormatedDurationTimeFrom(selectedTournament.beginDate, { includingSeconds: true })}
-        ⏳ *Fecha de cierre:* ${selectedTournament.endDate
-          ? Dates_GetFormatedDurationTimeFrom(selectedTournament.endDate)
-          : "⛔ No hay suficientes participantes para determinarlo o no ha iniciado el torneo todavía"}
-
-        🏆 *Rangos admitidos:* ${admittedRanks.length === 0 ? "🎲 Todos los rangos permitidos"
-          : admittedRanks.map(range => `🎯 ${Str_NormalizeLiteralString(range.Rank.name)}`).join(", ")}
-        🔖 *Jugadores inscritos:* ${playersSubscribed.length === 0
-          ? "😔 Nadie se ha inscrito todavía"
-          : playersSubscribed.map(subscription => `🔹 ${subscription.Player.username} | ${subscription.Player.Rank.name}`).join("\n")}
-      `;
-
+      const imgCaptionInfo = await Db_GetTournamentFormattedInfo(selectedTournament.id);
       await chat.SendImg(`db/tournaments_covers/${selectedTournament.cover_img_name}`, imgCaptionInfo);
 
     } catch (e) {
@@ -78,3 +51,5 @@ export default class SeeTournamentsCommand implements ICommand {
 
   }
 }
+
+
