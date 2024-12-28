@@ -1,5 +1,11 @@
 import humanizeDuration from "humanize-duration";
+import Kldb from './src/utils/db';
 
+async function main() {
+
+  const __allGameTypesExceptSomeOnes = await Kldb.matchType.findMany({ where: { NOT: { id: { in: ["1S", "2S", "3S"] } } }, orderBy: { id: "asc" } });
+}
+main();
 const memberTimeHumanizer = humanizeDuration.humanizer(
   {
     language: 'es', fallbacks: ['en'],

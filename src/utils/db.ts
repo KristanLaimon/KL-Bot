@@ -2,7 +2,7 @@ import fs, { Dirent } from "fs"
 import path from "path"
 import { PrismaClient } from '@prisma/client';
 import { KlGetTableType, KlScheduledMatchWindow, KlTournament, PendingMatch, PendingTournamentStart } from '../types/db';
-import TournamentsTypesSelector, { AbstractTournament } from '../logic/typos';
+import TournamentsTypesSelector, { AbstractTournament } from '../logic/TournamentTypos';
 import KlLogger from '../bot/logger';
 import { Dates_GetFormatedDurationTimeFrom } from './dates';
 import { Str_NormalizeLiteralString } from './strings';

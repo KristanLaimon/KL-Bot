@@ -5,17 +5,17 @@ import SubscribeGroupCommand from './src/commands/admin/groups/suscribirgrupo';
 import SeeGroupsSubscribedCommand from './src/commands/admin/groups/suscripciones';
 import AddMemberCommand from './src/commands/admin/members/añadirmiembro';
 import DeleteAdmin from './src/commands/admin/members/borrarmiembro';
+import DeleteTournamentCommand from './src/commands/admin/tournaments/borrartorneo';
 import CreateTournamentCommand from './src/commands/admin/tournaments/creartorneo';
 import ExternalHelp_AyudaCommand from './src/commands/ayuda';
 import DuelCommand from './src/commands/general/duel';
 import DuelWinCommand from './src/commands/general/duelwin';
+import EnterToTournamentCommand from './src/commands/general/entrartorneo';
 import HelpCommand from './src/commands/general/help';
 import VerMiembrosCommand from './src/commands/general/miembros';
 import GetProfileInfoCommand from './src/commands/general/perfil';
-import TestCommand from './src/commands/testing/prueba';
 import SeeTournamentsCommand from './src/commands/general/torneos';
-import DeleteTournamentCommand from './src/commands/admin/tournaments/borrartorneo';
-import EnterToTournamentCommand from './src/commands/general/entrartorneo';
+import TestCommand from './src/commands/testing/prueba';
 
 //For some reason this bot stops working if a group has ( or ) in its name on production server ubuntu server!
 

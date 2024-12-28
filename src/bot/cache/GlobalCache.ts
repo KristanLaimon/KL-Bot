@@ -1,4 +1,4 @@
-import TournamentsTypesSelector, { AbstractTournament } from '../../logic/typos';
+import TournamentsTypesSelector, { AbstractTournament } from '../../logic/TournamentTypos';
 import { KlScheduledMatch_Player, KlTournament, ParticipantInfo, PendingMatch, PendingTournamentStart, TeamColor } from '../../types/db';
 import Kldb from '../../utils/db';
 import KlLogger from '../logger';

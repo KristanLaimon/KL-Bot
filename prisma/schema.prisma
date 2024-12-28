@@ -54,7 +54,10 @@ model Tournament {
   tournament_type String
   max_players     Int
   match_format    String
-  is_custom       Boolean @default(false)
+
+  //I should normalize this...
+  custom_players_per_team Int @default(-1)
+  //end
 
   MatchFormat                     MatchType                         @relation(fields: [match_format], references: [id])
   TournamentType                  TournamentType                    @relation(fields: [tournament_type], references: [id])

@@ -1,4 +1,6 @@
+import fs from "fs"
 import Bot from '../../../bot';
+import KlLogger from '../../../bot/logger';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
 import { ICommand, CommandScopeType, CommandAccessibleRoles, MsgType, CommandHelpInfo } from '../../../types/commands';
@@ -25,7 +27,7 @@ export default class CreateTournamentCommand implements ICommand {
 
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
-
+    let storedImg: string | null = null;
     try {
       await chat.SendTxt(`====== Creación de un torneo =====`);
       const defaultTimeout = 250
@@ -33,8 +35,8 @@ export default class CreateTournamentCommand implements ICommand {
         "Ingresa el tipo de torneo:",
         "Ingresa el nombre del torneo:",
         "Ingresa la descripción del torneo:",
-        "Ingresa la cantidad de jugadores máximo del torneo:",
         "Ingresa el tipo de partidas que tendrá el torneo:",
+        "Ingresa la cantidad de jugadores máximo del torneo:",
         "Ingresa la fecha de inicio: (Formato: 'año/mes/día', por ejemplo: '2022/enero/25')",
         "Ingresa la hora de inicio: (Formato: 'hora:minutos AM o PM', por ejemplo: '8:00 AM' ó '5:00 PM')",
         //Period/Window time in days to play each match (2 digits number)
@@ -64,27 +66,69 @@ export default class CreateTournamentCommand implements ICommand {
       await chat.SendTxt(step());
       const DESCRIPTIONSELECTED = await chat.WaitNextTxtMsgFromSender(defaultTimeout);
 
-      //Max players 
-      await chat.SendTxt(step());
-      const _maxPlayers = await chat.WaitNextTxtMsgFromSenderSpecific(
-        /^\d{1,2}$/,
-        "No has ingresado un número valido, recuerda que el formato debe ser un 'número de jugadores', por ejemplo: '10' pero no más de '99', prueba de nuevo: ",
-        defaultTimeout
-      );
-      const MAXPLAYERSSELECTED = parseInt(_maxPlayers);
+
 
       //GAME TYPE / MATCH FORMAT
       await chat.SendTxt(step());
-      const _gameTypes = await Kldb.matchType.findMany({ orderBy: { id: "asc" } });
+      const _allGameTypes = await Kldb.matchType.findMany({ orderBy: { id: "asc" } });
+      let SELECTED_IS_CUSTOM = false;
+      let SELECTED_custom_players_per_team = -1;
       const _gameTypeSelected = await chat.DialogWaitAnOptionFromListObj(
-        _gameTypes,
+        _allGameTypes,
         (info, index) => (index + 1).toString(),
         "Lista de tipos de partidas disponibles:",
         "Ese tipo no existe, selecciona el número de la lista, e.g: '1' para 1vs1, prueba de nuevo:",
         (info, index) => `${index + 1}. ${info.id} | ${info.name}`,
         defaultTimeout
       );
+      //Is custom game
+      if (_gameTypeSelected.id === "CU") {
+        SELECTED_IS_CUSTOM = true;
+
+        const __allGameTypesExceptSomeOnes = await Kldb.matchType.findMany({ where: { NOT: { id: { in: ["1S", "2S", "3S"] } } }, orderBy: { id: "asc" } });
+        const __gameTypeSelectedAgain = await chat.DialogWaitAnOptionFromListObj(
+          __allGameTypesExceptSomeOnes,
+          (info, index) => (index + 1).toString(),
+          "== CUSTOM ==\nLista de tipos de partidas personalizadas disponibles:",
+          "Ese tipo no existe, selecciona el número de la lista, e.g: '1' ó '2', prueba de nuevo:",
+          (info, index) => `${index + 1}. ${info.id} | ${info.name}`,
+          defaultTimeout
+        );
+        _gameTypeSelected.id = __gameTypeSelectedAgain.id
+
+        await chat.SendTxt(`Has elegido ${__gameTypeSelectedAgain.name}, indica el número de jugadores por equipo personalizado: (Ejemplo: '2' para 2 jugadores por equipo)`);
+        const _customMaxPlayers = await chat.WaitNextTxtMsgFromSenderSpecific(
+          /^\d{1}$/,
+          "No has ingresado un número valido, recuerda que el formato debe ser un 'número de jugadores', por ejemplo: '2' pero no más de '10', prueba de nuevo: ",
+          defaultTimeout
+        );
+        SELECTED_custom_players_per_team = parseInt(_customMaxPlayers);
+      }
       const SELECTEDGAMETYPE = _gameTypeSelected.id;
+
+      //Max players 
+      let _isValidMaxPlayers = false;
+      let MAXPLAYERSSELECTED: number = 0;
+      let _textToSend = step();
+      do {
+        await chat.SendTxt(_textToSend);
+        const __maxPlayers = await chat.WaitNextTxtMsgFromSenderSpecific(
+          /^\d{1,2}$/,
+          "No has ingresado un número valido, recuerda que el formato debe ser un 'número de jugadores', por ejemplo: '10' pero no más de '99', prueba de nuevo: ",
+          defaultTimeout
+        );
+        MAXPLAYERSSELECTED = parseInt(__maxPlayers);
+
+        const __playersPerTeamNeeded = SELECTED_IS_CUSTOM ? SELECTED_custom_players_per_team : _gameTypeSelected.players_per_team;
+        const remainderPlayers = MAXPLAYERSSELECTED % __playersPerTeamNeeded;
+
+        if (remainderPlayers !== 0) {
+          await chat.SendTxt(`El número de jugadores por equipo debe ser un concordar con el tamaño de ${__playersPerTeamNeeded}, si hiciera equipos de ${__playersPerTeamNeeded} jugadores, terminaría sobrando ${remainderPlayers} jugadores...`);
+        } else {
+          _isValidMaxPlayers = true;
+        }
+
+      } while (!_isValidMaxPlayers);
 
       // START DATE
       await chat.SendTxt(step());
@@ -178,19 +222,24 @@ export default class CreateTournamentCommand implements ICommand {
       } else {
         await chat.SendTxt("Omitiendo imagen de portada...");
       }
+      storedImg = COVERIMAGENAMESELECTED;
 
       const tournamentObj: KlTournament = {
         id: undefined,
         name: NAMESELECTED,
         description: DESCRIPTIONSELECTED,
-        creationDate: BigInt(CREATIONDATESELECTED),
-        beginDate: BigInt(STARTDATESELECTED.valueOf()),
+        ///@ts-ignore
+        creationDate: CREATIONDATESELECTED,
+        ///@ts-ignore
+        beginDate: STARTDATESELECTED.valueOf(),
         matchPeriodTime: WINDOWDAYSSELECTED,
         endDate: null,
         cover_img_name: COVERIMAGENAMESELECTED,
         tournament_type: TYPESELECTED,
         max_players: MAXPLAYERSSELECTED,
-        match_format: SELECTEDGAMETYPE
+        match_format: SELECTEDGAMETYPE,
+        is_custom: SELECTED_IS_CUSTOM,
+        custom_players_per_team: SELECTED_custom_players_per_team
       }
 
       await chat.SendTxt(`
@@ -208,7 +257,12 @@ export default class CreateTournamentCommand implements ICommand {
 
       if (!Response_isAfirmativeAnswer(await chat.WaitNextTxtMsgFromSender(defaultTimeout))) {
         await chat.SendTxt("Cancelando creación del torneo...");
-        return
+        try {
+          fs.unlinkSync(`db/tournaments_covers/${storedImg}`);
+        }
+        catch (e) {
+          KlLogger.error(`Error deleting tournament cover on abort tournament creation: ${e}`);
+        }
       }
 
       const fullTournamentInfo = await Kldb.tournament.create({ data: tournamentObj });
@@ -226,7 +280,16 @@ export default class CreateTournamentCommand implements ICommand {
       await chat.SendTxt(`El torneo se ha creado con exito!. Fin`);
 
     } catch (e) {
+      KlLogger.error(`Error creando torneo: ${JSON.stringify(e, null, 0)}`);
       Msg_DefaultHandleError(bot, args.chatId, e);
+      if (storedImg) {
+        try {
+          fs.unlinkSync(`db/tournaments_covers/${storedImg}`);
+        }
+        catch (e) {
+          KlLogger.error(`Error deleting tournament cover on abort tournament creation: ${e}`);
+        }
+      }
     }
   }
 }
