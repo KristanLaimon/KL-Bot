@@ -67,7 +67,6 @@ export default class CreateTournamentCommand implements ICommand {
       const DESCRIPTIONSELECTED = await chat.WaitNextTxtMsgFromSender(defaultTimeout);
 
 
-
       //GAME TYPE / MATCH FORMAT
       await chat.SendTxt(step());
       const _allGameTypes = await Kldb.matchType.findMany({ orderBy: { id: "asc" } });
@@ -106,11 +105,10 @@ export default class CreateTournamentCommand implements ICommand {
       }
       const SELECTEDGAMETYPE = _gameTypeSelected.id;
 
-      //Max players 
-      let _isValidMaxPlayers = false;
+      // Max players
       let MAXPLAYERSSELECTED: number = 0;
       let _textToSend = step();
-      do {
+      while (true) {
         await chat.SendTxt(_textToSend);
         const __maxPlayers = await chat.WaitNextTxtMsgFromSenderSpecific(
           /^\d{1,2}$/,
@@ -122,13 +120,12 @@ export default class CreateTournamentCommand implements ICommand {
         const __playersPerTeamNeeded = SELECTED_IS_CUSTOM ? SELECTED_custom_players_per_team : _gameTypeSelected.players_per_team;
         const remainderPlayers = MAXPLAYERSSELECTED % __playersPerTeamNeeded;
 
-        if (remainderPlayers !== 0) {
-          await chat.SendTxt(`El número de jugadores por equipo debe ser un concordar con el tamaño de ${__playersPerTeamNeeded}, si hiciera equipos de ${__playersPerTeamNeeded} jugadores, terminaría sobrando ${remainderPlayers} jugadores...`);
+        if (remainderPlayers === 0) {
+          break;
         } else {
-          _isValidMaxPlayers = true;
+          await chat.SendTxt(`El número de jugadores por equipo debe ser un concordar con el tamaño de ${__playersPerTeamNeeded}, si hiciera equipos de ${__playersPerTeamNeeded} jugadores, terminaría sobrando ${remainderPlayers} jugadores...`);
         }
-
-      } while (!_isValidMaxPlayers);
+      }
 
       // START DATE
       await chat.SendTxt(step());
@@ -146,8 +143,7 @@ export default class CreateTournamentCommand implements ICommand {
         "No has ingresado una hora valida, recuerda que el formato debe ser 'hora:minutos AM/PM', por ejemplo: '10:30 AM', prueba de nuevo: ",
         defaultTimeout
       );
-      if (Dates_Add12hrsTimeToMomentObj(STARTDATESELECTED, _formatedHour) === false)
-        throw new Error("No debería pasar!!!");
+      Dates_Add12hrsTimeToMomentObj(STARTDATESELECTED, _formatedHour);
 
       // Period/Window time in days to play each match (2 digits number)
       await chat.SendTxt(step());
@@ -294,3 +290,14 @@ export default class CreateTournamentCommand implements ICommand {
   }
 }
 
+async function Help1(chat: SpecificChat) {
+}
+
+async function Help2(chat: SpecificChat) {
+}
+
+async function Help3(chat: SpecificChat) {
+}
+
+async function Help4(chat: SpecificChat) {
+}

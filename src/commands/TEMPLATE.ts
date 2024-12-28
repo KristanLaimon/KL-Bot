@@ -21,3 +21,18 @@ export default class c implements ICommand {
   }
 }
 
+//@ts-ignore
+async function Help1(chat: SpecificChat) {
+}
+
+//@ts-ignore
+async function Help2(chat: SpecificChat) {
+}
+
+//@ts-ignore
+async function Help3(chat: SpecificChat) {
+}
+
+//@ts-ignore
+async function Help4(chat: SpecificChat) {
+}
