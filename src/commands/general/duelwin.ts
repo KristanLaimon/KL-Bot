@@ -1,7 +1,7 @@
 import Bot from '../../bot';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
-import { CommandAccessibleRoles, ICommand, ScopeType } from '../../types/commands';
+import { CommandAccessibleRoles, ICommand, CommandScopeType, CommandHelpInfo } from '../../types/commands';
 import Kldb, { Kldb_Ram_PendingMatches } from '../../utils/db';
 import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
 import { Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
@@ -10,7 +10,22 @@ export default class DuelWinCommand implements ICommand {
   commandName: string = "duelwin"
   description: string = "Para registrar un duelo pendiente realizado con !duel con otro miembro del clan"
   minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro"
-  maxScope: ScopeType = "Group"
+  maxScope: CommandScopeType = "Group"
+  helpMessage?: CommandHelpInfo = {
+    structure: "duelwin [@etiquetadealgunmiembro] [marcador] [equipo]\nMarcador: 0-0 | 1-3 | 10-3 | 2-0 | 9-0 | etc...\nEquipo: naranja | n | azul | a",
+    examples: [
+      { text: "duelwin @alguien 2-3 naranja", isOk: true },
+      { text: "duelwin @alguien 1-0 azul", isOk: true },
+      { text: "duelwin @alguien 0-1 n", isOk: true },
+      { text: "duelwin @alguien 1-0 a", isOk: true },
+      { text: "duelwin", isOk: false },
+      { text: "duelwin @alguien 2- naranja", isOk: false },
+      { text: "duelwin @alguien naranja", isOk: false },
+      { text: "duelwin 2-3 naranja", isOk: false },
+      { text: "duelwin @alguien 2-3", isOk: false }
+    ],
+    notes: "No puedes poner un score de 100-8 por ejemplo (con 100) ni tampoco empate, no es posible empates en rl sideswipe."
+  }
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
 

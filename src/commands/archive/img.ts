@@ -1,4 +1,4 @@
-import { HelperRoleName, ICommand, MsgType, ScopeType } from '../../types/commands';
+import { HelperRoleName, ICommand, MsgType, CommandScopeType } from '../../types/commands';
 import Bot from '../../bot';
 import { BotCommandArgs } from '../../types/bot';
 import { Db_TryToDownloadMedia } from '../../utils/filesystem';
@@ -8,7 +8,7 @@ export default class ReceiveImgCommand implements ICommand {
   commandName: string = "img";
   description: string = "Stores imgs test";
   minimumRequiredPrivileges: HelperRoleName = "Administrador"
-  maxScope: ScopeType = "Group"
+  maxScope: CommandScopeType = "Group"
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     await bot.Send.Text(args.chatId, "Envia una imagen y la guardaré en mis archivos...");
 

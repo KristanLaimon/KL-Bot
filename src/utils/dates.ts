@@ -1,7 +1,6 @@
 import moment, { Moment } from 'moment';
 import { PendingMatch } from '../types/db';
-import KlLogger from '../bot/logger';
-moment.locale('es');
+import humanizeDuration from "humanize-duration";
 
 /**
  * A string with all the months in spanish separated by a pipe, so it can be used in a regex.
@@ -33,8 +32,6 @@ export const Dates_MinutesStr = "([012345][0-9])";
 export const Dates_SecondsStr = "([12345][0-9]|[0-9])";
 export const Dates_12HrsInputRegex = new RegExp(`^${Dates_HoursStr}:${Dates_MinutesStr} ?(AM|PM)$`, "i")
 
-
-
 /**
  * Adds a given 12-hour time to a moment object, returning a new moment object with the resulting time.
  * The 12-hour time is expected to be in the format 'HH:MM AM/PM'.
@@ -60,58 +57,25 @@ export function Dates_Add12hrsTimeToMomentObj(momentObj: Moment, TwelveHrsTimeSt
 }
 
 /**
- * Given a date in the past, returns a string with a human-readable representation of how much time is left to reach that date.
- * @param pastDate The date in the past or the future to calculate the time until that date
- * @returns A string with the time between now and the given date, e.g.:
+ * Given a number of milliseconds representing a full UNIX DATE, returns a string with a human-readable representation of its difference in time from NOW.
+ * @param time The full unix time duration to calculate the time since that date from NOW
+ * @returns A string humanized, e.g.:
  * - "3 años, 2 meses y 5 días".
  * - "1 mes y 2 días".
- * - "Se unió el día de hoy".
  * - "X horas, Y minutos y Z segundos".
  */
-export function Dates_GetFormatedDurationTimeFrom(pastDate: bigint | number) {
+export function Dates_GetFormatedDurationTimeFrom(pastDate: bigint | number, options?: { includingSeconds?: boolean }): string {
   const pastTime = moment(Number(pastDate));
   const now = moment();
+  const rawDiff = now.diff(pastTime, 'milliseconds');
+  const isPast = rawDiff >= 0;
+  const prefix = isPast ? 'Hace ' : 'En '
+  const timePassed = moment.duration(Math.abs(rawDiff), 'milliseconds');
 
-  const timePassed = moment.duration(Math.abs(now.diff(pastTime, 'milliseconds')), 'milliseconds');
-  let finalMsg: string[] = [];
-  if (timePassed.years() != 0) finalMsg.push(Math.abs(timePassed.years()) + " años");
-  if (timePassed.months() != 0) finalMsg.push(Math.abs(timePassed.months()) + " meses");
-  if (timePassed.days() != 0) {
-    const days = timePassed.days();
-    finalMsg.push(`${days} ${days === 1 ? "día" : "días"}`);
-  }
-
-  if (finalMsg.length === 0) finalMsg.push("hoy mismo");
-  return finalMsg.join(", ");
-}
-
-/**
- * Calculates and returns a human-readable string representing the time passed since a pending match was requested.
- * 
- * @param pendingMatch - The pending match object containing the initial match request time.
- * @returns A string detailing the time elapsed since the match was requested, e.g., "3 minutos, 2 segundos".
- * 
- * @example
- * const pendingMatch = { dateTime: new Date().getTime() - 3 * 60 * 1000 - 2 * 1000 };
- * console.log(Dates_GetTimePassedSinceDuelMatchPending(pendingMatch)); // "3 minutos, 2 segundos"
- * 
- * @example
- * const pendingMatch = { dateTime: new Date().getTime() - 45 * 1000 };
- * console.log(Dates_GetTimePassedSinceDuelMatchPending(pendingMatch)); // "45 segundos"
- * 
- * @throws Will throw an error if the match dateTime is set in the future.
- */
-export function Dates_GetTimePassedSinceDuelMatchPending(pendingMatch: PendingMatch): string {
-  const rawTimePassed = new Date().getTime() - pendingMatch.dateTime;
-  if (Math.sign(rawTimePassed) === -1) throw Error('For some reason, GetTimePassedSinceDuelMatchPending has got a future date!');
-  const timePassed = moment.duration(rawTimePassed);
-
-  let finalMsg: string[] = [];
-  if (timePassed.minutes() != 0) finalMsg.push(timePassed.minutes() + " minutos");
-  if (timePassed.seconds() != 0) finalMsg.push(timePassed.seconds() === 1 ? timePassed.seconds() + " segundo" : timePassed.seconds() + " segundos");
-
-  if (finalMsg.length === 0) finalMsg.push("Esto no debería pasar wtf 🐺🦊");
-  return finalMsg.join(", ");
+  if (options && options.includingSeconds)
+    return prefix + Dates_HumanizeDatesUntilSeconds(timePassed.asMilliseconds());
+  else
+    return prefix + Dates_HumanizeDatesUntilDays(timePassed.asMilliseconds());
 }
 
 /**
@@ -174,6 +138,30 @@ export function Dates_SpanishMonthToNumber(month: string): number | null {
   const normalizedMonth = month.trim().toLowerCase();
   return months[normalizedMonth] || null; // Return null if the month is invalid
 }
+
+
+export const Dates_HumanizeDatesUntilDays = humanizeDuration.humanizer(
+  {
+    language: 'es', fallbacks: ['en'],
+    round: true,
+    conjunction: " y ",
+    units: ["y", "mo", "w", "d"],
+    serialComma: false
+  }
+);
+
+const Dates_HumanizeDatesUntilSeconds = humanizeDuration.humanizer(
+  {
+    language: 'es', fallbacks: ['en'],
+    round: true,
+    conjunction: " y ",
+    units: ["y", "mo", "w", "d", "h", "m", "s"],
+    serialComma: false
+  }
+);
+
+
+
 
 
 

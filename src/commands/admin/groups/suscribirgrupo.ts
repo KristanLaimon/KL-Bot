@@ -1,7 +1,7 @@
 import Bot from '../../../bot';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
-import { CommandAccessibleRoles, ICommand, MsgType, ScopeType, SenderType } from '../../../types/commands';
+import { CommandAccessibleRoles, ICommand, MsgType, CommandScopeType, SenderType, CommandHelpInfo } from '../../../types/commands';
 import Kldb, { KldbCacheAllowedWhatsappGroups, Kldb_UpdateStartupCacheAsync } from '../../../utils/db';
 import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
 import SecretAdminPassword from '../../../../db/secretAdminPassword';
@@ -14,7 +14,15 @@ export default class SubscribeGroupCommand implements ICommand {
   commandName: string = "suscribirgrupo";
   description: string = "Registra el grupo (chat) actual para que el bot pueda interactuar con este chat.";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Administrador";
-  maxScope: ScopeType = "External";
+  maxScope: CommandScopeType = "External";
+  helpMessage?: CommandHelpInfo = {
+    structure: "suscribirgrupo",
+    examples: [
+      { text: "suscribirgrupo", isOk: true },
+      { text: "suscribirgrupo someotherargument", isOk: false }
+    ],
+    notes: "Este comando registra el grupo actual para que el bot pueda interactuar con él. Necesitarás la contraseña de superadministrador para completar el proceso."
+  }
 
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const groupChat = new SpecificChat(bot, args);

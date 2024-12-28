@@ -1,19 +1,27 @@
 import Bot from '../../bot';
 import Kldb, { Kldb_Ram_PendingMatches } from '../../utils/db';
 import { BotCommandArgs } from '../../types/bot';
-import { CommandAccessibleRoles, ICommand, MsgType, ScopeType } from '../../types/commands';
+import { CommandAccessibleRoles, ICommand, MsgType, CommandScopeType, CommandHelpInfo } from '../../types/commands';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { Phone_GetPhoneNumberFromMention, Phone_GetFullPhoneInfoFromRawmsg, Phone_IsAMentionNumber } from '../../utils/phonenumbers';
 import { Members_GetMemberInfoFromPhone } from '../../utils/members';
 import { Msg_GetTextFromRawMsg, Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
 
-
-//TODO: !duelpending? && !duellose
 export default class DuelCommand implements ICommand {
   commandName: string = "duel";
   description: string = 'Reta a un duelo 1vs1 a otra persona del clan'
   minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro";
-  maxScope: ScopeType = "Group";
+  maxScope: CommandScopeType = "Group";
+  helpMessage?: CommandHelpInfo = {
+    notes: "Para registrar un duelo se usaría !duel @alguien y para registrarlo es con !duelwin",
+    examples: [
+      { text: 'duel @miembro', isOk: true },
+      { text: 'duel @alguienmás', isOk: true },
+      { text: 'duel', isOk: false },
+      { text: 'duel @alguienmás @alguienmás', isOk: false }
+    ],
+    structure: "duel [@etiquetadealgunmiembro]"
+  }
 
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);

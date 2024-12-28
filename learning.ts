@@ -1,11 +1,28 @@
-import fs from "fs"
-import { WAMessage } from '@whiskeysockets/baileys';
+import humanizeDuration from "humanize-duration";
 
-const paths = fs.readdirSync('db/ranks', { withFileTypes: true });
-// const paths = fs.readdirSync('db/tournaments_covers');
+const memberTimeHumanizer = humanizeDuration.humanizer(
+  {
+    language: 'es', fallbacks: ['en'],
+    round: true,
+    conjunction: " y ",
+    units: ["y", "mo", "w", "d"],
+    serialComma: false
+  }
+);
+
+const tournamentExactHumanizer = humanizeDuration.humanizer(
+  {
+    language: 'es', fallbacks: ['en'],
+    round: true,
+    conjunction: " y ",
+    units: ["y", "mo", "w", "d", "h", "m", "s"],
+    serialComma: false
+  }
+);
 
 
-const end: number = 0;
+
+
 
 // it("Should spy on math add function", () => {
 //   expect((math.add as jest.Mock).mock.calls.length).toBe(1);

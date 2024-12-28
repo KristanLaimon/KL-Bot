@@ -1,7 +1,7 @@
 import Bot from '../../../bot';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
-import { ICommand, CommandAccessibleRoles, ScopeType, SenderType } from '../../../types/commands';
+import { ICommand, CommandAccessibleRoles, CommandScopeType, SenderType, CommandHelpInfo } from '../../../types/commands';
 import Kldb, { KldbCacheAllowedWhatsappGroups, Kldb_UpdateStartupCacheAsync } from '../../../utils/db';
 import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
 
@@ -9,7 +9,15 @@ export default class UnsubscribeGroupCommand implements ICommand {
   commandName: string = "desuscribirgrupo";
   description: string = "Desuscribe el grupo actual y el bot ya no interactuará con este chat!";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Administrador"
-  maxScope: ScopeType = "Group";
+  maxScope: CommandScopeType = "Group";
+  helpMessage?: CommandHelpInfo = {
+    structure: "desuscribirgrupo",
+    examples: [
+      { text: "desuscribirgrupo", isOk: true },
+      { text: "desuscribirgrupo algunotroargumento", isOk: false }
+    ],
+    notes: "Una vez que desuscribas este grupo, ya no podrás acceder a la gran mayoría de las funcionalidades del bot. Tendrás que volver a suscribirlo con permisos de administrador"
+  }
 
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);

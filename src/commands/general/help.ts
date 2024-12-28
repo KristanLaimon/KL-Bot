@@ -1,4 +1,4 @@
-import { HelperRoleName, ICommand, ScopeType } from '../../types/commands';
+import { HelperRoleName, ICommand, CommandScopeType, CommandHelpInfo } from '../../types/commands';
 import Bot from '../../bot';
 import { BotCommandArgs } from '../../types/bot';
 import { Members_GetMemberInfoFromPhone } from '../../utils/members';
@@ -10,7 +10,15 @@ export default class Help_GroupCommand implements ICommand {
   commandName: string = 'help';
   minimumRequiredPrivileges: HelperRoleName = "Cualquiera";
   description: string = 'Despliega esta pantalla de ayuda';
-  maxScope: ScopeType = "Group"
+  maxScope: CommandScopeType = "Group"
+  helpMessage?: CommandHelpInfo = {
+    structure: "help",
+    examples: [
+      { text: "help", isOk: true },
+      { text: "help someotherargument", isOk: false }
+    ],
+    notes: "No tiene mucho chiste, es solo el comando de ayuda, como se te ocurrió pedir ayuda de esto (!?) 🦊"
+  }
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     //If there are arguments
     //Feature: Get info about how to use a command
@@ -29,26 +37,23 @@ export default class Help_GroupCommand implements ICommand {
         else {
           await chat.SendTxt(`
           === 🌟 Ayuda: ${Str_CapitalizeStr(command[0])} 🌟 ===
-
-          📖 **Descripción:**
           ${command[1].description}
 
-          🛠️ **Estructura:**
-          \`\`\`
-          ${Str_NormalizeLiteralString(command[1].helpMessage.structure)}
-          \`\`\`
+          🛠️ *Estructura:*
+          \`\`\`${bot.config.prefix}${Str_NormalizeLiteralString(command[1].helpMessage.structure)}\`\`\`
 
-          💡 **Ejemplos:**
-          ${command[1].helpMessage.examples.map(example => "  - " + Str_NormalizeLiteralString(example)).join("\n")}
+          💡 *Ejemplos:*
+          ${command[1].helpMessage.examples
+              .map(example => "  - " + (example.isOk ? "✅" : "❌") + " " + bot.config.prefix + Str_NormalizeLiteralString(example.text)).join("\n")}
 
-          ℹ️ **Información Adicional:**
-          ${Str_NormalizeLiteralString(command[1].helpMessage.info)}
+          ℹ️ *Información Adicional:*
+          ${Str_NormalizeLiteralString(command[1].helpMessage.notes)}
         `);
 
         }
       }
       else {
-
+        await chat.SendTxt("Ese comando no existe (?), checa los comandos disponibles con !help");
       }
       return;
     }
@@ -95,7 +100,7 @@ export default class Help_GroupCommand implements ICommand {
     }
 
     strs.push(separator);
-    strs.push('Tip: Usa el comando para más detalles.');
+    strs.push('🦊 Tip: Usa el comando !help [nombrecomando] para ver más detalles de como se utiliza');
 
     // Enviar mensaje formateado
     await bot.Send.Text(args.chatId, strs.join('\n'));

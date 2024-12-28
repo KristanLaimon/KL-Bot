@@ -1,22 +1,32 @@
-import { CommandAccessibleRoles, ICommand, MsgType, ScopeType } from '../../../types/commands';
 import fs from 'fs';
-import Kldb from '../../../utils/db';
+import moment from 'moment';
 import path from 'path';
-import { Str_CapitalizeStr } from '../../../utils/strings';
-import { BotCommandArgs } from '../../../types/bot';
 import Bot from '../../../bot';
 import { SpecificChat } from '../../../bot/SpecificChat';
+import { BotCommandArgs } from '../../../types/bot';
+import { CommandAccessibleRoles, CommandHelpInfo, CommandScopeType, ICommand, MsgType } from '../../../types/commands';
+import { Dates_GetFormatedDurationTimeFrom, Dates_SpanishMonthStr, Dates_SpanishMonthToNumber } from '../../../utils/dates';
+import Kldb from '../../../utils/db';
 import { Db_TryToDownloadMedia } from '../../../utils/filesystem';
 import { Phone_GetFullPhoneInfoFromRawmsg, Phone_GetPhoneNumberFromMention as Phone_GetFullPhoneNumberInfoFromMention, Phone_MentionNumberRegexStr } from '../../../utils/phonenumbers';
 import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
-import { Dates_GetFormatedDurationTimeFrom, Dates_SpanishMonthStr, Dates_SpanishMonthToNumber } from '../../../utils/dates';
-import moment from 'moment';
+import { Str_CapitalizeStr } from '../../../utils/strings';
 
 export default class AddMemberCommand implements ICommand {
   commandName: string = "añadirmiembro";
   description: string = "Añade un nuevo miembro al bot";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Administrador";
-  maxScope: ScopeType = "Group";
+  maxScope: CommandScopeType = "Group";
+  helpMessage: CommandHelpInfo = {
+    structure: "añadirmiembro",
+    examples: [
+      { text: "añadirmiembro", isOk: true },
+      { text: "añadirmiembro algunaotracosa", isOk: false }
+    ],
+    notes: "Este comando añade un nuevo miembro al grupo introduciendo sus datos esenciales para pertenecer al clan. Solamente gente con privilegios de administrador puede usar este comando."
+  }
+
+
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
     const separator = "=======================";

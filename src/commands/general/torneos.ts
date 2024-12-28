@@ -1,7 +1,7 @@
 import Bot from '../../bot';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
-import { CommandAccessibleRoles, ICommand, ScopeType } from '../../types/commands';
+import { CommandAccessibleRoles, ICommand, CommandScopeType, CommandHelpInfo } from '../../types/commands';
 import { Dates_GetFormatedDurationTimeFrom } from '../../utils/dates';
 import Kldb from '../../utils/db';
 import { Msg_DefaultHandleError } from '../../utils/rawmsgs';
@@ -10,8 +10,13 @@ import { Str_NormalizeLiteralString } from '../../utils/strings';
 export default class SeeTournamentsCommand implements ICommand {
   commandName: string = "torneos";
   description: string = "Ver todos los torneos creados habidos y por haber con filtros";
-  maxScope: ScopeType = "Group";
+  maxScope: CommandScopeType = "Group";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro";
+  helpMessage?: CommandHelpInfo = {
+    structure: "torneos",
+    examples: [{ text: "torneos", isOk: true }, { text: "torneos someotherargument", isOk: false }],
+  }
+
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
     try {
@@ -43,31 +48,23 @@ export default class SeeTournamentsCommand implements ICommand {
       })
 
       const imgCaptionInfo = `
-        🌟====== **${selectedTournament.name.toUpperCase()}** ======🌟
+        🌟====== *${selectedTournament.name.toUpperCase()}* ======🌟
 
         📖 *Descripción:* ${selectedTournament.description}
-
+        👥 *Cantidad máxima de jugadores:* ${selectedTournament.max_players}
+        📊 *Capacidad actual:* ${playersSubscribed.length}/${selectedTournament.max_players}
         🎮 *Tipo de torneo:* ${selectedTournament.TournamentType.name}
+        📝 *Abierto a inscripciones:* ${Date.now() < selectedTournament.beginDate ? "✅ Sí" : "❌ No"}
+        ⌛ *Duración de cada ventana de juego:* ${selectedTournament.matchPeriodTime} días
 
         🕒 *Creado hace:* ${Dates_GetFormatedDurationTimeFrom(selectedTournament.creationDate)}
-
-        📅 *Fecha de inicio:* ${Dates_GetFormatedDurationTimeFrom(selectedTournament.beginDate)}
-
+        📅 *Fecha de inicio:* ${Dates_GetFormatedDurationTimeFrom(selectedTournament.beginDate, { includingSeconds: true })}
         ⏳ *Fecha de cierre:* ${selectedTournament.endDate
           ? Dates_GetFormatedDurationTimeFrom(selectedTournament.endDate)
           : "⛔ No hay suficientes participantes para determinarlo o no ha iniciado el torneo todavía"}
 
-        ⌛ *Duración de cada ventana de juego:* ${selectedTournament.matchPeriodTime} días
-
         🏆 *Rangos admitidos:* ${admittedRanks.length === 0 ? "🎲 Todos los rangos permitidos"
           : admittedRanks.map(range => `🎯 ${Str_NormalizeLiteralString(range.Rank.name)}`).join(", ")}
-
-        📝 *Abierto a inscripciones:* ${Date.now() < selectedTournament.beginDate ? "✅ Sí" : "❌ No"}
-
-        👥 *Cantidad máxima de jugadores:* ${selectedTournament.max_players}
-
-        📊 *Capacidad actual:* ${playersSubscribed.length}/${selectedTournament.max_players}
-
         🔖 *Jugadores inscritos:* ${playersSubscribed.length === 0
           ? "😔 Nadie se ha inscrito todavía"
           : playersSubscribed.map(subscription => `🔹 ${subscription.Player.username} | ${subscription.Player.Rank.name}`).join("\n")}

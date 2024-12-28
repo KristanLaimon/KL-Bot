@@ -14,6 +14,7 @@ import VerMiembrosCommand from './src/commands/general/miembros';
 import GetProfileInfoCommand from './src/commands/general/perfil';
 import TestCommand from './src/commands/testing/prueba';
 import SeeTournamentsCommand from './src/commands/general/torneos';
+import DeleteTournamentCommand from './src/commands/admin/tournaments/borrartorneo';
 
 //For some reason this bot stops working if a group has ( or ) in its name on production server ubuntu server!
 
@@ -36,5 +37,6 @@ klBot.AddCommand(new UnsubscribeGroupCommand());
 klBot.AddCommand(new ExternalHelp_AyudaCommand());
 klBot.AddCommand(new CreateTournamentCommand());
 klBot.AddCommand(new SeeTournamentsCommand());
+klBot.AddCommand(new DeleteTournamentCommand());
 
 klBot.StartBot();

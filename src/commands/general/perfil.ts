@@ -1,19 +1,31 @@
 import Kldb from '../../utils/db';
 import Bot from '../../bot';
-import { CommandAccessibleRoles, ICommand, ScopeType } from '../../types/commands';
-import { Dates_GetFormatedDurationTimeFrom } from '../../utils/dates';
+import { CommandAccessibleRoles, ICommand, CommandScopeType, CommandHelpInfo } from '../../types/commands';
+import { Dates_GetFormatedDurationTimeFrom, Dates_HumanizeDatesUntilDays } from '../../utils/dates';
 import { BotCommandArgs } from '../../types/bot';
 import { Phone_GetFullPhoneInfoFromRawmsg, Phone_GetPhoneNumberFromMention } from '../../utils/phonenumbers';
 import { Members_GetMemberInfoFromPhone } from '../../utils/members';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { Db_GetPlayerImagePath } from '../../utils/filesystem';
+import moment from 'moment';
 
 // TODO: Implement a 'usageInfo' for each command and make it accesible with some "helpCommand" function or something like that
 export default class GetProfileInfoCommand implements ICommand {
   commandName: string = "perfil"
   description: string = "Obten la información de cualquier miembro del clan etiquetandolo con @ después del comando"
   minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro";
-  maxScope: ScopeType = "Group"
+  maxScope: CommandScopeType = "Group";
+  helpMessage?: CommandHelpInfo = {
+    structure: "perfil [@etiquetadealgunmiembro](Opcional)",
+    examples: [
+      { text: "perfil", isOk: true },
+      { text: "perfil @alguien", isOk: true },
+      { text: "perfil @deotrapersona", isOk: true },
+      { text: "perfil @alguienmás @alguienmás", isOk: false },
+    ],
+    notes: "Si no se etiqueta a nadie, se despliega la información de ti mismo, pero si lo haces se desplegará el de aquella persona"
+  }
+
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     if (args.commandArgs.length > 1) {
       await bot.Send.Text(args.chatId, "Debes etiquetar al miembro al que quieres consultar con el @ o si no mandas nada, se te desplegará tu propia información");
@@ -26,6 +38,7 @@ export default class GetProfileInfoCommand implements ICommand {
     const whatsNumberInfo = wasSomeoneTagged ?
       Phone_GetPhoneNumberFromMention(args.commandArgs[0]) :
       Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg);
+
     if (whatsNumberInfo == null) {
       await chat.SendTxt("No etiquetaste a nadie o el etiquetado es inválido (?)");
       return;
@@ -36,13 +49,12 @@ export default class GetProfileInfoCommand implements ICommand {
       await bot.Send.Text(args.chatId, "La persona etiquetada todavía no está registrado en este bot del clan");
       return;
     }
-
     await chat.SendTxt(`
       ======== Perfil =======
       Username: ${member?.username}
       Rango: ${member?.Rank.name}
       Rol: ${member.Role.name}
-      Antiguedad: ${Dates_GetFormatedDurationTimeFrom(member.joined_date)}
+      Antiguedad: ${Dates_GetFormatedDurationTimeFrom(member.joined_date, { includingSeconds: false })}
     `);
     await chat.SendImg(Db_GetPlayerImagePath(member.username)!);
   }

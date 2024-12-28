@@ -10,30 +10,31 @@ import { BotCommandArgs } from './bot';
  */
 export type HelperRoleName = "Administrador" | "Miembro" | "Cualquiera"
 export type CommandAccessibleRoles = HelperRoleName | "Secreto";
-export type ScopeType = "External" | "Group";
+export type CommandScopeType = "External" | "Group";
+export type CommandHelpInfo = {
+  /**
+   * General info and notes
+   */
+  notes?: string,
+  /**
+   * Structure/sintaxis of the help message
+   * !command [optional argument] mandatoryargument(número) etc... 
+   */
+  structure: string,
+  /**
+   * Examples of how to use the command. These will be shown in the help message.
+   * Should be an array of strings, each string should be a different example of how to use the command
+   * For example, if your command is !hello, you should add an example like "!hello (without arguments)"
+   */
+  examples: { text: string, isOk: boolean }[]
+}
 
 export interface ICommand {
   commandName: string;
   description: string;
   minimumRequiredPrivileges: CommandAccessibleRoles;
-  maxScope: ScopeType;
-  helpMessage?: {
-    /**
-     * General info and notes
-     */
-    info: string,
-    /**
-     * Structure/sintaxis of the help message
-     * !command [optional argument] mandatoryargument(número) etc... 
-     */
-    structure: string,
-    /**
-     * Examples of how to use the command. These will be shown in the help message.
-     * Should be an array of strings, each string should be a different example of how to use the command
-     * For example, if your command is !hello, you should add an example like "!hello (without arguments)"
-     */
-    examples: string[]
-  }
+  maxScope: CommandScopeType;
+  helpMessage?: CommandHelpInfo;
   onMsgReceived: (bot: Bot, args: BotCommandArgs) => Promise<void>;
 }
 

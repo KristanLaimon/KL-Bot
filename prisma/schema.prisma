@@ -64,8 +64,8 @@ model Tournament_Player_Subscriptions {
   tournament_id     Int
   player_id         Int
   subscription_date BigInt
-  Tournament        Tournament @relation(fields: [tournament_id], references: [id])
-  Player            Player     @relation(fields: [player_id], references: [id])
+  Tournament        Tournament @relation(fields: [tournament_id], references: [id], onDelete: Cascade)
+  Player            Player     @relation(fields: [player_id], references: [id], onDelete: Cascade)
 
   @@id([tournament_id, player_id])
 }
@@ -168,9 +168,9 @@ model TournamentMatch {
   referee_verifier Int
   results_img_name String //New...added
 
-  Match                 MatchPlayed             @relation(fields: [match_date_id], references: [date_played])
-  RefereeVerifier       Player                  @relation(fields: [referee_verifier], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  Tournament            Tournament              @relation(fields: [tournament_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  Match                 MatchPlayed             @relation(fields: [match_date_id], references: [date_played], onDelete: Cascade)
+  RefereeVerifier       Player                  @relation(fields: [referee_verifier], references: [id], onDelete: NoAction)
+  Tournament            Tournament              @relation(fields: [tournament_id], references: [id], onDelete: Cascade)
   ScheduledMatch_Player ScheduledMatch_Player[]
 }
 

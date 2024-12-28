@@ -2,7 +2,7 @@ import moment from 'moment';
 import Bot from '../../bot';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
-import { CommandAccessibleRoles, ICommand, ScopeType } from '../../types/commands';
+import { CommandAccessibleRoles, ICommand, CommandScopeType } from '../../types/commands';
 import { Dates_SpanishMonthStr, Dates_SpanishMonthToNumber } from '../../utils/dates';
 import { Msg_GetTextFromRawMsg, Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
 import Kldb from '../../utils/db';
@@ -13,7 +13,7 @@ export default class TestCommand implements ICommand {
   commandName: string = "test";
   description: string = "A simple test command";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Administrador"
-  maxScope: ScopeType = "Group"
+  maxScope: CommandScopeType = "Group"
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
 

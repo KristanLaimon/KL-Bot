@@ -1,6 +1,6 @@
 import Kldb from '../../../utils/db';
 import Bot from '../../../bot';
-import { CommandAccessibleRoles, ICommand, ScopeType } from '../../../types/commands';
+import { CommandAccessibleRoles, ICommand, CommandScopeType, CommandHelpInfo } from '../../../types/commands';
 import { BotCommandArgs } from '../../../types/bot';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
@@ -10,7 +10,16 @@ export default class DeleteMemberCommand implements ICommand {
   commandName: string = 'borrarmiembro';
   description: string = "Elimina a un miembro existente en el clan"
   minimumRequiredPrivileges: CommandAccessibleRoles = "Secreto";
-  maxScope: ScopeType = "Group";
+  maxScope: CommandScopeType = "Group";
+  helpMessage: CommandHelpInfo = {
+    structure: "borrarmiembro",
+    examples: [
+      { text: "borrarmiembro", isOk: true },
+      { text: "borrarmiembro algunargumentoextra", isOk: false }
+    ],
+    notes: "Este comando elimina un miembro existente del clan. Asegúrate de tener privilegios secretos para usar este comando."
+  }
+
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
 

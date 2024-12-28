@@ -1,6 +1,6 @@
 import Bot from '../bot';
 import { BotCommandArgs } from '../types/bot';
-import { HelperRoleName, ICommand, ScopeType } from '../types/commands';
+import { HelperRoleName, ICommand, CommandScopeType } from '../types/commands';
 import { Msg_IsBotWaitMessageError } from '../utils/rawmsgs';
 
 
@@ -66,7 +66,7 @@ export default class CommandsHandler {
   }
 
 
-  public HasCorrectScope(commandName: string, scope: ScopeType): boolean {
+  public HasCorrectScope(commandName: string, scope: CommandScopeType): boolean {
     commandName = commandName.toLowerCase();
     if (!this.Exists(commandName)) return false;
     const foundCommand = this._commands[commandName];

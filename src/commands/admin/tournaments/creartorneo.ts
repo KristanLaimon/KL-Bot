@@ -1,7 +1,7 @@
 import Bot from '../../../bot';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
-import { ICommand, ScopeType, CommandAccessibleRoles, MsgType } from '../../../types/commands';
+import { ICommand, CommandScopeType, CommandAccessibleRoles, MsgType, CommandHelpInfo } from '../../../types/commands';
 import { Dates_12HrsInputRegex, Dates_Add12hrsTimeToMomentObj, Dates_ConvertDateInputToMomentJs, Dates_DateInputRegex } from '../../../utils/dates';
 import Kldb from '../../../utils/db';
 import { GenerateInstructionSteps } from '../../../utils/dialog';
@@ -12,8 +12,16 @@ import { Response_isAfirmativeAnswer, Response_isNegativeAnswer } from '../../..
 export default class CreateTournamentCommand implements ICommand {
   commandName: string = "creartorneo";
   description: string = "Crea un nuevo torneo en el servidor. Incluye opciones para especificar el nombre del torneo, descripción, fecha de inicio, ventana de juego, y rangos de participantes.";
-  maxScope: ScopeType = "Group";
+  maxScope: CommandScopeType = "Group";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Administrador";
+  helpMessage: CommandHelpInfo = {
+    structure: "creartorneo",
+    examples: [
+      { text: "creartorneo", isOk: true },
+      { text: "creartorneo algunaotracosa", isOk: false }
+    ]
+  }
+
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
 

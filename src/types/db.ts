@@ -31,13 +31,11 @@ export type PendingMatch = {
   challenger: KlPlayer;
   challenged: KlPlayer;
 }
-
 export type KlPlayer = {
   id: number;
   username: string;
   profilePicturePath: string;
   actualRank: string;
-  tournamentSelected: number | null;
   phoneNumber: string;
   whatsappNickName: string;
   role: string;
