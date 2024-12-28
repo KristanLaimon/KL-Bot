@@ -20,18 +20,18 @@ type TournamentSchedule = {
   MatchWindows: ScheduledMatchWindow[];
 }
 
-abstract class Tournament {
+export abstract class AbstractTournament {
   public abstract CreatePlanningFrom(fullTournamentInfo: KlTournament): TournamentSchedule;
 }
 
-class TournamentSingleElimination extends Tournament {
+export class TournamentSingleElimination extends AbstractTournament {
   public CreatePlanningFrom(fullTournamentInfo: KlTournament): TournamentSchedule {
     KlLogger.error("TournamentSingleElimination has executed its planning method but not implemented yet");
     throw new Error('Method not implemented.');
   }
 }
 
-const TournamentsTypesSelector = new Map<string, Tournament>([
+const TournamentsTypesSelector = new Map<string, AbstractTournament>([
   ["SE", new TournamentSingleElimination()],
 ]);
 export default TournamentsTypesSelector;

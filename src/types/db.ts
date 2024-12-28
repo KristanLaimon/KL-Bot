@@ -42,4 +42,8 @@ export type KlPlayer = {
   joined_date: bigint;
 } & { Role: { id: string; name: string; }; Rank: { id: string; name: string; logoImagePath: string; }; }
 
-export type KlTournament = NonNullable<Awaited<ReturnType<typeof Kldb.tournament.findFirst>>>
+export type KlGetTableType<T extends (...args: any[]) => any> = NonNullable<Awaited<ReturnType<T>>>;
+export type KlTournament = KlGetTableType<typeof Kldb.tournament.findFirst>;
+export type KlScheduledMatchWindow = KlGetTableType<typeof Kldb.scheduledMatchWindow.findFirst>;
+
+

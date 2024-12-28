@@ -1,8 +1,8 @@
 import fs, { Dirent } from "fs"
 import path from "path"
 import { PrismaClient } from '@prisma/client';
-import { PendingMatch, PendingTournamentStart } from '../types/db';
-import TournamentsTypesSelector from '../logic/tournament';
+import { KlGetTableType, KlScheduledMatchWindow, KlTournament, PendingMatch, PendingTournamentStart } from '../types/db';
+import TournamentsTypesSelector, { AbstractTournament } from '../logic/tournament';
 import KlLogger from '../bot/logger';
 import { Dates_GetFormatedDurationTimeFrom } from './dates';
 import { Str_NormalizeLiteralString } from './strings';
@@ -41,19 +41,46 @@ export async function Kldb_UpdateStartupCacheAsync() {
 async function CacheTournamentsStarts(): Promise<PendingTournamentStart[]> {
   Kldb_Ram_PendingTournamentsTimers.splice(0, Kldb_Ram_PendingTournamentsTimers.length);
 
-  const pendingTournaments = await Kldb.tournament.findMany({
-    where: { beginDate: { gt: Date.now() } }
-  });
-
+  const allTournaments = await Kldb.tournament.findMany();
   const toReturn: PendingTournamentStart[] = [];
-  for (const tournament of pendingTournaments) {
+
+  for (const tournament of allTournaments) {
     const diffTimeMiliseconds = Number(tournament.beginDate) - Date.now();
-    // const debugging = moment.duration(diffTimeMiliseconds);
     const tournamentPlanner = TournamentsTypesSelector.get(tournament.tournament_type);
-    const timer = setTimeout(() => tournamentPlanner.CreatePlanningFrom(tournament), diffTimeMiliseconds);
-    toReturn.push({ tournamentInfo: tournament, countdownTimer: timer });
+
+    //If it hasn't started yet 
+    if (diffTimeMiliseconds >= 0) {
+      const timer = setTimeout(() => {
+        Db_InsertTournamentPlanningIntoDb(tournamentPlanner, tournament);
+
+      }, diffTimeMiliseconds);
+      toReturn.push({ tournamentInfo: tournament, countdownTimer: timer });
+    }
+    //It has already started but not finished yet
+    else if (diffTimeMiliseconds > 0 && tournament.endDate > Date.now()) {
+      try {
+        const hasAtLeastSomePlanning = await Kldb.scheduledMatchWindow.findFirst({
+          where: { tournament_id: tournament.id }
+        })
+        //If has started but not planned already
+        if (hasAtLeastSomePlanning === null) {
+          Db_Inser
+        }
+        else {
+          //It has already started and has planning, so do nothing
+        }
+      } catch (e) {
+        KlLogger.error(`Error creating timer for a started but not planned tournament ${tournament.name}: ${JSON.stringify(e, null, 0)}`);
+      }
+    }
+    else {
+      //It has already started and finished, so do nothing
+    }
+
+
+
   }
-  return toReturn;
+  // return toReturn;
 }
 
 
@@ -135,3 +162,56 @@ export async function Db_GetTournamentFormattedInfo(tournamentId: number): Promi
   }
 }
 
+/**
+ * TODO:
+ * Terminar cachetournamentstarts
+ * terminar inserttournamentplanngin into db
+ *    terminar de actualizar el cache de los timers cuando se inserte en db
+ * organizar este archivo dios santo!
+ *    
+ */
+
+async function UpdateTournamentPlanning(planner: AbstractTournament, tournamentInfo: KlTournament) {
+  await Db_InsertTournamentPlanningIntoDb(planner, tournamentInfo);
+
+}
+
+export async function Db_InsertTournamentPlanningIntoDb(planner: AbstractTournament, tournamentInfo: KlTournament): Promise<boolean> {
+  try {
+
+    const fullSchema = planner.CreatePlanningFrom(tournamentInfo);
+
+    //Update tournament endDate
+    await Kldb.tournament.update({
+      where: { id: tournamentInfo.id },
+      data: {
+        endDate: fullSchema.endDate
+      }
+    });
+
+    // for (const scheduled)
+
+    const scheduledWindowsToInsert: KlScheduledMatchWindow[] =
+      fullSchema.MatchWindows.map(mw => ({
+        id: undefined,
+        starting_date: BigInt(mw.StartWindowDate),
+        ending_date: BigInt(mw.EndWindowDate),
+        tournament_id: tournamentInfo.id
+      }));
+
+
+    // for (const scheduledMatch of scheduledWin)
+
+
+
+
+
+  } catch (e) {
+    KlLogger.error(`Couldn't plan tournament nor update it (maybe) in db: ${JSON.stringify(e, null, 0)}`);
+    return false;
+  }
+}
+
+function DeleteTimer() {
+
+}
