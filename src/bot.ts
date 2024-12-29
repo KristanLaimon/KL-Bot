@@ -61,6 +61,7 @@ export default class Bot {
 
   public AddCommand(commandInstance: ICommand) {
     this.CommandsHandler.AddCommand(commandInstance);
+    this.CommandsHandler.Commands.sort((a, b) => a[0].localeCompare(b[0]));
   }
 
   get Commands() {

@@ -49,6 +49,10 @@ export type KlTournament = KlGetTableType<typeof Kldb.tournament.findFirst>;
 export type KlScheduledMatchWindow = KlGetTableType<typeof Kldb.scheduledMatchWindow.findFirst>;
 export type KlScheduledMatch = KlGetTableType<typeof Kldb.scheduledMatch.findFirst>;
 export type KlScheduledMatch_Player = KlGetTableType<typeof Kldb.scheduledMatch_Player.findFirst>;
+export type KlTournamentType = KlGetTableType<typeof Kldb.tournamentType.findFirst>;
+export type KlTournament_Player_Subscription = KlGetTableType<typeof Kldb.tournament_Player_Subscriptions.findFirst>;
+export type KlMatchType = KlGetTableType<typeof Kldb.matchType.findFirst>;
+
 export enum TeamColor {
   Blue = 'BLU',
   Orange = 'ORA'
@@ -57,3 +61,9 @@ export type ParticipantInfo =
   KlGetTableType<typeof Kldb.tournament_Player_Subscriptions.findFirst> & {
     Player: KlPlayer
   }
+
+export type KlTournamentEnhanced = KlTournament & {
+  TournamentType: KlTournamentType;
+  Tournament_Player_Subscriptions: KlTournament_Player_Subscription[];
+  MatchFormat: KlMatchType
+}

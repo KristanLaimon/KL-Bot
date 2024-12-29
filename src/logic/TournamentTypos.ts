@@ -1,15 +1,13 @@
-import { KlPlayer, KlTournament, ParticipantInfo } from '../types/db';
-import { AbstractTournament, TournamentSingleElimination } from './TournamentSingleElimination';
+import { KlPlayer, KlTournament, KlTournamentEnhanced, ParticipantInfo } from '../types/db';
 
-const TournamentsTypesSelector = new Map<string, AbstractTournament>([
-  ["SE", new TournamentSingleElimination()],
-]);
-export default TournamentsTypesSelector;
-export type ScheduledMatch = {
-  /*PlannedTimeWindows it belongs to ID PRIMARY KEY*/
-  MatchTypeId: string; /* 1S for 1vs1 or 2S for 2vs2*/
-  Team1: KlPlayer[];
-  Team2: KlPlayer[];
+export abstract class AbstractTournament {
+  public abstract CreateNextPhase(fullTournamentInfo: KlTournamentEnhanced, participants: ParticipantInfo[]): TournamentSchedule;
+}
+
+export type TournamentSchedule = {
+  startDate: number; /*in Unix time*/
+  endDate: number; /*in Unix time*/
+  MatchWindows: ScheduledMatchWindow[];
 }
 
 export type ScheduledMatchWindow = {
@@ -18,11 +16,14 @@ export type ScheduledMatchWindow = {
   ScheduledMatches: ScheduledMatch[]
 }
 
-export type TournamentSchedule = {
-  startDate: number; /*in Unix time*/
-  endDate: number; /*in Unix time*/
-  MatchWindows: ScheduledMatchWindow[];
+export type ScheduledMatch = {
+  /*PlannedTimeWindows it belongs to ID PRIMARY KEY*/
+  MatchTypeId: string; /* 1S for 1vs1 or 2S for 2vs2*/
+  Team1: KlPlayer[];
+  Team2: KlPlayer[];
 }
+
+
 
 
 

@@ -37,10 +37,8 @@ export default class CreateTournamentCommand implements ICommand {
         "Ingresa la descripción del torneo:",
         "Ingresa el tipo de partidas que tendrá el torneo:",
         "Ingresa la cantidad de jugadores máximo del torneo:",
-        "Ingresa la fecha de inicio: (Formato: 'año/mes/día', por ejemplo: '2022/enero/25')",
-        "Ingresa la hora de inicio: (Formato: 'hora:minutos AM o PM', por ejemplo: '8:00 AM' ó '5:00 PM')",
         //Period/Window time in days to play each match (2 digits number)
-        'Ingresa la ventana de juego del torneo (el tiempo que tendrá cada jugador para realizar su partido): (En días, por ejemplo: 1, 2 ó 6 días)',
+        'Ingresa la ventana de juego del torneo (el tiempo que tendrá cada jugador para realizar su partido): (En días, por ejemplo: 1, 2 ó 6 días, no se permite 0 ni negativos)',
         'Ahora elige la lista de rangos que serán admitidos para jugar en el torneo:',
         'Deseas ingresar una foto como portada del torneo? (Contesta si u ok, puedes omitirlo mandando cualquier otro msg)'
       ])
@@ -127,28 +125,28 @@ export default class CreateTournamentCommand implements ICommand {
         }
       }
 
-      // START DATE
-      await chat.SendTxt(step());
-      const _formatedDate = await chat.WaitNextTxtMsgFromSenderSpecific(
-        Dates_DateInputRegex,
-        "No has ingresado un fecha válida, recuerda que el formato debe ser 'año/mes/día', por ejemplo: '2022/enero/25', prueba de nuevo: ",
-        defaultTimeout
-      );
-      const STARTDATESELECTED = Dates_ConvertDateInputToMomentJs(_formatedDate);
+      // // START DATE
+      // await chat.SendTxt(step());
+      // const _formatedDate = await chat.WaitNextTxtMsgFromSenderSpecific(
+      //   Dates_DateInputRegex,
+      //   "No has ingresado un fecha válida, recuerda que el formato debe ser 'año/mes/día', por ejemplo: '2022/enero/25', prueba de nuevo: ",
+      //   defaultTimeout
+      // );
+      // const STARTDATESELECTED = Dates_ConvertDateInputToMomentJs(_formatedDate);
 
-      // HOUR DATE START
-      await chat.SendTxt(step());
-      const _formatedHour = await chat.WaitNextTxtMsgFromSenderSpecific(
-        Dates_12HrsInputRegex,
-        "No has ingresado una hora valida, recuerda que el formato debe ser 'hora:minutos AM/PM', por ejemplo: '10:30 AM', prueba de nuevo: ",
-        defaultTimeout
-      );
-      Dates_Add24hrsFormatTimeToMomentObj(STARTDATESELECTED, _formatedHour);
+      // // HOUR DATE START
+      // await chat.SendTxt(step());
+      // const _formatedHour = await chat.WaitNextTxtMsgFromSenderSpecific(
+      //   Dates_12HrsInputRegex,
+      //   "No has ingresado una hora valida, recuerda que el formato debe ser 'hora:minutos AM/PM', por ejemplo: '10:30 AM', prueba de nuevo: ",
+      //   defaultTimeout
+      // );
+      // Dates_Add24hrsFormatTimeToMomentObj(STARTDATESELECTED, _formatedHour);
 
       // Period/Window time in days to play each match (2 digits number)
       await chat.SendTxt(step());
       const _daysNumber = await chat.WaitNextTxtMsgFromSenderSpecific(
-        /^\d{1,2}$/,
+        /^(?!-)(?!0+$)\d{1,2}$/,
         "No has ingresado un número valido, recuerda que el formato debe ser 'número de dias', por ejemplo: '10', prueba de nuevo: ",
         defaultTimeout
       );
@@ -226,8 +224,7 @@ export default class CreateTournamentCommand implements ICommand {
         description: DESCRIPTIONSELECTED,
         ///@ts-ignore
         creationDate: CREATIONDATESELECTED,
-        ///@ts-ignore
-        beginDate: STARTDATESELECTED.valueOf(),
+        beginDate: null,
         matchPeriodTime: WINDOWDAYSSELECTED,
         endDate: null,
         cover_img_name: COVERIMAGENAMESELECTED,

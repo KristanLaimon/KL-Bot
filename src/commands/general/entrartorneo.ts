@@ -2,9 +2,10 @@ import Bot from '../../bot';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
 import { ICommand, CommandScopeType, CommandAccessibleRoles, CommandHelpInfo } from '../../types/commands';
+import { KlPlayer } from '../../types/db';
 import { Dates_GetFormatedDurationTimeFrom } from '../../utils/dates';
-import Kldb, { Db_GetTournamentFormattedInfo } from '../../utils/db';
-import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
+import Kldb, { Db_GetTournamentFormattedInfo, Db_InsertNewTournamentSubscription } from '../../utils/db';
+import { Phone_GetFullPhoneInfoFromRawmsg, Phone_GetPhoneNumberFromMention, Phone_IsAMentionNumber } from '../../utils/phonenumbers';
 import { Msg_DefaultHandleError } from '../../utils/rawmsgs';
 import { Response_isAfirmativeAnswer } from '../../utils/responses';
 import { Str_NormalizeLiteralString } from '../../utils/strings';
@@ -15,21 +16,44 @@ export default class EnterToTournamentCommand implements ICommand {
   maxScope: CommandScopeType = "Group";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro";
   helpMessage?: CommandHelpInfo = {
-    structure: "entrartorneo",
+    structure: "entrartorneo  ó  entrartorneo @etiquetaDeAlguien  [Solo para administradores]",
     examples: [
       { text: "entrartorneo", isOk: true },
-      { text: "entrartorneo algunargumentoextra", isOk: false }
+      { text: "entrartorneo algunargumentoextra", isOk: false },
+      { text: "entrartorneo @alguien   (Admin)", isOk: true },
+      { text: "entrartorneo @alguien algunargumentoextra   (Admin)", isOk: false },
     ],
-    notes: 'Solo se podrá entrar en torneos que no hayan iniciado todavía, mucho menos los que ya terminaron'
+    notes: 'Este comando tiene doble funcionalidad: La de miembro y la de admin.\nPara activar la de admin, se ocupa serlo y etiquetar a alguien con @etiqueta además.\nSolo se podrá entrar en torneos que no hayan iniciado todavía, mucho menos los que ya terminaron'
   }
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
 
     try {
+      const senderPlayerInfo = await Kldb.player.findFirstOrThrow({
+        where: { phoneNumber: Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg).number },
+        include: { Rank: true }
+      })
+
+      const isAdmin = senderPlayerInfo.role === "AD";
+      const argumentIsMention = args.commandArgs.length === 1 && Phone_IsAMentionNumber(args.commandArgs[0]);
+      const isAdminMode = isAdmin && argumentIsMention;
+      let mentionedPlayerInfo: KlPlayer | null = null;
+      if (isAdminMode) {
+        await chat.SendTxt("Se te ha dado privilegio de administrador de este comando, podrás meter a quien quieras a cualquier torneo.");
+        mentionedPlayerInfo = await Kldb.player.findFirst({
+          where: { phoneNumber: Phone_GetPhoneNumberFromMention(args.commandArgs.at(0)).number },
+          include: { Rank: true, Role: true }
+        })
+        if (mentionedPlayerInfo === null) {
+          await chat.SendTxt("La persona etiquetada no es miembro registrado en este bot, no se continuará con el proceso de inscripción a torneos");
+          return;
+        }
+      }
+
       const activeTournaments = await Kldb.tournament.findMany({
         where: {
           beginDate: {
-            gte: Date.now()
+            equals: null
           }
         },
         include: {
@@ -86,14 +110,19 @@ export default class EnterToTournamentCommand implements ICommand {
         60
       );
 
-      const senderPlayerInfo = await Kldb.player.findFirstOrThrow({
-        where: { phoneNumber: Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg).number },
-        include: { Rank: true }
-      })
+      let playerId = senderPlayerInfo.id;
+      if (isAdminMode) {
+        await chat.SendTxt("Se usará la persona etiquetara para entrar en el torneo");
+        playerId = mentionedPlayerInfo.id;
+      }
 
-      const isAlreadySubscribed = selectedTournament.Tournament_Player_Subscriptions.find(info => info.player_id === senderPlayerInfo.id);
+      const isAlreadySubscribed = selectedTournament.Tournament_Player_Subscriptions.find(info => info.player_id === playerId);
       if (isAlreadySubscribed) {
-        await chat.SendTxt(`Ya estas inscrito en ${selectedTournament.name}, no puedes volver a inscribirte...`);
+        if (isAdminMode) {
+          await chat.SendTxt(`Esa persona ya está inscrita en ${selectedTournament.name}, no puedes volver a inscribirle...`);
+        } else {
+          await chat.SendTxt(`Ya estas inscrito en ${selectedTournament.name}, no puedes volver a inscribirte...`);
+        }
         return;
       }
 
@@ -109,25 +138,27 @@ export default class EnterToTournamentCommand implements ICommand {
       else
         await chat.SendTxt(fullTournamentInfo);
 
-      await chat.SendTxt(`¿Seguro que quieres unirte a ${selectedTournament.name}? (si|ok) para aceptar o cualquier otro mensaje para cancelar`);
+      if (isAdminMode) {
+        await chat.SendTxt(`¿Seguro que quieres inscribir a ${mentionedPlayerInfo.username} en ${selectedTournament.name}? (si|ok) para aceptar o cualquier otro mensaje para cancelar`);
+      } else {
+        await chat.SendTxt(`¿Seguro que quieres unirte a ${selectedTournament.name}? (si|ok) para aceptar o cualquier otro mensaje para cancelar`);
+      }
+
       if (Response_isAfirmativeAnswer(await chat.WaitNextTxtMsgFromSender(60))) {
-
-
+        const playerRank = isAdminMode ? mentionedPlayerInfo.actualRank : senderPlayerInfo.actualRank;
         const isRankAdmitted = selectedTournament.Tournament_Rank_RanksAdmitteds
-          .find(info => info.rank_id === senderPlayerInfo.actualRank);
+          .find(info => info.rank_id === playerRank);
 
         if (!isRankAdmitted) {
-          await chat.SendTxt(`No tienes el rango necesario para participar en ${selectedTournament.name}, mejora de nivel y/o intentalo con otro torneo...`);
+          if (isAdminMode) {
+            await chat.SendTxt(`La persona mencionada no tiene permisos suficientes para participar en ${selectedTournament.name}, dile que mejore de nivel y/o intente con otro torneo...`);
+          } else {
+            await chat.SendTxt(`No tienes el rango necesario para participar en ${selectedTournament.name}, mejora de nivel y/o intentalo con otro torneo...`);
+          }
           return;
         }
 
-        await Kldb.tournament_Player_Subscriptions.create({
-          data: {
-            subscription_date: Date.now(),
-            player_id: senderPlayerInfo.id,
-            tournament_id: selectedTournament.id
-          }
-        })
+        await Db_InsertNewTournamentSubscription(Date.now(), playerId, selectedTournament.id);
 
         const updatedPlayerSubscriptions = await Kldb.tournament_Player_Subscriptions.findMany({
           where: { tournament_id: selectedTournament.id },
@@ -138,10 +169,10 @@ export default class EnterToTournamentCommand implements ICommand {
           `${i + 1}. ${info.Player.username} | *${info.Player.Role.name}* | ${info.Player.Rank.name}`).join("\n");
 
         await chat.SendTxt(`
-          🎉 *¡Te has suscrito con éxito!* 🎉
+          🎉 *Registro completado* 🎉
 
           📌 *Torneo:* ${selectedTournament.name}
-          👤 *Jugador:* ${senderPlayerInfo.username} | ${senderPlayerInfo.Rank.name}
+          👤 *Jugador:* ${isAdminMode ? mentionedPlayerInfo.username : senderPlayerInfo.username} | ${isAdminMode ? mentionedPlayerInfo.Rank.name : senderPlayerInfo.Rank.name}
           🏅 *Posición en la lista:* #${updatedPlayerSubscriptions.length}
 
           📊 *Estado del torneo:*

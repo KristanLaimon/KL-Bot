@@ -6,3 +6,7 @@ export function Str_NormalizeLiteralString(str: string): string {
   if (!str) return '';
   return str.trim().split("\n").map((line) => line.trim() || line).join("\n");
 }
+
+export function Str_StringifyObj(obj: object, separation: number = 2): string {
+  return JSON.stringify(obj, null, separation);
+}

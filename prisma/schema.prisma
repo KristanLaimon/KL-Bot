@@ -47,7 +47,7 @@ model Tournament {
   name            String  @unique(map: "sqlite_autoindex_Tournament_1")
   description     String
   creationDate    BigInt
-  beginDate       BigInt
+  beginDate       BigInt?
   matchPeriodTime Int
   endDate         BigInt?
   cover_img_name  String?
