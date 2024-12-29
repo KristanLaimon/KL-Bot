@@ -3,9 +3,13 @@ import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
 import { ICommand, CommandScopeType, CommandAccessibleRoles, CommandHelpInfo } from '../../types/commands';
 import { Dates_GetFormatedDurationTimeFrom } from '../../utils/dates';
-import Kldb, { Db_GetTournamentFormattedInfo } from '../../utils/db';
+import Kldb, {
+  Db_GetStandardInfoPlayerFromMention,
+  Db_GetStandardInfoPlayerFromRawMsg,
+  Db_GetTournamentFormattedInfo
+} from "../../utils/db";
 import { Members_GetMemberInfoFromPhone } from '../../utils/members';
-import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
+import { Phone_GetFullPhoneInfoFromRawmsg, Phone_IsAMentionNumber } from "../../utils/phonenumbers";
 import { Msg_DefaultHandleError } from '../../utils/rawmsgs';
 import { Response_isAfirmativeAnswer } from '../../utils/responses';
 
@@ -14,7 +18,6 @@ export default class ExitATournamentCommand implements ICommand {
   description: string = "Permite salir de un torneo en el que estés registrado, solo podrás salir de torneos que no haya empezado todavía";
   maxScope: CommandScopeType = "Group";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro";
-
   helpMessage?: CommandHelpInfo = {
     structure: "salirtorneo",
     examples: [
@@ -27,24 +30,31 @@ export default class ExitATournamentCommand implements ICommand {
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
     try {
-      const playerInfo = await Members_GetMemberInfoFromPhone(Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg).number);
+      let playerInfo = await Db_GetStandardInfoPlayerFromRawMsg(args.originalMsg);
+      const isAdmin = playerInfo.role === 'AD';
+      const hasMentionedSomeone = args.commandArgs.length === 1 && Phone_IsAMentionNumber(args.commandArgs.at(0));
+
+      if(isAdmin && hasMentionedSomeone){
+        playerInfo = await Db_GetStandardInfoPlayerFromMention(args.commandArgs.at(0));
+        await chat.SendTxt("Se te ha dado privilegio de administrador de este comando, se utilizará la persona etiquetada en lugar de a ti para este proceso");
+      }
+
       const allSubscribedTournamentByPlayer = await Kldb.tournament_Player_Subscriptions.findMany({
         where: { player_id: playerInfo.id },
         include: { Tournament: { include: { TournamentType: true, MatchFormat: true, Tournament_Player_Subscriptions: true } } },
       });
 
       if (allSubscribedTournamentByPlayer.length === 0) {
-        await chat.SendTxt("No estás inscrito en ninguno de los torneos activos");
+        await chat.SendTxt("No hay ninguna suscripción a ningún torneo activo de momento");
         return;
       }
 
       const tournamentsSubscribed = allSubscribedTournamentByPlayer.map(subscribedTournament => subscribedTournament.Tournament);
 
-
       const selectedTournament = await chat.DialogWaitAnOptionFromListObj(
         tournamentsSubscribed,
         (tournament, index) => (index + 1).toString(),
-        "====== 🏆 Torneos Inscritos 🏆 ======\n💡 Selecciona el torneo del que deseas salirte. (Si el torneo ya empezó no aparecerá aquí)",
+        "====== 🏆 Torneos Inscritos 🏆 ======\n💡 Selecciona el torneo a salir. (Si el torneo ya empezó no aparecerá aquí)",
         "🚫 Número inválido 🚫\nEse número no corresponde a ningún torneo. Por favor, selecciona un número válido de la lista ('1', '2', etc). ¡Inténtalo de nuevo! 🔄\n\n",
         (tournament, index) => `
           ${index + 1}. 🏆 *${tournament.name}*  
@@ -55,14 +65,9 @@ export default class ExitATournamentCommand implements ICommand {
         60
       );
 
-      const imgCaptionInfo = await Db_GetTournamentFormattedInfo(selectedTournament.id);
-      if (selectedTournament.cover_img_name) {
-        await chat.SendImg(`db/tournaments_covers/${selectedTournament.cover_img_name}`, imgCaptionInfo);
-      } else {
-        await chat.SendTxt(imgCaptionInfo);
-      }
+      await chat.SendTournamentInfoFormatted(selectedTournament);
 
-      await chat.SendTxt("¿Estás seguro que quieres salirte?");
+      await chat.SendTxt("¿Estás seguro de salir de ese torneo?");
       if (Response_isAfirmativeAnswer(await chat.WaitNextTxtMsgFromSender(60))) {
         await Kldb.tournament_Player_Subscriptions.delete({
           where: {

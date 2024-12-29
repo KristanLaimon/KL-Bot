@@ -11,11 +11,11 @@ export default class VerMiembrosCommand implements ICommand {
   maxScope: CommandScopeType = "Group"
   helpMessage?: CommandHelpInfo = {
     structure: "miembros",
-    examples: [{ text: "miembros", isOk: true }, { text: "miembros someotherargument", isOk: false }],
+    examples: [{ text: "miembros", isOk: true }, { text: "miembros some_other_argument", isOk: false }],
     notes: "Checa todos los miembros actuales del clan"
   }
-  async onMsgReceived(bot: Bot, args: BotCommandArgs) {
-    const chat = new SpecificChat(bot, args);
+  async onMsgReceived(bot: Bot, args: BotCommandArgs):Promise<void> {
+    const chat = new SpecificChat(bot, args)
     try {
       const allMembers = await Kldb.player.findMany({ include: { Rank: true, Role: true } });
       await chat.SendTxt("========= Miembros Registrados ========");

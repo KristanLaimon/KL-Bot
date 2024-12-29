@@ -1,7 +1,7 @@
 import { TournamentSingleElimination } from './TournamentSingleElimination';
-import { AbstractTournament } from './TournamentTypos';
+import { GenericTournament } from './GenericTournament';
 
-const TournamentsTypesSelector = new Map<string, AbstractTournament>([
+const TournamentsTypesSelector = new Map<string, GenericTournament>([
   ["SE", new TournamentSingleElimination()],
 ]);
 export default TournamentsTypesSelector;

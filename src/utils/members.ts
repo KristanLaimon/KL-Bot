@@ -15,7 +15,7 @@ import Kldb from './db';
  * If an error occurs during the process, the function resolves to `false`.
  */
 export async function Members_IsAdminSender(rawMsg: WAMessage): Promise<boolean> {
-  let senderIsAnAdminAsWell: boolean = false;
+  let senderIsAnAdminAsWell: boolean;
   try {
     const phoneNumber = Phone_GetFullPhoneInfoFromRawmsg(rawMsg)!.number;
     senderIsAnAdminAsWell = !!(await Kldb.player.findFirst({ where: { phoneNumber, role: "AD" } }));

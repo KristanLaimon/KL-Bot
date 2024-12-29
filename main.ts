@@ -24,8 +24,8 @@ import SeeMySubscribedTournamentsCommand from './src/commands/general/mistorneos
 //Set moment library to spanish
 moment.locale("es");
 
-const klBot = new Bot({ prefix: "!", coolDownSecondsTime: 1, maxQueueMsgs: 5 });
 
+const klBot = new Bot({ prefix: "!", coolDownSecondsTime: 1, maxQueueMsgs: 5 });
 klBot.AddCommand(new HelpCommand());
 klBot.AddCommand(new AddMemberCommand());
 klBot.AddCommand(new DeleteAdmin());
@@ -45,4 +45,4 @@ klBot.AddCommand(new EnterToTournamentCommand());
 klBot.AddCommand(new ExitATournamentCommand());
 klBot.AddCommand(new SeeMySubscribedTournamentsCommand());
 
-klBot.StartBot();
+klBot.StartBot().then();

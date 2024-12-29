@@ -1,12 +1,13 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 import fs from "fs";
 import path from "path";
-import KlLogger from '../bot/logger';
-import { Dates_GetFormatedDurationTimeFrom } from './dates';
-import { Str_NormalizeLiteralString, Str_StringifyObj } from './strings';
-import { KlTournament, ParticipantInfo, KlScheduledMatch_Player, TeamColor, KlTournamentEnhanced } from '../types/db';
-import { AbstractTournament } from '../logic/TournamentTypos';
-import TournamentsTypesSelector from '../logic';
+import KlLogger from "../bot/logger";
+import { Dates_GetFormatedDurationTimeFrom } from "./dates";
+import { Str_NormalizeLiteralString, Str_StringifyObj } from "./strings";
+import { KlPlayer, KlScheduledMatch_Player, KlTournamentEnhanced, ParticipantInfo, TeamColor } from "../types/db";
+import { GenericTournament } from "../logic/GenericTournament";
+import { WAMessage } from "@whiskeysockets/baileys";
+import { Phone_GetFullPhoneInfoFromRawmsg, Phone_GetPhoneNumberFromMention } from "./phonenumbers";
 
 //Expose main database
 const Kldb = new PrismaClient();
@@ -14,6 +15,28 @@ export default Kldb
 
 
 //------------------- Db Utils ------------------
+// ============================ PLAYERS =============================
+export async function Db_GetStandardInfoPlayerFromRawMsg(rawMsg: WAMessage):Promise<KlPlayer | null>{
+  return await Db_GetStandardInfoPlayerFromNumber(Phone_GetFullPhoneInfoFromRawmsg(rawMsg).number);
+}
+
+export async function Db_GetStandardInfoPlayerFromMention(mention:string):Promise<KlPlayer | null>{
+  const phoneInfo = Phone_GetPhoneNumberFromMention(mention);
+  if(phoneInfo === null)return null;
+  return await Db_GetStandardInfoPlayerFromNumber(phoneInfo.number);
+}
+
+export async function Db_GetStandardInfoPlayerFromNumber(number:string):Promise<KlPlayer | null>{
+  try{
+    return await Kldb.player.findFirstOrThrow({
+      where: { phoneNumber: number },
+      include: { Rank: true, Role: true }
+    }) ;
+  }catch(e){
+    return null;
+  }
+}
+
 // ============================ TOURNAMENTS =============================
 export async function Db_DeleteTournamentById(tournamentId: number): Promise<boolean> {
   const tournament = await Kldb.tournament.findFirst({ where: { id: tournamentId } });
@@ -103,10 +126,7 @@ export async function Db_InsertNewTournamentSubscription(subscriptionDateTimeUNI
     const tournamentInfo: KlTournamentEnhanced = await Kldb.tournament.findFirstOrThrow({ where: { id: tournamentId }, include: { Tournament_Player_Subscriptions: true, TournamentType: true, MatchFormat: true } });
 
     if (tournamentInfo.Tournament_Player_Subscriptions.length >= tournamentInfo.max_players) {
-      const planner = TournamentsTypesSelector.get(tournamentInfo.tournament_type);
-      if (!planner) throw new Error(`Tournament type ${tournamentInfo.tournament_type} not found, this shouldn't happen!`);
-      const success = await Db_InsertNewFullTournamentPlanning(planner, tournamentInfo)
-      return success;
+      return await Db_InsertNewPhaseTournamentPlanning(tournamentInfo);
     }
 
     return true;
@@ -116,68 +136,69 @@ export async function Db_InsertNewTournamentSubscription(subscriptionDateTimeUNI
   }
 }
 
-export async function Db_InsertNewFullTournamentPlanning(planner: AbstractTournament, tournamentInfo: KlTournamentEnhanced): Promise<boolean> {
+export async function Db_InsertNewPhaseTournamentPlanning(tournamentInfo: KlTournamentEnhanced): Promise<boolean> {
   try {
     const participants: ParticipantInfo[] = await Kldb.tournament_Player_Subscriptions.findMany({
       where: { tournament_id: tournamentInfo.id },
       include: { Player: { include: { Rank: true, Role: true } } }
     });
 
-    const fullPlanning = planner.CreateNextPhase(tournamentInfo, participants);
+    const phasePlanning = GenericTournament.PlanNextPhaseMatches(tournamentInfo, participants);
 
     //Update tournament endDate
     await Kldb.tournament.update({
       where: { id: tournamentInfo.id },
       data: {
-        endDate: fullPlanning.endDate
+        endDate: phasePlanning.EndDate
       }
     });
 
-    //Most optimized possible..
+    //Most optimized possible…
     const scheduledMatch_PlayersToInsert: KlScheduledMatch_Player[] = [];
 
-    for (const mw of fullPlanning.MatchWindows) {
-      const fullCreatedMW = await Kldb.scheduledMatchWindow.create({
-        data: {
-          starting_date: BigInt(mw.StartWindowDate),
-          ending_date: BigInt(mw.EndWindowDate),
-          tournament_id: tournamentInfo.id
-        }
-      });
-
-      for (const sm of mw.ScheduledMatches) {
-        const fullCreatedSM = await Kldb.scheduledMatch.create({
-          data: {
-            match_type: sm.MatchTypeId,
-            scheduled_match_window_id: fullCreatedMW.id
-          }
-        })
-
-        const zeroOrOne = Math.round(Math.random());
-        const teamColorId1: string = zeroOrOne === 0 ? TeamColor.Blue : TeamColor.Orange;
-        const teamColorId2: string = !(zeroOrOne === 0) ? TeamColor.Blue : TeamColor.Orange;
-
-        for (const p of sm.Team1) {
-          scheduledMatch_PlayersToInsert.push({
-            player_id: p.id,
-            team_color_id: teamColorId1,
-            scheduled_match_id: fullCreatedSM.scheduled_match_window_id
-          })
-        }
-
-        for (const p of sm.Team2) {
-          scheduledMatch_PlayersToInsert.push({
-            player_id: p.id,
-            team_color_id: teamColorId2,
-            scheduled_match_id: fullCreatedSM.scheduled_match_window_id
-          })
-        }
-
-        await Kldb.scheduledMatch_Player.createMany({
-          data: scheduledMatch_PlayersToInsert
-        });
+    //Adding ScheduleMatch general info
+    const fullCreatedMW = await Kldb.scheduledMatchWindow.create({
+      data: {
+        starting_date: BigInt(phasePlanning.StartDate),
+        ending_date: BigInt(phasePlanning.EndDate),
+        tournament_id: tournamentInfo.id
       }
+    });
+
+    //Adding every ScheduleMatch inside
+    for (const sm of phasePlanning.ScheduledMatches) {
+      const fullCreatedSM = await Kldb.scheduledMatch.create({
+        data: {
+          match_type: sm.MatchTypeId,
+          scheduled_match_window_id: fullCreatedMW.id
+        }
+      })
+
+      const zeroOrOne = Math.round(Math.random());
+      const teamColorId1: string = zeroOrOne === 0 ? TeamColor.Blue : TeamColor.Orange;
+      const teamColorId2: string = !(zeroOrOne === 0) ? TeamColor.Blue : TeamColor.Orange;
+
+      for (const p of sm.Team1) {
+        scheduledMatch_PlayersToInsert.push({
+          player_id: p.id,
+          team_color_id: teamColorId1,
+          scheduled_match_id: fullCreatedSM.scheduled_match_window_id
+        })
+      }
+
+      for (const p of sm.Team2) {
+        scheduledMatch_PlayersToInsert.push({
+          player_id: p.id,
+          team_color_id: teamColorId2,
+          scheduled_match_id: fullCreatedSM.scheduled_match_window_id
+        })
+      }
+
+      await Kldb.scheduledMatch_Player.createMany({
+        data: scheduledMatch_PlayersToInsert
+      });
     }
+
     return true;
   } catch (e) {
     KlLogger.error(`Couldn't plan tournament nor update it (maybe) in db: ${JSON.stringify(e, null, 0)}`);
@@ -191,7 +212,6 @@ export async function Db_InsertNewFullTournamentPlanning(planner: AbstractTourna
  * terminar inserttournamentplanngin into db
  *    terminar de actualizar el cache de los timers cuando se inserte en db
  * organizar este archivo dios santo!
- *    
  */
 
 

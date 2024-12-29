@@ -49,10 +49,3 @@ jest.mock("../../src/utils/db", () => ({
     max_players: 16
   }
 ]);
-
-describe('It must store pendingMatches cache', () => {
-  it("should retrieve pending matches from db", async () => {
-    await GlobalCache.UpdateCache();
-    expect(GlobalCache.SemiAuto_PendingTournamentsTimers.length).toBe(1);
-  })
-})

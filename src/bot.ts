@@ -56,7 +56,7 @@ export default class Bot {
     this.socket.onEnteringGroup.Subscribe(this.OnEnteringGroup);
 
     await GlobalCache.UpdateCache();
-    this.socket.Init();
+    await this.socket.Init();
   }
 
   public AddCommand(commandInstance: ICommand) {
@@ -75,7 +75,7 @@ export default class Bot {
       // const defaultWelcomeMsgUserPath = "resources/default_welcome/user/msg.txt"
       // const defaultWelcomeCoverUserPath = "resources/default_welcome/user/cover.jpg"
       const text = fs.readFileSync(defaultWelcomeMsgGroupPath).toString();
-      this.Send.Img(groupInfo.id, defaultWelcomeCoverGroupPath, text);
+      await this.Send.Img(groupInfo.id, defaultWelcomeCoverGroupPath, text);
 
     } catch (e) {
       KlLogger.error(`There was an error loading default welcome: ${JSON.stringify(e, null, 0)}`)
@@ -101,7 +101,7 @@ export default class Bot {
       if (!fullText.startsWith(this.config.prefix!)) return;
 
       if (fullText.length > 1500) {
-        this.Send.Text(chatId, 'El mensaje es demasiado largo, (¿Cómo por qué mandarías algo así?) ...');
+         await this.Send.Text(chatId, 'El mensaje es demasiado largo, (¿Cómo por qué mandarías algo así?) ...');
         return;
       }
 
@@ -133,25 +133,25 @@ export default class Bot {
       if (msgComesFromRegisteredGroup) {
         if (!this.CommandsHandler.HasCorrectScope(commandNameText, "Group")) {
           if (senderType === SenderType.Group)
-            this.Send.Text(chatId, 'No puedes usar un comando externo en un grupo registrado...');
+            await this.Send.Text(chatId, 'No puedes usar un comando externo en un grupo registrado...');
           if (senderType === SenderType.Individual)
-            this.Send.Text(chatId, 'No puedes usar un comando para chats no registrados en un chat individual...')
+            await this.Send.Text(chatId, 'No puedes usar un comando para chats no registrados en un chat individual...')
           return;
         }
       } else {
         if ((!this.CommandsHandler.HasCorrectScope(commandNameText, "External"))) {
           //if enters here it means it could be a group or a private chat with someone
           if (senderType === SenderType.Group)
-            this.Send.Text(chatId, 'No puedes usar ese comando en un grupo no registrado por el bot...')
+            await this.Send.Text(chatId, 'No puedes usar ese comando en un grupo no registrado por el bot...')
           if (senderType === SenderType.Individual)
-            this.Send.Text(chatId, 'No puedes usar ese comando de grupo en un chat individual (??)...');
+            await this.Send.Text(chatId, 'No puedes usar ese comando de grupo en un chat individual (??)...');
           return;
         }
       }
 
       //Check permissions
       if (!this.CommandsHandler.HasPermissionToExecute(commandNameText, actualRoleSender)) {
-        this.Send.Text(chatId, "No tienes permiso para ejecutar este comando");
+        await this.Send.Text(chatId, "No tienes permiso para ejecutar este comando");
         return;
       }
 

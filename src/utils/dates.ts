@@ -59,7 +59,6 @@ export function Dates_Add24hrsFormatTimeToMomentObj(momentObj: Moment, TwelveHrs
 
 /**
  * Given a number of milliseconds representing a full UNIX DATE, returns a string with a human-readable representation of its difference in time from NOW.
- * @param time The full unix time duration to calculate the time since that date from NOW
  * @returns A string humanized, e.g.:
  * - "3 años, 2 meses y 5 días".
  * - "1 mes y 2 días".
@@ -77,8 +76,13 @@ export function Dates_GetFormatedDurationTimeFrom(pastDate: bigint | number, opt
     return prefix + Dates_HumanizeDatesUntilSeconds(timePassed.asMilliseconds());
   else if (options && options.includingHours)
     return prefix + Dates_HumanizeDatesUntilHours(timePassed.asMilliseconds());
-  else
-    return prefix + Dates_HumanizeDatesUntilDays(timePassed.asMilliseconds());
+  else{
+    if (timePassed.asDays() <= 1){
+      return "Hoy mismo";
+    }else{
+      return prefix + Dates_HumanizeDatesUntilDays(timePassed.asMilliseconds());
+    }
+  }
 }
 
 /**

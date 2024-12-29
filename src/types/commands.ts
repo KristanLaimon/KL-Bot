@@ -30,12 +30,41 @@ export type CommandHelpInfo = {
 }
 
 export interface ICommand {
+  /**
+   * The name of the command
+   */
   commandName: string;
+  /**
+   * A short description of what the command does
+   */
   description: string;
+  /**
+   * The minimum role required to use this command
+   */
   minimumRequiredPrivileges: CommandAccessibleRoles;
+  /**
+   * The maximum scope in which this command can be used
+   */
   maxScope: CommandScopeType;
+  /**
+   * A help message to show to the user
+   */
   helpMessage?: CommandHelpInfo;
+  /**
+   * The function to call when the command is received
+   * @param bot the bot instance
+   * @param args the arguments passed to the command
+   */
   onMsgReceived: (bot: Bot, args: BotCommandArgs) => Promise<void>;
+}
+type CommandOnMsgReceivedType = (bot: Bot, args: BotCommandArgs) => Promise<void>
+export type ICommandExtension = {
+  /**
+   * The function to call when the command is received, its design to be just a helper command extension from a father/bigger one
+   * @param bot the bot instance
+   * @param args the arguments passed to the command
+   */
+  onMsgReceived: (bot: Bot, args: BotCommandArgs, originalCommand: ICommand) => Promise<void>;
 }
 
 export enum SenderType {

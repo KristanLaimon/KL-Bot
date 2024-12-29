@@ -52,6 +52,7 @@ export type KlScheduledMatch_Player = KlGetTableType<typeof Kldb.scheduledMatch_
 export type KlTournamentType = KlGetTableType<typeof Kldb.tournamentType.findFirst>;
 export type KlTournament_Player_Subscription = KlGetTableType<typeof Kldb.tournament_Player_Subscriptions.findFirst>;
 export type KlMatchType = KlGetTableType<typeof Kldb.matchType.findFirst>;
+export type KlTournament_Ranks_Admitted = KlGetTableType<typeof Kldb.tournament_Rank_RanksAdmitted.findFirst>
 
 export enum TeamColor {
   Blue = 'BLU',
@@ -66,4 +67,8 @@ export type KlTournamentEnhanced = KlTournament & {
   TournamentType: KlTournamentType;
   Tournament_Player_Subscriptions: KlTournament_Player_Subscription[];
   MatchFormat: KlMatchType
+}
+
+export type KlTournamentDoubleEnhanced = KlTournamentEnhanced & {
+  Tournament_Rank_RanksAdmitteds: KlTournament_Ranks_Admitted[]
 }

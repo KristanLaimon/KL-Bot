@@ -2,16 +2,20 @@ import Bot from '../bot';
 import { BotCommandArgs, WaitTextRegexFormat } from '../types/bot';
 import { MsgType } from '../types/commands';
 import { Msg_GetTextFromRawMsg } from '../utils/rawmsgs';
-
+import { Str_NormalizeLiteralString } from "../utils/strings";
+import { Db_GetTournamentFormattedInfo } from "../utils/db";
+import { KlTournament, KlTournamentEnhanced } from "../types/db";
 
 export class SpecificChat {
-  private bot: Bot;
+  private readonly bot: Bot;
   private args: BotCommandArgs;
+
   constructor(bot: Bot, specificArgs: BotCommandArgs, customChatIdToSend?: string) {
     this.bot = bot;
     this.args = structuredClone(specificArgs);
     if (customChatIdToSend) this.args.chatId = customChatIdToSend;
   }
+
   ///================== Sending ====================
   /**
    * Sends a text message to the specified chat.
@@ -34,6 +38,14 @@ export class SpecificChat {
    */
   async SendImg(imgPath: string, caption?: string): Promise<void> {
     await this.bot.Send.Img(this.args.chatId, imgPath, caption);
+  }
+
+  async SendTournamentInfoFormatted(tournamentInfo:KlTournament){
+    const fullTournamentInfo = await Db_GetTournamentFormattedInfo(tournamentInfo.id);
+    if (tournamentInfo.cover_img_name !== null)
+      await this.SendImg(`db/tournaments_covers/${tournamentInfo.cover_img_name}`, fullTournamentInfo);
+    else
+      await this.SendTxt(fullTournamentInfo);
   }
 
 
@@ -135,9 +147,9 @@ export class SpecificChat {
     const selectedProps = allOptionsObj.map(selectPropCallback);
     const selectedByUser = await this.DialogWaitAnOptionFromList(
       selectedProps,
-      startingMsg,
-      errorMsg,
-      (elementStr, index) => formatElementCallBack(allOptionsObj[index], index),
+      Str_NormalizeLiteralString(startingMsg),
+      Str_NormalizeLiteralString(errorMsg),
+      (elementStr, index) => Str_NormalizeLiteralString(formatElementCallBack(allOptionsObj[index], index)),
       timeout
     );
     const selectedObj = allOptionsObj.find((optionObj, index) => selectPropCallback(optionObj, index) === selectedByUser);

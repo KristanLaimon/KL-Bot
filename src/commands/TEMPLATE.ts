@@ -12,6 +12,8 @@ export default class c implements ICommand {
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     //@ts-ignore
     const chat = new SpecificChat(bot, args);
+    //@ts-ignore
+    const dialog = new SpecificDialog(bot, args);
     try {
 
     } catch (e) {
@@ -19,20 +21,4 @@ export default class c implements ICommand {
       Msg_DefaultHandleError(bot, args.chatId, e);
     }
   }
-}
-
-//@ts-ignore
-async function Help1(chat: SpecificChat) {
-}
-
-//@ts-ignore
-async function Help2(chat: SpecificChat) {
-}
-
-//@ts-ignore
-async function Help3(chat: SpecificChat) {
-}
-
-//@ts-ignore
-async function Help4(chat: SpecificChat) {
 }

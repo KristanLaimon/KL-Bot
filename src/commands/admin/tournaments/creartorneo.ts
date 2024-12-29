@@ -11,6 +11,7 @@ import { GenerateInstructionSteps } from '../../../utils/dialog';
 import { Db_TryToDownloadMedia } from '../../../utils/filesystem';
 import { Msg_DefaultHandleError } from '../../../utils/rawmsgs';
 import { Response_isAfirmativeAnswer, Response_isNegativeAnswer } from '../../../utils/responses';
+import SpecificDialog from "../../../bot/SpecificDialog";
 
 export default class CreateTournamentCommand implements ICommand {
   commandName: string = "creartorneo";
@@ -27,10 +28,16 @@ export default class CreateTournamentCommand implements ICommand {
 
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
+    const dialog = new SpecificDialog(bot, args);
     let storedImg: string | null = null;
     try {
       await chat.SendTxt(`====== Creación de un torneo =====`);
       const defaultTimeout = 250
+
+      dialog.AddStep("Ingresa el tipo de torneo", async (chat) => {
+
+      })
+
       const step = GenerateInstructionSteps([
         "Ingresa el tipo de torneo:",
         "Ingresa el nombre del torneo:",
@@ -63,7 +70,6 @@ export default class CreateTournamentCommand implements ICommand {
       // DESCRIPTION
       await chat.SendTxt(step());
       const DESCRIPTIONSELECTED = await chat.WaitNextTxtMsgFromSender(defaultTimeout);
-
 
       //GAME TYPE / MATCH FORMAT
       await chat.SendTxt(step());
@@ -116,32 +122,17 @@ export default class CreateTournamentCommand implements ICommand {
         MAXPLAYERSSELECTED = parseInt(__maxPlayers);
 
         const __playersPerTeamNeeded = SELECTED_IS_CUSTOM ? SELECTED_custom_players_per_team : _gameTypeSelected.players_per_team;
-        const remainderPlayers = MAXPLAYERSSELECTED % __playersPerTeamNeeded;
+        const remainderPlayers = MAXPLAYERSSELECTED % (__playersPerTeamNeeded * 2);
 
         if (remainderPlayers === 0) {
           break;
         } else {
-          await chat.SendTxt(`El número de jugadores por equipo debe concordar con el tamaño de ${__playersPerTeamNeeded} integrantes, si se hicieran equipos de ${__playersPerTeamNeeded} jugadores, terminaría sobrando ${remainderPlayers} jugadores...`);
+          await chat.SendTxt(`
+          El número de jugadores por equipo debe concordar con el tamaño de ${__playersPerTeamNeeded} integrantes por equipo. 
+          Si se hicieran equipos de ${__playersPerTeamNeeded} jugadores,
+          daría ${__playersPerTeamNeeded * 2} por partida y terminaría sobrando sobrando ${remainderPlayers} jugadores...`);
         }
       }
-
-      // // START DATE
-      // await chat.SendTxt(step());
-      // const _formatedDate = await chat.WaitNextTxtMsgFromSenderSpecific(
-      //   Dates_DateInputRegex,
-      //   "No has ingresado un fecha válida, recuerda que el formato debe ser 'año/mes/día', por ejemplo: '2022/enero/25', prueba de nuevo: ",
-      //   defaultTimeout
-      // );
-      // const STARTDATESELECTED = Dates_ConvertDateInputToMomentJs(_formatedDate);
-
-      // // HOUR DATE START
-      // await chat.SendTxt(step());
-      // const _formatedHour = await chat.WaitNextTxtMsgFromSenderSpecific(
-      //   Dates_12HrsInputRegex,
-      //   "No has ingresado una hora valida, recuerda que el formato debe ser 'hora:minutos AM/PM', por ejemplo: '10:30 AM', prueba de nuevo: ",
-      //   defaultTimeout
-      // );
-      // Dates_Add24hrsFormatTimeToMomentObj(STARTDATESELECTED, _formatedHour);
 
       // Period/Window time in days to play each match (2 digits number)
       await chat.SendTxt(step());

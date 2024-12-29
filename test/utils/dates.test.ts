@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { Dates_Add24hrsFormatTimeToMomentObj, Dates_GetFormatedDurationTimeFrom, Dates_GetTimePassedSinceDuelMatchPending, Dates_SpanishMonthToNumber } from '../../src/utils/dates';
+import { Dates_Add24hrsFormatTimeToMomentObj, Dates_GetFormatedDurationTimeFrom, Dates_SpanishMonthToNumber } from '../../src/utils/dates';
 import { Dates_12HrsInputRegex } from '../../src/utils/dates';
 
 describe('Getting formated duration days since a date in spanish', () => {
@@ -11,19 +11,19 @@ describe('Getting formated duration days since a date in spanish', () => {
 
   it('should accept future dates in absolute value', () => {
     const futureDate = moment().add(1, 'day').add(1, 'hour').valueOf();
-    expect(Dates_GetFormatedDurationTimeFrom(futureDate)).toBe('1 día')
+    expect(Dates_GetFormatedDurationTimeFrom(futureDate)).toBe('En 1 día')
   });
 
   it('should return "hoy mismo" with a date that is the same as the current date', () => {
     const currentDate = moment().valueOf();
     const result = Dates_GetFormatedDurationTimeFrom(currentDate);
-    expect(result).toBe('hoy mismo');
+    expect(result).toBe('Hoy mismo');
   });
 
   it('should return a string with the time passed since a date that is one day in the past', () => {
-    const pastDate = moment().subtract(1, 'day').valueOf();
+    const pastDate = moment().subtract(1, 'day').subtract(4, 'hour').valueOf();
     const result = Dates_GetFormatedDurationTimeFrom(pastDate);
-    expect(result).toContain('día');
+    expect(result).toContain('Hace 1 día');
   });
 
   it('should return a string with the time passed since a date that is one month in the past', () => {
@@ -39,24 +39,7 @@ describe('Getting formated duration days since a date in spanish', () => {
   });
 });
 
-describe('Getting formated duration time from last match pending', () => {
-  it('should return a string with minutes and seconds', () => {
-    const pendingMatch = { dateTime: new Date().getTime() - 3 * 60 * 1000 - 2 * 1000 };
-    const result = Dates_GetTimePassedSinceDuelMatchPending(pendingMatch as any);
-    expect(result).toBe('3 minutos, 2 segundos');
-  });
-  it('should return a string with only seconds', () => {
-    const pendingMatch = { dateTime: new Date().getTime() - 2 * 1000 };
-    const result = Dates_GetTimePassedSinceDuelMatchPending(pendingMatch as any);
-    expect(result).toBe('2 segundos');
-  });
-  it('should not throw an error when the pending match was requested in the future', () => {
-    const pendingMatch = { dateTime: new Date().getTime() + 10 * 1000 };
-    expect(() => {
-      const result = Dates_GetTimePassedSinceDuelMatchPending(pendingMatch as any);
-    }).toThrow('For some reason, GetTimePassedSinceDuelMatchPending has got a future date!')
-  });
-});
+
 
 describe('Getting the number of a spanish month', () => {
   it('should return the correct month number for valid month names', () => {

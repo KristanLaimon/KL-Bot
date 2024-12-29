@@ -18,12 +18,12 @@ export default class WhatsSocketMsgQueue {
   private queue: SocketMsgQueueItem[] = [];
   private isProcessing: boolean = false;
   private whatsSocket: WhatsSocket;
-  private minMilisecondsDelay: number;
-  private maxQueueLimit: number;
+  private readonly minMillisecondsDelay: number;
+  private readonly maxQueueLimit: number;
 
   constructor(socket: WhatsSocket, maxQueueLimit: number = 3, minMilisecondsDelay: number = 1000) {
     this.whatsSocket = socket;
-    this.minMilisecondsDelay = minMilisecondsDelay;
+    this.minMillisecondsDelay = minMilisecondsDelay;
     this.maxQueueLimit = maxQueueLimit;
   }
 
@@ -40,7 +40,7 @@ export default class WhatsSocketMsgQueue {
     })
   }
 
-  private async ProcessQueue() {
+  private async ProcessQueue():Promise<void> {
     if (this.isProcessing || this.queue.length === 0) return;
 
     const { chatId, content, misc, resolve, reject } = this.queue.shift()!;
@@ -51,7 +51,7 @@ export default class WhatsSocketMsgQueue {
     catch (error) {
       reject(error);
     }
-    await new Promise(resolve => setTimeout(resolve, this.minMilisecondsDelay));
+    await new Promise(resolve => setTimeout(resolve, this.minMillisecondsDelay));
     this.isProcessing = false;
     this.ProcessQueue();
   }
