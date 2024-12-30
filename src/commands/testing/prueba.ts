@@ -17,7 +17,7 @@ export default class TestCommand implements ICommand {
     const armable: Partial<KlTournament> = {}
 
     d.AddStep<void, boolean>("Hola, espero que me respondas con un hola también ", async (chat)  => {
-      const response = await chat.WaitNextTxtMsgFromSender(60);
+      const response = await chat.AskText(60);
       armable.custom_players_per_team = 3;
       return response.includes("hola");
     })

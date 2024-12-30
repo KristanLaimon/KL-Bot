@@ -1,17 +1,17 @@
-import fs from "fs"
-import Bot from '../../../bot';
-import KlLogger from '../../../bot/logger';
-import { SpecificChat } from '../../../bot/SpecificChat';
-import { BotCommandArgs } from '../../../types/bot';
-import { ICommand, CommandScopeType, CommandAccessibleRoles, MsgType, CommandHelpInfo } from '../../../types/commands';
-import { KlTournament } from '../../../types/db';
-import { Dates_12HrsInputRegex, Dates_Add24hrsFormatTimeToMomentObj, Dates_ConvertDateInputToMomentJs, Dates_DateInputRegex } from '../../../utils/dates';
-import Kldb from '../../../utils/db';
-import { GenerateInstructionSteps } from '../../../utils/dialog';
-import { Db_TryToDownloadMedia } from '../../../utils/filesystem';
-import { Msg_DefaultHandleError } from '../../../utils/rawmsgs';
-import { Response_isAfirmativeAnswer, Response_isNegativeAnswer } from '../../../utils/responses';
+import fs from "fs";
+import Bot from "../../../bot";
+import KlLogger from "../../../bot/logger";
+import { SpecificChat } from "../../../bot/SpecificChat";
+import { BotCommandArgs } from "../../../types/bot";
+import { CommandAccessibleRoles, CommandHelpInfo, CommandScopeType, ICommand, MsgType } from "../../../types/commands";
+import { KlMatchType, KlTournament } from "../../../types/db";
+import Kldb from "../../../utils/db";
+import { GenerateInstructionSteps } from "../../../utils/dialog";
+import { Db_TryToDownloadMedia } from "../../../utils/filesystem";
+import { Msg_DefaultHandleError } from "../../../utils/rawmsgs";
+import { Response_isAfirmativeAnswer } from "../../../utils/responses";
 import SpecificDialog from "../../../bot/SpecificDialog";
+import { Str_StringifyObj } from "../../../utils/strings";
 
 export default class CreateTournamentCommand implements ICommand {
   commandName: string = "creartorneo";
@@ -28,30 +28,15 @@ export default class CreateTournamentCommand implements ICommand {
 
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
-    const dialog = new SpecificDialog(bot, args);
-    let storedImg: string | null = null;
-    try {
-      await chat.SendTxt(`====== Creación de un torneo =====`);
-      const defaultTimeout = 250
+    const dialog = new SpecificDialog(bot, args, { withNumeratedSteps: true});
+    const OUTSIDE_DefaultTimeout = 250
+    const OUTSIDE_SelectedRanks: Awaited<ReturnType<typeof Kldb.rank.findMany>> = [];
+    let   OUTSIDE_storedImg: string | null = null;
+    const TOURNAMENTFINAL: Partial<KlTournament> = {};
 
-      dialog.AddStep("Ingresa el tipo de torneo", async (chat) => {
+    await chat.SendTxt(`====== Creación de un torneo =====`);
 
-      })
-
-      const step = GenerateInstructionSteps([
-        "Ingresa el tipo de torneo:",
-        "Ingresa el nombre del torneo:",
-        "Ingresa la descripción del torneo:",
-        "Ingresa el tipo de partidas que tendrá el torneo:",
-        "Ingresa la cantidad de jugadores máximo del torneo:",
-        //Period/Window time in days to play each match (2 digits number)
-        'Ingresa la ventana de juego del torneo (el tiempo que tendrá cada jugador para realizar su partido): (En días, por ejemplo: 1, 2 ó 6 días, no se permite 0 ni negativos)',
-        'Ahora elige la lista de rangos que serán admitidos para jugar en el torneo:',
-        'Deseas ingresar una foto como portada del torneo? (Contesta si u ok, puedes omitirlo mandando cualquier otro msg)'
-      ])
-
-      // TYPE
-      await chat.SendTxt(step());
+    dialog.AddStep("Ingresa el tipo de torneo", async (chat) => {
       const _typesAvailable = await Kldb.tournamentType.findMany();
       const _typeSelected = await chat.DialogWaitAnOptionFromListObj(
         _typesAvailable,
@@ -59,35 +44,44 @@ export default class CreateTournamentCommand implements ICommand {
         "Lista de tipos de torneos disponibles:",
         "Ese tipo no existe, selecciona el número de la lista, e.g: '1' para eliminación simple, prueba de nuevo:",
         (info, index) => `${index + 1}. ${info.id} | ${info.name}`,
-        defaultTimeout
+        OUTSIDE_DefaultTimeout
       );
-      const TYPESELECTED = _typeSelected.id;
+      TOURNAMENTFINAL.tournament_type = _typeSelected.id;
+    })
 
-      // NAME
-      await chat.SendTxt(step());
-      const NAMESELECTED = await chat.WaitNextTxtMsgFromSender(defaultTimeout);
+    dialog.AddStep("Ingresa el nombre del torneo", async (chat) => {
+      const allExistingTournamentNames = (await Kldb.tournament.findMany({select: { name: true}}))
+      let name:string = "Sin nombre";
 
-      // DESCRIPTION
-      await chat.SendTxt(step());
-      const DESCRIPTIONSELECTED = await chat.WaitNextTxtMsgFromSender(defaultTimeout);
+      while(true){
+        name = await chat.AskText(OUTSIDE_DefaultTimeout);
+        if(!allExistingTournamentNames.some((existingTournament) => existingTournament.name.toLowerCase() === name.toLowerCase())) {
+          break;
+        }else{
+          await chat.SendTxt("Ya existe un torneo con ese nombre, prueba de nuevo");
+        }
+      }
 
-      //GAME TYPE / MATCH FORMAT
-      await chat.SendTxt(step());
+      TOURNAMENTFINAL.name = name;
+    })
+
+    dialog.AddStep("Ingresa la descripción del torneo", async (chat) => {
+      TOURNAMENTFINAL.description = await chat.AskText(OUTSIDE_DefaultTimeout);
+    })
+
+    dialog.AddStep<void, {isCustom:boolean, gameTypeSelectedObj:KlMatchType} >("Ingresa el modo de juego que tendrá el torneo", async (chat) => {
       const _allGameTypes = await Kldb.matchType.findMany({ orderBy: { id: "asc" } });
-      let SELECTED_IS_CUSTOM = false;
-      let SELECTED_custom_players_per_team = -1;
       const _gameTypeSelected = await chat.DialogWaitAnOptionFromListObj(
         _allGameTypes,
         (info, index) => (index + 1).toString(),
         "Lista de tipos de partidas disponibles:",
         "Ese tipo no existe, selecciona el número de la lista, e.g: '1' para 1vs1, prueba de nuevo:",
         (info, index) => `${index + 1}. ${info.id} | ${info.name}`,
-        defaultTimeout
+        OUTSIDE_DefaultTimeout
       );
+
       //Is custom game
       if (_gameTypeSelected.id === "CU") {
-        SELECTED_IS_CUSTOM = true;
-
         const __allGameTypesExceptSomeOnes = await Kldb.matchType.findMany({ where: { NOT: { id: { in: ["1S", "2S", "3S"] } } }, orderBy: { id: "asc" } });
         const __gameTypeSelectedAgain = await chat.DialogWaitAnOptionFromListObj(
           __allGameTypesExceptSomeOnes,
@@ -95,62 +89,61 @@ export default class CreateTournamentCommand implements ICommand {
           "== CUSTOM ==\nLista de tipos de partidas personalizadas disponibles:",
           "Ese tipo no existe, selecciona el número de la lista, e.g: '1' ó '2', prueba de nuevo:",
           (info, index) => `${index + 1}. ${info.id} | ${info.name}`,
-          defaultTimeout
+          OUTSIDE_DefaultTimeout
         );
         _gameTypeSelected.id = __gameTypeSelectedAgain.id
 
         await chat.SendTxt(`Has elegido ${__gameTypeSelectedAgain.name}, indica el número de jugadores por equipo personalizado: (Ejemplo: '2' para 2 jugadores por equipo)`);
-        const _customMaxPlayers = await chat.WaitNextTxtMsgFromSenderSpecific(
+        const _customMaxPlayersPerTeam = await chat.AskForSpecificText(
           /^\d{1}$/,
           "No has ingresado un número valido, recuerda que el formato debe ser un 'número de jugadores', por ejemplo: '2' pero no más de '10', prueba de nuevo: ",
-          defaultTimeout
+          OUTSIDE_DefaultTimeout
         );
-        SELECTED_custom_players_per_team = parseInt(_customMaxPlayers);
+        TOURNAMENTFINAL.custom_players_per_team = parseInt(_customMaxPlayersPerTeam);
       }
-      const SELECTEDGAMETYPE = _gameTypeSelected.id;
-
-      // Max players
-      let MAXPLAYERSSELECTED: number = 0;
-      let _textToSend = step();
-      while (true) {
-        await chat.SendTxt(_textToSend);
-        const __maxPlayers = await chat.WaitNextTxtMsgFromSenderSpecific(
-          /^\d{1,2}$/,
-          "No has ingresado un número valido, recuerda que el formato debe ser un 'número de jugadores', por ejemplo: '10' pero no más de '99', prueba de nuevo: ",
-          defaultTimeout
-        );
-        MAXPLAYERSSELECTED = parseInt(__maxPlayers);
-
-        const __playersPerTeamNeeded = SELECTED_IS_CUSTOM ? SELECTED_custom_players_per_team : _gameTypeSelected.players_per_team;
-        const remainderPlayers = MAXPLAYERSSELECTED % (__playersPerTeamNeeded * 2);
-
-        if (remainderPlayers === 0) {
-          break;
-        } else {
-          await chat.SendTxt(`
-          El número de jugadores por equipo debe concordar con el tamaño de ${__playersPerTeamNeeded} integrantes por equipo. 
-          Si se hicieran equipos de ${__playersPerTeamNeeded} jugadores,
-          daría ${__playersPerTeamNeeded * 2} por partida y terminaría sobrando sobrando ${remainderPlayers} jugadores...`);
-        }
+      TOURNAMENTFINAL.match_format = _gameTypeSelected.id;
+      return {
+        isCustom: TOURNAMENTFINAL.custom_players_per_team !== -1, //Return if its custom. -1 (No custom) and any other value make this custom
+        gameTypeSelectedObj: _gameTypeSelected
       }
+    })
 
-      // Period/Window time in days to play each match (2 digits number)
-      await chat.SendTxt(step());
-      const _daysNumber = await chat.WaitNextTxtMsgFromSenderSpecific(
+    dialog.AddStep<{isCustom:boolean, gameTypeSelectedObj:KlMatchType}, void>("Ingresa la cantidad de jugadores máximos del torneo", async (chat, info) => {
+      const __playersPerTeamNeeded = info.isCustom ? TOURNAMENTFINAL.custom_players_per_team : info.gameTypeSelectedObj.players_per_team;
+
+      const availablePhases = [1,2,3,4,5].map(n => n.toString());
+      //Ask about how many phases the tournament will have, indicating the players needed for each phase
+      const selectedNumberPhases = await chat.DialogWaitAnOptionFromList(
+        availablePhases,
+        ` Selecciona la cantidad de fases que desees para el torneo: (eg. 1 para una fase, 2 para 2 fases, etc...)
+          Nota: Seleccionaste ${info.gameTypeSelectedObj.name} como modo de juego y necesita ${__playersPerTeamNeeded} jugadores por equipo `,
+        ` Esa cantidad de fases no es valida, solo ingresa el número, nada más (e.g. 1 para una fase, 2 para 2 fases, etc...), prueba de nuevo: `,
+        (number) =>
+          ` ${number} ${number === "1" ? "fase" : "fases"}
+            Esto requerirá: ${Math.pow(2, parseInt(number))} equipos y ${Math.pow(2, parseInt(number)) * __playersPerTeamNeeded} jugadores.
+            . `,
+        OUTSIDE_DefaultTimeout
+      )
+
+      TOURNAMENTFINAL.max_players = Math.pow(2, parseInt(selectedNumberPhases)) * __playersPerTeamNeeded;
+    });
+
+    dialog.AddStep("Ingresa la ventana de juego del torneo (el tiempo que tendrá cada jugador para realizar su partido): (En días, por ejemplo: 1, 2 ó 6 días, no se permite 0 ni negativos)", async (specificChat) => {
+      const _daysNumber = await chat.AskForSpecificText(
         /^(?!-)(?!0+$)\d{1,2}$/,
         "No has ingresado un número valido, recuerda que el formato debe ser 'número de dias', por ejemplo: '10', prueba de nuevo: ",
-        defaultTimeout
+        OUTSIDE_DefaultTimeout
       );
-      const WINDOWDAYSSELECTED = parseInt(_daysNumber);
+      TOURNAMENTFINAL.matchPeriodTime = parseInt(_daysNumber);
+    })
 
-      // Ranks Admitted to tournament
-      await chat.SendTxt(step());
-      const SELECTEDRANKS: Awaited<ReturnType<typeof Kldb.rank.findMany>> = [];
+    dialog.AddStep("Ahora elige la lista de rangos que serán admitidos para jugar en el torneo:", async () => {
       let _userStillWantsToStartSelectingRanksAgain = false;
       do {
+        OUTSIDE_SelectedRanks.splice(0, OUTSIDE_SelectedRanks.length);
         const _ranksAvailable = await Kldb.rank.findMany();
         let _userWantToContinueSelecting = false;
-        for (let i = 0; i < SELECTEDRANKS.length; i++) SELECTEDRANKS.pop();
+        for (let i = 0; i < OUTSIDE_SelectedRanks.length; i++) OUTSIDE_SelectedRanks.pop();
         do {
           const _thisIterationRankSelected = await chat.DialogWaitAnOptionFromListObj(
             _ranksAvailable,
@@ -159,7 +152,7 @@ export default class CreateTournamentCommand implements ICommand {
             '❌ Ese rango no existe. Por favor, selecciona el número de la lista. Ejemplo: "1" o "2". Intenta nuevamente:',
             (info, index) => `${index + 1}. *${info.name}*`
           );
-          SELECTEDRANKS.push(_thisIterationRankSelected);
+          OUTSIDE_SelectedRanks.push(_thisIterationRankSelected);
           _ranksAvailable.splice(_ranksAvailable.indexOf(_thisIterationRankSelected), 1);
           // Feedback después de selección
           await chat.SendTxt(`
@@ -168,89 +161,81 @@ export default class CreateTournamentCommand implements ICommand {
             ¿Te gustaría seleccionar otro rango? 
             Ingresa *si* para continuar o *no* para finalizar.
           `);
-          _userWantToContinueSelecting = Response_isAfirmativeAnswer(await chat.WaitNextTxtMsgFromSender(defaultTimeout));
+          _userWantToContinueSelecting = Response_isAfirmativeAnswer(await chat.AskText(OUTSIDE_DefaultTimeout));
         } while (_userWantToContinueSelecting);
         // Resumen de los rangos seleccionados
         await chat.SendTxt(`
           🏆 *Rangos Seleccionados:*
-          ${SELECTEDRANKS.map((rank, index) => `${index + 1}. *${rank.name}*`).join('\n')}
+          ${OUTSIDE_SelectedRanks.map((rank, index) => `${index + 1}. *${rank.name}*`).join('\n')}
 
           ¿Estás de acuerdo con estos rangos o prefieres elegir nuevamente?
           Ingresa *si* para elegir de nuevo o *no* para continuar con la creación del torneo.
         `);
-        _userStillWantsToStartSelectingRanksAgain = Response_isAfirmativeAnswer(await chat.WaitNextTxtMsgFromSender(defaultTimeout));
+        _userStillWantsToStartSelectingRanksAgain = Response_isAfirmativeAnswer(await chat.AskText(OUTSIDE_DefaultTimeout));
       } while (_userStillWantsToStartSelectingRanksAgain);
+    })
 
-      //Optional cover image
-      await chat.SendTxt(step());
+    dialog.AddStep("Deseas ingresar una foto como portada del torneo? (Contesta si u ok, puedes omitirlo mandando cualquier otro msg)", async () => {
       const CREATIONDATESELECTED = Date.now();
 
       let COVERIMAGENAMESELECTED: string | null = null;
-      const _responseee = await chat.WaitNextTxtMsgFromSender(defaultTimeout);
+      const _responseee = await chat.AskText(OUTSIDE_DefaultTimeout);
       if (Response_isAfirmativeAnswer(_responseee)) {
         let isCorrectImage = false;
         await chat.SendTxt("Envía una imagen de portada para el torneo:")
         do {
-          const __ImgMsg = await bot.Receive.WaitNextRawMsgFromId(args.chatId, args.userIdOrChatUserId, MsgType.image, defaultTimeout, "Tienes que envíar una imagen para la portada, prueba de nuevo...");
-          const __imgName = `${NAMESELECTED}-${CREATIONDATESELECTED}`;
+          const __ImgMsg = await bot.Receive.WaitNextRawMsgFromId(args.chatId, args.userIdOrChatUserId, MsgType.image, OUTSIDE_DefaultTimeout, "Tienes que envíar una imagen para la portada, prueba de nuevo...");
+          const __imgName = `${TOURNAMENTFINAL.name}-${CREATIONDATESELECTED}`;
           const __successStoring = await Db_TryToDownloadMedia(__ImgMsg, __imgName, "png", "db/tournaments_covers");
           if (__successStoring) {
             await chat.SendTxt("Imagen guardada exitosamente!");
             isCorrectImage = true;
             COVERIMAGENAMESELECTED = __imgName + ".png";
+            TOURNAMENTFINAL.cover_img_name = COVERIMAGENAMESELECTED
+            // @ts-ignore
+            TOURNAMENTFINAL.creationDate = CREATIONDATESELECTED
+            TOURNAMENTFINAL.endDate = null
           }
           else {
             await chat.SendTxt("Error al guardar la imagen..., quieres seguir intentándolo?");
-            isCorrectImage = Response_isAfirmativeAnswer(await chat.WaitNextTxtMsgFromSender(defaultTimeout));
+            isCorrectImage = Response_isAfirmativeAnswer(await chat.AskText(OUTSIDE_DefaultTimeout));
           }
         } while (!isCorrectImage);
       } else {
         await chat.SendTxt("Omitiendo imagen de portada...");
       }
-      storedImg = COVERIMAGENAMESELECTED;
+      OUTSIDE_storedImg = COVERIMAGENAMESELECTED;
 
-      const tournamentObj: KlTournament = {
-        id: undefined,
-        name: NAMESELECTED,
-        description: DESCRIPTIONSELECTED,
-        ///@ts-ignore
-        creationDate: CREATIONDATESELECTED,
-        beginDate: null,
-        matchPeriodTime: WINDOWDAYSSELECTED,
-        endDate: null,
-        cover_img_name: COVERIMAGENAMESELECTED,
-        tournament_type: TYPESELECTED,
-        max_players: MAXPLAYERSSELECTED,
-        match_format: SELECTEDGAMETYPE,
-        custom_players_per_team: SELECTED_custom_players_per_team
-      }
 
       await chat.SendTxt(`
         Estás a nada de crear el torneo, este es el resumen de lo que se ha hecho hasta ahora:
         
         Información General:
-        ${JSON.stringify(tournamentObj, null, 4)}
+        ${Str_StringifyObj(TOURNAMENTFINAL, 4)}
 
         Rangos Seleccionados:
-        ${JSON.stringify(SELECTEDRANKS, null, 4)}
+        ${Str_StringifyObj(OUTSIDE_SelectedRanks, 4)}
 
         ¿Estás de acuerdo con estos datos?
         Ingresa *si* para terminar de guardar los datos o *no* para cancelar esta creación y volver a intentarlo después.
       `)
+    })
 
-      if (!Response_isAfirmativeAnswer(await chat.WaitNextTxtMsgFromSender(defaultTimeout))) {
+    try {
+      await dialog.StartConversation();
+
+      if (!Response_isAfirmativeAnswer(await chat.AskText(OUTSIDE_DefaultTimeout))) {
         await chat.SendTxt("Cancelando creación del torneo...");
         try {
-          fs.unlinkSync(`db/tournaments_covers/${storedImg}`);
+          fs.unlinkSync(`db/tournaments_covers/${OUTSIDE_storedImg}`);
         }
         catch (e) {
           KlLogger.error(`Error deleting tournament cover on abort tournament creation: ${e}`);
         }
       }
 
-      const fullTournamentInfo = await Kldb.tournament.create({ data: tournamentObj });
-
-      for (const selectedRank of SELECTEDRANKS) {
+      const fullTournamentInfo = await Kldb.tournament.create({ data: (TOURNAMENTFINAL as KlTournament) });
+      for (const selectedRank of OUTSIDE_SelectedRanks) {
         await Kldb.tournament_Rank_RanksAdmitted.create({
           data:
           {
@@ -259,15 +244,14 @@ export default class CreateTournamentCommand implements ICommand {
           }
         })
       }
-
-      await chat.SendTxt(`El torneo se ha creado con exito!. Fin`);
+      await chat.SendTxt(`El torneo se ha creado con éxito!. Fin`);
 
     } catch (e) {
       KlLogger.error(`Error creando torneo: ${JSON.stringify(e, null, 0)}`);
       Msg_DefaultHandleError(bot, args.chatId, e);
-      if (storedImg) {
+      if (OUTSIDE_storedImg) {
         try {
-          fs.unlinkSync(`db/tournaments_covers/${storedImg}`);
+          fs.unlinkSync(`db/tournaments_covers/${OUTSIDE_storedImg}`);
         }
         catch (e) {
           KlLogger.error(`Error deleting tournament cover on abort tournament creation: ${e}`);
@@ -277,14 +261,6 @@ export default class CreateTournamentCommand implements ICommand {
   }
 }
 
-async function Help1(chat: SpecificChat) {
-}
-
-async function Help2(chat: SpecificChat) {
-}
-
-async function Help3(chat: SpecificChat) {
-}
-
-async function Help4(chat: SpecificChat) {
+function CustomLog(number:number, base:number){
+  return Math.log(number) / Math.log(base);
 }

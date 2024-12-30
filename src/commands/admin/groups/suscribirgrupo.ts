@@ -47,7 +47,7 @@ export default class SubscribeGroupCommand implements ICommand {
 
       await chatUser.SendTxt(`Estás intentando registrar el grupo ${info?.subject} en este bot, ¿Verdad?`);
       await chatUser.SendTxt("Introduce la contraseña de superadministrador para continuar con el proceso....")
-      const enteredPassword = await chatUser.WaitNextTxtMsgFromSender(30);
+      const enteredPassword = await chatUser.AskText(30);
       if (enteredPassword != SecretAdminPassword) {
         await chatUser.SendTxt("Contraseña incorrecta, fin del proceso");
         return;

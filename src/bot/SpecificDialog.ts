@@ -15,11 +15,31 @@ export default class SpecificDialog {
     this.specificChat = new SpecificChat(bot, args);
   }
 
+
   /**
-   * Adds a step to the current dialog flow.
-   * @param initialRawMsg The initial message that will be sent to the user at the beginning of this step.
-   * @param logic A function that will be called with the `SpecificChat` object as argument after the initial message has been sent.
-   * The function should do any necessary logic to end the step and prepare the next step.
+   * Adds a step to the conversation.
+   * The first argument is the initial message of the step, and the second argument is a function that will be called after the initial message of the step has been sent.
+   * The `Logic` function should do any necessary logic to end the step and prepare the next step.
+   * @example
+   * dialog.AddStep("Your name?", (chat, previousValue) => {
+   *   return chat.AskForText("Your name?");
+   * });
+   * @example
+   * dialog.AddStep("Your age?", (chat, previousValue) => {
+   *   return chat.AskForNumber("Your age?");
+   * });
+   * @example
+   * dialog.AddStep("Your age?", (chat, previousValue) => {
+   *   return chat.AskForText("Your age?", {withNumber: true});
+   * });
+   * @example
+   * dialog.AddStep("Your age?", (chat, previousValue) => {
+   *   return chat.AskForText("Your age?", {withNumber: true, regex: /^\d+$/});
+   * });
+   * @example
+   * dialog.AddStep("Your age?", (chat, previousValue) => {
+   *   return chat.AskForText("Your age?", {withNumber: true, regex: /^\d+$/, withCancelOption: true});
+   * });
    */
   public AddStep<TInput = unknown, TOutput = void>(initialRawMsg:string, logic: (specificChat:SpecificChat, previousValue:TInput) => Promise<TOutput>) {
     this.steps.push({InitialMsg: initialRawMsg, Logic: logic});

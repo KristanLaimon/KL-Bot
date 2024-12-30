@@ -68,7 +68,7 @@ export default class ExitATournamentCommand implements ICommand {
       await chat.SendTournamentInfoFormatted(selectedTournament);
 
       await chat.SendTxt("¿Estás seguro de salir de ese torneo?");
-      if (Response_isAfirmativeAnswer(await chat.WaitNextTxtMsgFromSender(60))) {
+      if (Response_isAfirmativeAnswer(await chat.AskText(60))) {
         await Kldb.tournament_Player_Subscriptions.delete({
           where: {
             tournament_id_player_id: {

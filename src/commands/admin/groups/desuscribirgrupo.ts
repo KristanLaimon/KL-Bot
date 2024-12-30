@@ -41,7 +41,7 @@ export default class UnsubscribeGroupCommand implements ICommand {
       Nota: Esto eliminará el grupo de la lista de grupos permitidos para este bot. 
     `);
     try {
-      const confirmResponse = await chat.WaitNextTxtMsgFromSender(10);
+      const confirmResponse = await chat.AskText(10);
       if (confirmResponse.includes("s")) {
         await Kldb.registeredWhatsappGroups.delete({
           where: {

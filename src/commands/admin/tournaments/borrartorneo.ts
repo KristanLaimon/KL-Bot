@@ -68,7 +68,7 @@ export default class DeleteTournamentCommand implements ICommand {
 
         ¿Estas seguro de querer borrarlo? (si u ok para confirmar)
       `);
-      const confirmation = Response_isAfirmativeAnswer(await chat.WaitNextTxtMsgFromSender(60));
+      const confirmation = Response_isAfirmativeAnswer(await chat.AskText(60));
       if (confirmation) {
         Db_DeleteTournamentById(selectedToDelete.id);
         await chat.SendTxt(`Torneo, todas sus partidas planeadas y partidas jugadas de este torneo exitosamente borrado: ${selectedToDelete.name}`);

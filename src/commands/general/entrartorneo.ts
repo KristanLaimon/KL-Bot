@@ -116,7 +116,7 @@ export default class EnterToTournamentCommand implements ICommand {
       await chat.SendTournamentInfoFormatted(selectedTournament);
       await chat.SendTxt(`¿Seguro que deseas entrar a ${selectedTournament.name}? (si|ok) para aceptar o cualquier otro mensaje para cancelar`);
 
-      if (!Response_isAfirmativeAnswer(await chat.WaitNextTxtMsgFromSender(60))) {
+      if (!Response_isAfirmativeAnswer(await chat.AskText(60))) {
         await chat.SendTxt("Se ha cancelado, no te preocupes, puedes volver a intentarlo cuando quieras. Fin");
         return;
       }

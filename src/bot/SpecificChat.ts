@@ -48,7 +48,6 @@ export class SpecificChat {
       await this.SendTxt(fullTournamentInfo);
   }
 
-
   //================== Receiving (Basic) =====================
   /**
    * Waits for the next text message from the sender and returns it.
@@ -59,11 +58,10 @@ export class SpecificChat {
    *
    * @throws {BotWaitMessageError} If the user cancels the operation or if the timeout is reached.
    */
-  async WaitNextTxtMsgFromSender(timeout?: number): Promise<string> {
+  async AskText(timeout?: number): Promise<string> {
     const rawMsg = await this.bot.Receive.WaitNextRawMsgFromId(this.args.chatId, this.args.userIdOrChatUserId, MsgType.text, timeout);
     return Msg_GetTextFromRawMsg(rawMsg);
   }
-
 
   /**
    * Waits for the next text message from the specified phone number and returns it.
@@ -92,10 +90,14 @@ export class SpecificChat {
    * @returns A promise that resolves with the text message from the sender that matches the expected format.
    * @throws {BotWaitMessageError} If the user cancels the operation or if the timeout is reached.
    */
-  async WaitNextTxtMsgFromSenderSpecific(regexExpecingFormat: RegExp, wrongMsg: string, timeout?: number): Promise<string> {
+  async AskForSpecificText(regexExpecingFormat: RegExp, wrongMsg: string, timeout?: number): Promise<string> {
     return await WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(this.bot, this.args.chatId, this.args.userIdOrChatUserId, regexExpecingFormat, wrongMsg, timeout);
   }
 
+  async AskForNumber(maxDigitNumber: number, wrongMsg: string, timeout?: number):Promise<number>{
+    const numberStr = await WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(this.bot, this.args.chatId, this.args.userIdOrChatUserId, new RegExp(`^[0-9]{${maxDigitNumber}}$`), wrongMsg, timeout);
+    return parseFloat(numberStr);
+  }
 
   // async WaitUntilTxtMsgFromPhone(phoneNumberCleaned: string, regexFormatExpected: RegExp, timeout?: number)
 
@@ -163,7 +165,7 @@ export class SpecificChat {
  * Expect a TEXT message from the user with a specific format (with regex) or throws error if user cancel the operation or 
  * max message timeout in seconds has been reached.
  * @param chatSenderId ChatId where the message comes from
- * @param participantId  UserId of the participant that sent the message (if it is individual chat, its the same as chatSenderId)
+ * @param participantId  UserId of the participant that sent the message (if it is individual chat, it's the same as chatSenderId)
  * @param regexExpectingFormat  A small object giving the regex and the error message to be sent to the user if the message does not match the expected format
  * @param timeout  Time in seconds to wait for the user to respond
  * @throws {BotWaitMessageError} if user has CANCELLED the operation or if timeout has been reached

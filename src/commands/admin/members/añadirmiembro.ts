@@ -54,7 +54,7 @@ export default class AddMemberCommand implements ICommand {
 
       // MEMBER NAME
       await chat.SendTxt("Brinda el nombre del nuevo miembro dentro del juego:")
-      const name = await chat.WaitNextTxtMsgFromSender(250);
+      const name = await chat.AskText(250);
 
       // MEMBER RANK
       let allRanks = (await Kldb.rank.findMany());
@@ -72,13 +72,13 @@ export default class AddMemberCommand implements ICommand {
       // MEMBER WHATSAPP NAME
       await chat.SendTxt("Pasame el nombre de whatsapp del nuevo miembro:");
       await chat.SendTxt("Si quieres que se registre tu nombre de usuario escribe:  *mio*");
-      let whatsappName = await chat.WaitNextTxtMsgFromSender(250);
+      let whatsappName = await chat.AskText(250);
       if (whatsappName.includes("mio")) whatsappName = args.originalMsg.pushName!
       await chat.SendTxt(`Se ha seleccionado ${whatsappName}`);
 
       // MEMBER NUMBER PHONE
       await chat.SendTxt("Manda su número de whatsapp: (Puedes etiquetarlo con @) o poner *mio*");
-      let rawUserNumberAnswer = await chat.WaitNextTxtMsgFromSenderSpecific(
+      let rawUserNumberAnswer = await chat.AskForSpecificText(
         new RegExp(`^(${Phone_MentionNumberRegexStr}|mio)$`),
         "No es un número válido, intenta de nuevo",
         250
@@ -93,7 +93,7 @@ export default class AddMemberCommand implements ICommand {
         AÑO/MES/DIA. Ejemplo: 2024/octubre/24
         Si quieres que sea el día de hoy escribe:  *hoy*
       `);
-      const dateInput = await chat.WaitNextTxtMsgFromSenderSpecific(
+      const dateInput = await chat.AskForSpecificText(
         new RegExp(`^\\s*\\d{4}\\/${Dates_SpanishMonthStr}\\/\\d{1,2}\\s*$`, "i"),
         "Formato de fecha incorrecta. Ejemplo de como debería ser: 2024/diciembre/01 ó 2024/diciembre/1",
         250
