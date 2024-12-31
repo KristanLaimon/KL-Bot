@@ -4,10 +4,10 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:../db/klbotdb.db"
+  url      = "file:../db/klbotDB.db"
 }
 
-//OK
+// OK
 model Player {
   id                              Int                               @id @default(autoincrement())
   username                        String                            @unique(map: "sqlite_autoindex_Player_1")
@@ -26,7 +26,7 @@ model Player {
   Tournament_Player_Subscriptions Tournament_Player_Subscriptions[]
 }
 
-//OK
+// OK
 model Rank {
   id                             String                          @unique(map: "sqlite_autoindex_Rank_1")
   name                           String                          @unique(map: "sqlite_autoindex_Rank_2")
@@ -41,7 +41,7 @@ model Role {
   Players Player[]
 }
 
-//OK
+// OK
 model Tournament {
   id              Int     @id @default(autoincrement())
   name            String  @unique(map: "sqlite_autoindex_Tournament_1")
@@ -55,9 +55,9 @@ model Tournament {
   max_players     Int
   match_format    String
 
-  //I should normalize this...
+  // I should normalize this...
   custom_players_per_team Int @default(-1)
-  //end
+  // end
 
   MatchFormat                     MatchType                         @relation(fields: [match_format], references: [id])
   TournamentType                  TournamentType                    @relation(fields: [tournament_type], references: [id])
@@ -77,7 +77,7 @@ model Tournament_Player_Subscriptions {
   @@id([tournament_id, player_id])
 }
 
-//OK
+// OK
 model Tournament_Rank_RanksAdmitted {
   tournament_id Int
   rank_id       String
@@ -87,7 +87,7 @@ model Tournament_Rank_RanksAdmitted {
   @@id([tournament_id, rank_id])
 }
 
-//OK
+// OK
 model MatchType {
   id               String           @id
   name             String
@@ -98,7 +98,7 @@ model MatchType {
 }
 
 //---------------------------Inheritance #1 "Match"---------------------------------------
-//Father table | Inheritance
+// Father table | Inheritance
 //**
 // * This doesn't belong to a generic match nor a tournament match, it's abstract in what they have in common
 //* model Match {
@@ -107,14 +107,14 @@ model MatchType {
 //* }
 //*/
 
-//Inheritance (Copying attributes) from abstract "Match"
-//It's a pending/future matched planned, depends on ScheduledMatchWindow and for tournament planning (For tournaments, so it's no generic)
+// Inheritance (Copying attributes) from abstract "Match"
+// It's a pending/future matched planned, depends on ScheduledMatchWindow and for tournament planning (For tournaments, so it's no generic)
 model ScheduledMatch {
-  //Inherited
+  // Inherited
   match_type String
   MatchType  MatchType @relation(fields: [match_type], references: [id])
 
-  //Own
+  // Own
   scheduled_match_window_id Int                     @id
   ScheduledMatchWindow      ScheduledMatchWindow    @relation(fields: [scheduled_match_window_id], references: [id], onDelete: Cascade)
   ScheduledMatch_Players    ScheduledMatch_Player[]
@@ -130,7 +130,7 @@ model ScheduledMatchWindow {
   ScheduledMatches ScheduledMatch[]
 }
 
-//Its relation M:N with player table
+// Its relation M:N with player table
 model ScheduledMatch_Player {
   scheduled_match_id Int    @id
   player_id          Int
@@ -141,14 +141,14 @@ model ScheduledMatch_Player {
   TeamColor      TeamColor      @relation(fields: [team_color_id], references: [id])
 }
 
-//Inheritance (Copying attributes) from abstract "Match"
-//It its a generic match info storing (Not belonging necesarily to a tournament) its very independent
+// Inheritance (Copying attributes) from abstract "Match"
+// It its a generic match info storing (Not belonging necesarily to a tournament) its very independent
 model MatchPlayed {
-  //Inherited
+  // Inherited
   match_type String
   MatchType  MatchType @relation(fields: [match_type], references: [id])
 
-  //Own
+  // Own
   date_played         BigInt               @id
   blue_scoreboard     Int
   orange_scoreboard   Int
@@ -156,26 +156,26 @@ model MatchPlayed {
   TournamentMatches   TournamentMatch[]
 }
 
-//Inheritance from ScheduledMatch_Player
+// Inheritance from ScheduledMatch_Player
 model MatchPlayed_Player {
   match_played_date_id BigInt      @id
   player_id            Int
   Player               Player      @relation(fields: [player_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   Match                MatchPlayed @relation(fields: [match_played_date_id], references: [date_played], onDelete: NoAction, onUpdate: NoAction)
 
-  //OwnProps
+  // OwnProps
   is_winner         Boolean
   team_color_winner String
   TeamColor         TeamColor @relation(fields: [team_color_winner], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
-//Child table  OK
-//Inheritance (Normalized and referencing to father ID, with no copying anything) from "MatchPlayed"
+// Child table  OK
+// Inheritance (Normalized and referencing to father ID, with no copying anything) from "MatchPlayed"
 model TournamentMatch {
   match_date_id    BigInt @id // Foreign and primary key at the same time
   tournament_id    Int
   referee_verifier Int
-  results_img_name String //New...added
+  results_img_name String // New...added
 
   Match           MatchPlayed @relation(fields: [match_date_id], references: [date_played], onDelete: Cascade)
   RefereeVerifier Player      @relation(fields: [referee_verifier], references: [id], onDelete: NoAction)
@@ -183,7 +183,7 @@ model TournamentMatch {
 }
 
 //------------------------------------------------------------------
-//OK
+// OK
 model TeamColor {
   id                      String                  @id
   name                    String
@@ -191,15 +191,15 @@ model TeamColor {
   ScheduledMatch_Player   ScheduledMatch_Player[]
 }
 
-//OK
-//AloneTable
+// OK
+// AloneTable
 model RegisteredWhatsappGroups {
   chat_id         String @id @unique
   group_name      String
   date_registered BigInt @unique
 }
 
-//OK
+// OK
 model TournamentType {
   id          String       @id @unique
   name        String
