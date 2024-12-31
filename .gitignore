@@ -132,4 +132,4 @@ dist
 .pnp.*
 
 # Taking care of database data!
-!/db/klbotDB.db
+/db/klbotDB.db
