@@ -84,7 +84,7 @@ export default class Bot {
 
   private async OnMessageTriggered(chatId: string, rawMsg: WAMessage, type: MsgType, senderType: SenderType) {
     console.log(rawMsg);
-    Log_LogRawMsg(rawMsg);
+    // Log_LogRawMsg(rawMsg); //File its too big, i have enough messages
 
     let msgComesFromRegisteredGroup = true;
     if (senderType === SenderType.Group) {

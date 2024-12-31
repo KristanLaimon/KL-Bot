@@ -3,9 +3,10 @@ import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand, CommandScopeType, CommandHelpInfo } from '../../types/commands';
 import { Dates_GetFormatedDurationTimeFrom } from '../../utils/dates';
-import Kldb, { Db_GetTournamentFormattedInfo } from '../../utils/db';
+import { Db_GetTournamentFormattedInfo } from '../../utils/db';
 import { Msg_DefaultHandleError } from '../../utils/rawmsgs';
 import { Str_NormalizeLiteralString } from '../../utils/strings';
+import Kldb from "../../utils/kldb";
 
 export default class SeeTournamentsCommand implements ICommand {
   commandName: string = "torneos";

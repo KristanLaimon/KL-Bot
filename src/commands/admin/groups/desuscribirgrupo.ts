@@ -3,8 +3,8 @@ import GlobalCache from '../../../bot/cache/GlobalCache';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
 import { ICommand, CommandAccessibleRoles, CommandScopeType, SenderType, CommandHelpInfo } from '../../../types/commands';
-import Kldb from '../../../utils/db';
 import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
+import Kldb from "../../../utils/kldb";
 
 export default class UnsubscribeGroupCommand implements ICommand {
   commandName: string = "desuscribirgrupo";

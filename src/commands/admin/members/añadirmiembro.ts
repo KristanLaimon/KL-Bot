@@ -1,16 +1,24 @@
-import fs from 'fs';
-import moment from 'moment';
-import path from 'path';
-import Bot from '../../../bot';
-import { SpecificChat } from '../../../bot/SpecificChat';
-import { BotCommandArgs } from '../../../types/bot';
-import { CommandAccessibleRoles, CommandHelpInfo, CommandScopeType, ICommand, MsgType } from '../../../types/commands';
-import { Dates_GetFormatedDurationTimeFrom, Dates_SpanishMonthStr, Dates_SpanishMonthToNumber } from '../../../utils/dates';
-import Kldb from '../../../utils/db';
-import { Db_TryToDownloadMedia } from '../../../utils/filesystem';
-import { Phone_GetFullPhoneInfoFromRawmsg, Phone_GetPhoneNumberFromMention as Phone_GetFullPhoneNumberInfoFromMention, Phone_MentionNumberRegexStr } from '../../../utils/phonenumbers';
-import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
-import { Str_CapitalizeStr } from '../../../utils/strings';
+import fs from "fs";
+import moment from "moment";
+import path from "path";
+import Bot from "../../../bot";
+import { SpecificChat } from "../../../bot/SpecificChat";
+import { BotCommandArgs } from "../../../types/bot";
+import { CommandAccessibleRoles, CommandHelpInfo, CommandScopeType, ICommand, MsgType } from "../../../types/commands";
+import {
+  Dates_GetFormatedDurationTimeFrom,
+  Dates_SpanishMonthStr,
+  Dates_SpanishMonthToNumber
+} from "../../../utils/dates";
+import { FileSystem_TryToDownloadMedia } from "../../../utils/filesystem";
+import {
+  Phone_GetFullPhoneInfoFromRawmsg,
+  Phone_GetPhoneNumberFromMention as Phone_GetFullPhoneNumberInfoFromMention,
+  Phone_MentionNumberRegexStr
+} from "../../../utils/phonenumbers";
+import { Msg_IsBotWaitMessageError } from "../../../utils/rawmsgs";
+import { Str_CapitalizeStr } from "../../../utils/strings";
+import Kldb from "../../../utils/kldb";
 
 export default class AddMemberCommand implements ICommand {
   commandName: string = "añadirmiembro";
@@ -110,7 +118,7 @@ export default class AddMemberCommand implements ICommand {
       let imgName: string;
       do {
         imgName = `${selectedRankId}-${name}-${dateInputMomentJs.valueOf()}-profile-picture`;
-        isValidImg = await Db_TryToDownloadMedia(
+        isValidImg = await FileSystem_TryToDownloadMedia(
           await bot.Receive.WaitNextRawMsgFromId(
             args.chatId,
             args.userIdOrChatUserId,

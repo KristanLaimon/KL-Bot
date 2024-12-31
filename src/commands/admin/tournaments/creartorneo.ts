@@ -5,13 +5,13 @@ import { SpecificChat } from "../../../bot/SpecificChat";
 import { BotCommandArgs } from "../../../types/bot";
 import { CommandAccessibleRoles, CommandHelpInfo, CommandScopeType, ICommand, MsgType } from "../../../types/commands";
 import { KlMatchType, KlTournament } from "../../../types/db";
-import Kldb from "../../../utils/db";
 import { GenerateInstructionSteps } from "../../../utils/dialog";
-import { Db_TryToDownloadMedia } from "../../../utils/filesystem";
+import { FileSystem_TryToDownloadMedia } from "../../../utils/filesystem";
 import { Msg_DefaultHandleError } from "../../../utils/rawmsgs";
 import { Response_isAfirmativeAnswer } from "../../../utils/responses";
 import SpecificDialog from "../../../bot/SpecificDialog";
 import { Str_StringifyObj } from "../../../utils/strings";
+import Kldb from "../../../utils/kldb";
 
 export default class CreateTournamentCommand implements ICommand {
   commandName: string = "creartorneo";
@@ -186,7 +186,7 @@ export default class CreateTournamentCommand implements ICommand {
         do {
           const __ImgMsg = await bot.Receive.WaitNextRawMsgFromId(args.chatId, args.userIdOrChatUserId, MsgType.image, OUTSIDE_DefaultTimeout, "Tienes que envíar una imagen para la portada, prueba de nuevo...");
           const __imgName = `${TOURNAMENTFINAL.name}-${CREATIONDATESELECTED}`;
-          const __successStoring = await Db_TryToDownloadMedia(__ImgMsg, __imgName, "png", "db/tournaments_covers");
+          const __successStoring = await FileSystem_TryToDownloadMedia(__ImgMsg, __imgName, "png", "db/tournaments_covers");
           if (__successStoring) {
             await chat.SendTxt("Imagen guardada exitosamente!");
             isCorrectImage = true;

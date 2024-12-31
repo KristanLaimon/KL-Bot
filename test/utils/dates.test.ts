@@ -40,7 +40,6 @@ describe('Getting formated duration days since a date in spanish', () => {
 });
 
 
-
 describe('Getting the number of a spanish month', () => {
   it('should return the correct month number for valid month names', () => {
     expect(Dates_SpanishMonthToNumber('enero')).toBe(1);
@@ -89,8 +88,8 @@ describe('Add12hrsTimeToMomentObj', () => {
   it('should add valid 12-hour time to moment object', () => {
     const momentObj = moment('2022-01-01 00:00:00');
     const twelveHrsTimeStr = '08:30 AM';
-    const rusult = Dates_Add24hrsFormatTimeToMomentObj(momentObj, twelveHrsTimeStr);
-    expect(rusult).toBe(true);
+    const result = Dates_Add24hrsFormatTimeToMomentObj(momentObj, twelveHrsTimeStr);
+    expect(result).toBe(true);
     expect(momentObj.format('HH:mm')).toBe('08:30');
   });
 

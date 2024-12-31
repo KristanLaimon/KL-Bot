@@ -1,9 +1,9 @@
-import Kldb from '../../../utils/db';
 import Bot from '../../../bot';
 import { CommandAccessibleRoles, ICommand, CommandScopeType, CommandHelpInfo } from '../../../types/commands';
 import { BotCommandArgs } from '../../../types/bot';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
+import Kldb from "../../../utils/kldb";
 
 
 export default class DeleteMemberCommand implements ICommand {

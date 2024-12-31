@@ -1,5 +1,5 @@
 import { PendingMatch } from '../../types/db';
-import Kldb from '../../utils/db';
+import Kldb from "../../utils/kldb";
 
 export default class GlobalCache {
   // ---------------- Automatic Cache ------------------------

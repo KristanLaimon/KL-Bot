@@ -1,6 +1,7 @@
 import { KlTournamentEnhanced, ParticipantInfo } from '../types/db';
 import moment from "moment/moment";
 import { ScheduledMatch, ScheduledMatchWindow } from "../types/tournament";
+import KlLogger from "../bot/logger";
 
 /**
  * Abstract class that represents a type of tournament.
@@ -27,6 +28,7 @@ export abstract class GenericTournament {
     if(isPositivePowerOfTwo(participants.length)) {
       perfectLogTwoPlanning(randomizedTeams)
     } else {
+      KlLogger.error("For some reason, the number of participants is not a power of 2, when doing the planning!");
       const leftOversCount = GetRemindedCountByLogTwo(randomizedTeams.length);
       const leftOvers = randomizedTeams.splice((randomizedTeams.length - 1) - leftOversCount, leftOversCount);
       perfectLogTwoPlanning(randomizedTeams);

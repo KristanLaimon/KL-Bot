@@ -2,7 +2,7 @@ import Bot from '../../bot';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand, CommandScopeType, CommandHelpInfo } from '../../types/commands';
-import Kldb from '../../utils/db';
+import Kldb from "../../utils/kldb";
 
 export default class VerMiembrosCommand implements ICommand {
   commandName: string = "miembros";

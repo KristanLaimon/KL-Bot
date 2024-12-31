@@ -3,10 +3,10 @@ import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
 import { ICommand, CommandScopeType, CommandAccessibleRoles, CommandHelpInfo } from '../../types/commands';
 import { Dates_GetFormatedDurationTimeFrom } from '../../utils/dates';
-import Kldb from '../../utils/db';
 import { Members_GetMemberInfoFromPhone } from '../../utils/members';
 import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
 import { Msg_DefaultHandleError } from '../../utils/rawmsgs';
+import Kldb from "../../utils/kldb";
 
 export default class SeeMySubscribedTournamentsCommand implements ICommand {
   commandName: string = "mistorneos";

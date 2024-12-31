@@ -1,5 +1,4 @@
 import Bot from '../../bot';
-import Kldb from '../../utils/db';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand, MsgType, CommandScopeType, CommandHelpInfo } from '../../types/commands';
 import { SpecificChat } from '../../bot/SpecificChat';
@@ -7,6 +6,7 @@ import { Phone_GetPhoneNumberFromMention, Phone_GetFullPhoneInfoFromRawmsg, Phon
 import { Members_GetMemberInfoFromPhone } from '../../utils/members';
 import { Msg_GetTextFromRawMsg, Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
 import GlobalCache from '../../bot/cache/GlobalCache';
+import Kldb from "../../utils/kldb";
 
 export default class DuelCommand implements ICommand {
   commandName: string = "duel";

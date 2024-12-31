@@ -1,6 +1,6 @@
 import { Phone_GetFullPhoneInfoFromRawmsg } from './phonenumbers';
 import { WAMessage } from '@whiskeysockets/baileys';
-import Kldb from './db';
+import Kldb from "./kldb";
 
 /**
  * Checks if the sender of the given raw message is an admin in the KLBOT system.

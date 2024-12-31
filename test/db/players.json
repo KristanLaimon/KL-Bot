@@ -1,0 +1,102 @@
+[
+  {
+    "id": 6,
+    "username": "KL Luis Camacho",
+    "profilePicturePath": "AD-KL Luis Camacho-1733262419551-profile-picture",
+    "actualRank": "GC",
+    "phoneNumber": "5216672542798",
+    "whatsappNickName": "~Luis",
+    "role": "AD",
+    "joined_date": "1728280800000",
+    "tournamentId": null,
+    "Rank": {
+      "id": "GC",
+      "name": "Gran Campeón",
+      "logoImagePath": "./db/ranks/gran_campeon.png"
+    },
+    "Role": {
+      "id": "AD",
+      "name": "Administrador"
+    }
+  },
+  {
+    "id": 7,
+    "username": "KL Wolfgang",
+    "profilePicturePath": "AD-KL Wolfgang555-1733262821909-profile-picture",
+    "actualRank": "GC",
+    "phoneNumber": "5213323296578",
+    "whatsappNickName": "FurryWolfy",
+    "role": "AD",
+    "joined_date": "1728280800000",
+    "tournamentId": null,
+    "Rank": {
+      "id": "GC",
+      "name": "Gran Campeón",
+      "logoImagePath": "./db/ranks/gran_campeon.png"
+    },
+    "Role": {
+      "id": "AD",
+      "name": "Administrador"
+    }
+  },
+  {
+    "id": 8,
+    "username": "KL Sr.Krz",
+    "profilePicturePath": "AD-KL Sr.Krz-1733264029415-profile-picture",
+    "actualRank": "GC",
+    "phoneNumber": "5216121407908",
+    "whatsappNickName": "Kristan Ruiz",
+    "role": "AD",
+    "joined_date": "1730008800000",
+    "tournamentId": null,
+    "Rank": {
+      "id": "GC",
+      "name": "Gran Campeón",
+      "logoImagePath": "./db/ranks/gran_campeon.png"
+    },
+    "Role": {
+      "id": "AD",
+      "name": "Administrador"
+    }
+  },
+  {
+    "id": 9,
+    "username": "KL GAMEXTIX 愛",
+    "profilePicturePath": "AD-KL GAMEXTIX 愛-1733336433149-profile-picture",
+    "actualRank": "GC",
+    "phoneNumber": "5214778029352",
+    "whatsappNickName": "~Lenon",
+    "role": "AD",
+    "joined_date": "1728280800000",
+    "tournamentId": null,
+    "Rank": {
+      "id": "GC",
+      "name": "Gran Campeón",
+      "logoImagePath": "./db/ranks/gran_campeon.png"
+    },
+    "Role": {
+      "id": "AD",
+      "name": "Administrador"
+    }
+  },
+  {
+    "id": 10,
+    "username": "KL ALEDRO",
+    "profilePicturePath": "CA-KL ALEDRO-1734069600000-profile-picture",
+    "actualRank": "CA",
+    "phoneNumber": "5217831101048",
+    "whatsappNickName": "~ALEDRO",
+    "role": "MB",
+    "joined_date": "1734069600000",
+    "tournamentId": null,
+    "Rank": {
+      "id": "CA",
+      "name": "Campeón",
+      "logoImagePath": "./db/ranks/campeon.png"
+    },
+    "Role": {
+      "id": "MB",
+      "name": "Miembro"
+    }
+  }
+]

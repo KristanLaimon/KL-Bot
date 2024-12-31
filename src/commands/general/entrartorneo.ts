@@ -3,14 +3,16 @@ import { SpecificChat } from "../../bot/SpecificChat";
 import { BotCommandArgs } from "../../types/bot";
 import { CommandAccessibleRoles, CommandHelpInfo, CommandScopeType, ICommand } from "../../types/commands";
 import { Dates_GetFormatedDurationTimeFrom } from "../../utils/dates";
-import Kldb, {
+import {
   Db_GetStandardInfoPlayerFromMention,
   Db_GetStandardInfoPlayerFromRawMsg,
   Db_InsertNewTournamentSubscription
 } from "../../utils/db";
 import { Phone_IsAMentionNumber } from "../../utils/phonenumbers";
 import { Msg_DefaultHandleError } from "../../utils/rawmsgs";
+import { PrismaClient } from "@prisma/client";
 import { Response_isAfirmativeAnswer } from "../../utils/responses";
+import Kldb from "../../utils/kldb";
 
 export default class EnterToTournamentCommand implements ICommand {
   commandName: string = "entrartorneo";
@@ -43,7 +45,8 @@ export default class EnterToTournamentCommand implements ICommand {
         await chat.SendTxt("Se ha detectado el uso de este comando con privilegios altos, se usará la persona etiquetada en lugar de a ti por el resto del proceso de este comando");
       }
 
-      const INFO_ActiveTournaments = await Kldb.tournament.findMany({
+      const prisma = new PrismaClient();
+      const INFO_ActiveTournaments = await prisma.tournament.findMany({
         where: {
           beginDate: {
             equals: null

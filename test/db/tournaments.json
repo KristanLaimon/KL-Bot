@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "name": "a",
+    "description": "a",
+    "creationDate": "1735442153508",
+    "beginDate": null,
+    "matchPeriodTime": 1,
+    "endDate": "1735601503542",
+    "cover_img_name": "a-1735442153508.png",
+    "tournament_type": "SE",
+    "max_players": 4,
+    "match_format": "1S",
+    "custom_players_per_team": -1,
+    "TournamentType": {
+      "id": "SE",
+      "name": "Eliminación Simple"
+    },
+    "MatchFormat": {
+      "id": "1S",
+      "name": "Duelo",
+      "players_per_team": 1
+    },
+    "Tournament_Player_Subscriptions": [
+      {
+        "tournament_id": 1,
+        "player_id": 6,
+        "subscription_date": "1735515572244",
+        "Player": {
+          "id": 6,
+          "username": "KL Luis Camacho",
+          "profilePicturePath": "AD-KL Luis Camacho-1733262419551-profile-picture",
+          "actualRank": "GC",
+          "phoneNumber": "5216672542798",
+          "whatsappNickName": "~Luis",
+          "role": "AD",
+          "joined_date": "1728280800000",
+          "tournamentId": null,
+          "Rank": {
+            "id": "GC",
+            "name": "Gran Campeón",
+            "logoImagePath": "./db/ranks/gran_campeon.png"
+          },
+          "Role": {
+            "id": "AD",
+            "name": "Administrador"
+          }
+        }
+      },
+      {
+        "tournament_id": 1,
+        "player_id": 7,
+        "subscription_date": "1735442622567",
+        "Player": {
+          "id": 7,
+          "username": "KL Wolfgang",
+          "profilePicturePath": "AD-KL Wolfgang555-1733262821909-profile-picture",
+          "actualRank": "GC",
+          "phoneNumber": "5213323296578",
+          "whatsappNickName": "FurryWolfy",
+          "role": "AD",
+          "joined_date": "1728280800000",
+          "tournamentId": null,
+          "Rank": {
+            "id": "GC",
+            "name": "Gran Campeón",
+            "logoImagePath": "./db/ranks/gran_campeon.png"
+          },
+          "Role": {
+            "id": "AD",
+            "name": "Administrador"
+          }
+        }
+      },
+      {
+        "tournament_id": 1,
+        "player_id": 9,
+        "subscription_date": "1735442482325",
+        "Player": {
+          "id": 9,
+          "username": "KL GAMEXTIX 愛",
+          "profilePicturePath": "AD-KL GAMEXTIX 愛-1733336433149-profile-picture",
+          "actualRank": "GC",
+          "phoneNumber": "5214778029352",
+          "whatsappNickName": "~Lenon",
+          "role": "AD",
+          "joined_date": "1728280800000",
+          "tournamentId": null,
+          "Rank": {
+            "id": "GC",
+            "name": "Gran Campeón",
+            "logoImagePath": "./db/ranks/gran_campeon.png"
+          },
+          "Role": {
+            "id": "AD",
+            "name": "Administrador"
+          }
+        }
+      }
+    ]
+  }
+]

@@ -1,6 +1,7 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} **/
 module.exports = {
   testEnvironment: "node",
+  setupFilesAfterEnv: ["<rootDir>/test/db/kldb.default.mock.ts"],
   transform: {
     "^.+.tsx?$": ["ts-jest", {
       diagnostics: {

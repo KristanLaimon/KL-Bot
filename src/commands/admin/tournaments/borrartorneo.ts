@@ -3,9 +3,10 @@ import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
 import { CommandAccessibleRoles, CommandHelpInfo, CommandScopeType, ICommand } from '../../../types/commands';
 import { Dates_GetFormatedDurationTimeFrom } from '../../../utils/dates';
-import Kldb, { Db_DeleteTournamentById } from '../../../utils/db';
+import { Db_DeleteTournamentById } from '../../../utils/db';
 import { Msg_DefaultHandleError } from '../../../utils/rawmsgs';
 import { Response_isAfirmativeAnswer } from '../../../utils/responses';
+import Kldb from "../../../utils/kldb";
 
 export default class DeleteTournamentCommand implements ICommand {
   commandName: string = "borrartorneo";

@@ -1,17 +1,13 @@
-import Bot from '../../bot';
-import { SpecificChat } from '../../bot/SpecificChat';
-import { BotCommandArgs } from '../../types/bot';
-import { ICommand, CommandScopeType, CommandAccessibleRoles, CommandHelpInfo } from '../../types/commands';
-import { Dates_GetFormatedDurationTimeFrom } from '../../utils/dates';
-import Kldb, {
-  Db_GetStandardInfoPlayerFromMention,
-  Db_GetStandardInfoPlayerFromRawMsg,
-  Db_GetTournamentFormattedInfo
-} from "../../utils/db";
-import { Members_GetMemberInfoFromPhone } from '../../utils/members';
-import { Phone_GetFullPhoneInfoFromRawmsg, Phone_IsAMentionNumber } from "../../utils/phonenumbers";
-import { Msg_DefaultHandleError } from '../../utils/rawmsgs';
-import { Response_isAfirmativeAnswer } from '../../utils/responses';
+import Bot from "../../bot";
+import { SpecificChat } from "../../bot/SpecificChat";
+import { BotCommandArgs } from "../../types/bot";
+import { CommandAccessibleRoles, CommandHelpInfo, CommandScopeType, ICommand } from "../../types/commands";
+import { Dates_GetFormatedDurationTimeFrom } from "../../utils/dates";
+import { Db_GetStandardInfoPlayerFromMention, Db_GetStandardInfoPlayerFromRawMsg } from "../../utils/db";
+import { Phone_IsAMentionNumber } from "../../utils/phonenumbers";
+import { Msg_DefaultHandleError } from "../../utils/rawmsgs";
+import { Response_isAfirmativeAnswer } from "../../utils/responses";
+import Kldb from "../../utils/kldb";
 
 export default class ExitATournamentCommand implements ICommand {
   commandName: string = "salirtorneo";

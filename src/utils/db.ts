@@ -1,4 +1,3 @@
-import { PrismaClient } from "@prisma/client";
 import fs from "fs";
 import path from "path";
 import KlLogger from "../bot/logger";
@@ -8,11 +7,7 @@ import { KlPlayer, KlScheduledMatch_Player, KlTournamentEnhanced, ParticipantInf
 import { GenericTournament } from "../logic/GenericTournament";
 import { WAMessage } from "@whiskeysockets/baileys";
 import { Phone_GetFullPhoneInfoFromRawmsg, Phone_GetPhoneNumberFromMention } from "./phonenumbers";
-
-//Expose main database
-const Kldb = new PrismaClient();
-export default Kldb
-
+import Kldb from "./kldb";
 
 //------------------- Db Utils ------------------
 // ============================ PLAYERS =============================

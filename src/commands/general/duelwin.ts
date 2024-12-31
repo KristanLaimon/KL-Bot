@@ -3,9 +3,9 @@ import GlobalCache from '../../bot/cache/GlobalCache';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand, CommandScopeType, CommandHelpInfo } from '../../types/commands';
-import Kldb from '../../utils/db';
 import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
 import { Msg_IsBotWaitMessageError } from '../../utils/rawmsgs';
+import Kldb from "../../utils/kldb";
 
 export default class DuelWinCommand implements ICommand {
   commandName: string = "duelwin"
