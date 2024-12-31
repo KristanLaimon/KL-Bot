@@ -21,7 +21,7 @@ Made with passion and love for the game and coding.
 
 # Why?
 I've made other bots-like for telegram and discord but I haven't seen any
-open framework or tools to make whatsapp bots properly, thanks to facebook to make difficult it's
+open framework or tools to make whatsapp bots properly, thanks to facebook to make difficult its
 bot making community without any open source tools and pay walls for business only.
 So i wanted to make a whattsapp full customizable and useful open source bot for whatsapp as a bet and challenge (for fun);
 
