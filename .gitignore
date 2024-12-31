@@ -130,3 +130,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Taking care of database data!
+!/db/klbotDB.db
