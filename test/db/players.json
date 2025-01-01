@@ -98,5 +98,45 @@
       "id": "MB",
       "name": "Miembro"
     }
+  },
+  {
+    "id": 11,
+    "username": "KL xSTORM シ",
+    "profilePicturePath": "CA-KL xSTORM シ-1728716400000-profile-picture",
+    "actualRank": "CA",
+    "phoneNumber": "5219982691972",
+    "whatsappNickName": "~Nx | Jer 8",
+    "role": "MB",
+    "joined_date": "1728716400000",
+    "tournamentId": null,
+    "Rank": {
+      "id": "CA",
+      "name": "Campeón",
+      "logoImagePath": "./db/ranks/campeon.png"
+    },
+    "Role": {
+      "id": "MB",
+      "name": "Miembro"
+    }
+  },
+  {
+    "id": 12,
+    "username": "KL Indiscipline",
+    "profilePicturePath": "GC-KL Indiscipline-1735196400000-profile-picture",
+    "actualRank": "GC",
+    "phoneNumber": "5493855167789",
+    "whatsappNickName": "~Thiago R.",
+    "role": "MB",
+    "joined_date": "1735196400000",
+    "tournamentId": null,
+    "Rank": {
+      "id": "GC",
+      "name": "Gran Campeón",
+      "logoImagePath": "./db/ranks/gran_campeon.png"
+    },
+    "Role": {
+      "id": "MB",
+      "name": "Miembro"
+    }
   }
 ]

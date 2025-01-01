@@ -3,7 +3,7 @@ import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand, CommandScopeType, CommandHelpInfo } from '../../types/commands';
 import { Dates_GetFormatedDurationTimeFrom } from '../../utils/dates';
-import { Db_GetTournamentFormattedInfo } from '../../utils/db';
+import { Db_GetTournamentFormattedInfoStr } from '../../utils/db';
 import { Msg_DefaultHandleError } from '../../utils/rawmsgs';
 import { Str_NormalizeLiteralString } from '../../utils/strings';
 import Kldb from "../../utils/kldb";
@@ -42,7 +42,7 @@ export default class SeeTournamentsCommand implements ICommand {
 
         60
       );
-      const imgCaptionInfo = await Db_GetTournamentFormattedInfo(selectedTournament.id);
+      const imgCaptionInfo = await Db_GetTournamentFormattedInfoStr(selectedTournament.id);
       if (selectedTournament.cover_img_name) {
         await chat.SendImg(`db/tournaments_covers/${selectedTournament.cover_img_name}`, imgCaptionInfo);
       } else {

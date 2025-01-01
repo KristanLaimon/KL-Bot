@@ -32,7 +32,7 @@ export default class ExitATournamentCommand implements ICommand {
 
       if(isAdmin && hasMentionedSomeone){
         playerInfo = await Db_GetStandardInfoPlayerFromMention(args.commandArgs.at(0));
-        await chat.SendTxt("Se te ha dado privilegio de administrador de este comando, se utilizará la persona etiquetada en lugar de a ti para este proceso");
+        await chat.SendTxt("Se te ha dado privilegio de administrador de este comando, se utilizará la persona etiquetada en lugar de a ti para este proceso y se mostrarán su lista de torneos inscritos");
       }
 
       const allSubscribedTournamentByPlayer = await Kldb.tournament_Player_Subscriptions.findMany({

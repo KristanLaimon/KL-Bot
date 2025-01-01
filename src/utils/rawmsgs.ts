@@ -1,7 +1,8 @@
 import { BotWaitMessageError } from '../types/bot';
 import { WAMessage } from '@whiskeysockets/baileys';
-import { MsgType, SenderType } from '../types/commands';
+import { ICommand, MsgType, SenderType } from "../types/commands";
 import Bot from '../bot';
+import KlLogger from "../bot/logger";
 
 export function Msg_GetTextFromRawMsg(rawMsg: WAMessage): string {
   if (!rawMsg.message) return "There's no text in that message";
@@ -18,13 +19,22 @@ export function Msg_GetTextFromRawMsg(rawMsg: WAMessage): string {
  * properly. If errorGeneric is a BotWaitMessageError, we send a message to the chat telling the
  * user if they cancelled the operation or if the timeout was reached. If errorGeneric is not a
  * BotWaitMessageError, we send a message to the chat with the error message.
+ * @param originalCommand originalCommand to provide more error context
  */
-export function Msg_DefaultHandleError(bot: Bot, chatId: string, errorGeneric: any) {
+export function Msg_DefaultHandleError(bot: Bot, chatId: string, errorGeneric: any, originalCommand?:ICommand) {
   if (Msg_IsBotWaitMessageError(errorGeneric)) {
-    if (errorGeneric.wasAbortedByUser) bot.Send.Text(chatId, "Se ha cancelado el comando...");
-    else bot.Send.Text(chatId, "Te has tardado mucho en contestar...");
+    if (errorGeneric.wasAbortedByUser) {
+      bot.Send.Text(chatId, "Se ha cancelado el comando...");
+      KlLogger.error(`Command ${originalCommand?.commandName} was aborted by user`);
+    }else{
+     bot.Send.Text(chatId, "Te has tardado mucho en contestar...");
+     KlLogger.error(`Command ${originalCommand?.commandName} timeout`);
+    }
   }
-  else bot.Send.Text(chatId, 'Ocurrio un error al ejecutar el comando... \n' + JSON.stringify(errorGeneric, null, 4));
+  else {
+    bot.Send.Text(chatId, 'Ocurrió un error al ejecutar el comando... \n' + JSON.stringify(errorGeneric, null, 4));
+    KlLogger.error(`Command ${originalCommand?.commandName} error: ${JSON.stringify(errorGeneric, null, 4)}`);
+  }
 }
 
 export function Msg_IsBotWaitMessageError(error: unknown): error is BotWaitMessageError {

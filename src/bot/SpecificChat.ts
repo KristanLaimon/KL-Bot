@@ -1,10 +1,11 @@
-import Bot from '../bot';
-import { BotCommandArgs, WaitTextRegexFormat } from '../types/bot';
-import { MsgType } from '../types/commands';
-import { Msg_GetTextFromRawMsg } from '../utils/rawmsgs';
-import { Str_NormalizeLiteralString } from "../utils/strings";
-import { Db_GetTournamentFormattedInfo } from "../utils/db";
-import { KlTournament, KlTournamentEnhanced } from "../types/db";
+import Bot from "../bot";
+import { BotCommandArgs } from "../types/bot";
+import { MsgType } from "../types/commands";
+import { Msg_GetTextFromRawMsg } from "../utils/rawmsgs";
+import { Str_NormalizeLiteralString, Str_StringifyObj } from "../utils/strings";
+import { Db_GetTournamentFormattedInfoStr } from "../utils/db";
+import { KlTournament } from "../types/db";
+import KlLogger from "./logger";
 
 export class SpecificChat {
   private readonly bot: Bot;
@@ -40,12 +41,20 @@ export class SpecificChat {
     await this.bot.Send.Img(this.args.chatId, imgPath, caption);
   }
 
-  async SendTournamentInfoFormatted(tournamentInfo:KlTournament){
-    const fullTournamentInfo = await Db_GetTournamentFormattedInfo(tournamentInfo.id);
-    if (tournamentInfo.cover_img_name !== null)
-      await this.SendImg(`db/tournaments_covers/${tournamentInfo.cover_img_name}`, fullTournamentInfo);
-    else
-      await this.SendTxt(fullTournamentInfo);
+  async SendTournamentInfoFormatted(tournamentInfo:KlTournament, personalizeMsg?: (alreadyMsg:string, tournamentInfo?:KlTournament) => string):Promise<boolean>{
+    try{
+      let fullTournamentInfo = await Db_GetTournamentFormattedInfoStr(tournamentInfo.id);
+      if(personalizeMsg) fullTournamentInfo = Str_NormalizeLiteralString(personalizeMsg(fullTournamentInfo, tournamentInfo));
+      if (tournamentInfo.cover_img_name !== null)
+        await this.SendImg(`db/tournaments_covers/${tournamentInfo.cover_img_name}`, fullTournamentInfo);
+      else
+        await this.SendTxt(fullTournamentInfo);
+      return true;
+    }catch(e){
+      KlLogger.error(`Failed to send tournament info: ${Str_StringifyObj(e)}`);
+      return false;
+    }
+
   }
 
   //================== Receiving (Basic) =====================
@@ -114,10 +123,10 @@ export class SpecificChat {
    * @returns {Promise<string>} A promise that resolves with the selected option.
    * @throws {Error} Throws an error if no matching option is found (which should not happen under normal circumstances).
    */
-  async DialogWaitAnOptionFromList(possibleResults: string[], startMsg: string, errorMsg: string, formatEachElementCallback: (element: string, index: number) => string, timeout?: number): Promise<string> {
+  async DialogWaitAnOptionFromList(possibleResults: string[], startMsg: string, errorMsg: string, formatEachElementCallback: (element: string, index: number) => string, timeout?: number, options?:{withDoubleSeparationOptions?:boolean}): Promise<string> {
     const possibleResultsRegex = new RegExp(`^(${possibleResults.join("|")})$`);
     let fullMsg: string = errorMsg;
-    let optionsTxt: string = possibleResults.map(formatEachElementCallback).join("\n");
+    let optionsTxt: string = possibleResults.map(formatEachElementCallback).join(options && options.withDoubleSeparationOptions ? "\n\n" : "\n");
     fullMsg += "\n";
     fullMsg += optionsTxt;
     await this.bot.Send.Text(this.args.chatId, startMsg + "\n\n" + optionsTxt);

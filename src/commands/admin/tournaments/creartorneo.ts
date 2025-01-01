@@ -103,30 +103,55 @@ export default class CreateTournamentCommand implements ICommand {
       }
       TOURNAMENTFINAL.match_format = _gameTypeSelected.id;
       return {
-        isCustom: TOURNAMENTFINAL.custom_players_per_team !== -1, //Return if its custom. -1 (No custom) and any other value make this custom
+        isCustom: TOURNAMENTFINAL.match_format === "CU", //Return if its custom. -1 (No custom) and any other value make this custom
         gameTypeSelectedObj: _gameTypeSelected
       }
     })
 
-    dialog.AddStep<{isCustom:boolean, gameTypeSelectedObj:KlMatchType}, void>("Ingresa la cantidad de jugadores máximos del torneo", async (chat, info) => {
-      const __playersPerTeamNeeded = info.isCustom ? TOURNAMENTFINAL.custom_players_per_team : info.gameTypeSelectedObj.players_per_team;
+    dialog.AddStep<{isCustom: boolean, gameTypeSelectedObj: KlMatchType}, void>(
+      "Ingresa la cantidad de jugadores máximos del torneo",
+      async (chat, info) => {
+        const __playersPerTeamNeeded = info.isCustom
+          ? TOURNAMENTFINAL.custom_players_per_team
+          : info.gameTypeSelectedObj.players_per_team;
 
-      const availablePhases = [1,2,3,4,5].map(n => n.toString());
-      //Ask about how many phases the tournament will have, indicating the players needed for each phase
-      const selectedNumberPhases = await chat.DialogWaitAnOptionFromList(
-        availablePhases,
-        ` Selecciona la cantidad de fases que desees para el torneo: (eg. 1 para una fase, 2 para 2 fases, etc...)
-          Nota: Seleccionaste ${info.gameTypeSelectedObj.name} como modo de juego y necesita ${__playersPerTeamNeeded} jugadores por equipo `,
-        ` Esa cantidad de fases no es valida, solo ingresa el número, nada más (e.g. 1 para una fase, 2 para 2 fases, etc...), prueba de nuevo: `,
-        (number) =>
-          ` ${number} ${number === "1" ? "fase" : "fases"}
-            Esto requerirá: ${Math.pow(2, parseInt(number))} equipos y ${Math.pow(2, parseInt(number)) * __playersPerTeamNeeded} jugadores.
-            . `,
-        OUTSIDE_DefaultTimeout
-      )
+        const availablePhases = [1, 2, 3, 4, 5].map(n => n.toString());
 
-      TOURNAMENTFINAL.max_players = Math.pow(2, parseInt(selectedNumberPhases)) * __playersPerTeamNeeded;
-    });
+        // Ask about the number of phases for the tournament
+        const selectedNumberPhases = await chat.DialogWaitAnOptionFromList(
+          availablePhases,
+          `
+            Selecciona la cantidad de fases que deseas para el torneo:
+            📌 Cada fase duplica el número de equipos necesarios y consecuentemente el número de jugadores.
+            📌 Jugadores por equipo: **${__playersPerTeamNeeded}**
+            Modo de juego seleccionado: **${info.gameTypeSelectedObj.name}**
+            
+            Ejemplo: 
+            ➡️ *1* para una fase.
+            ➡️ *2* para dos fases.
+            
+            _Nota: Asegúrate de elegir un número válido._`,
+                `⚠️ **Entrada inválida** ⚠️
+            
+            Solo ingresa un número válido del 1 al 5. Por ejemplo:
+            ➡️ *1* para una fase.
+            ➡️ *2* para dos fases.
+            
+            ¡Inténtalo de nuevo!`,
+
+          (number) =>
+            `🔹 *${number} ${number === "1" ? "fase" : "fases"}*
+             - *Equipos necesarios:* ${Math.pow(2, parseInt(number))}
+             - *Jugadores requeridos:* ${Math.pow(2, parseInt(number)) * __playersPerTeamNeeded}
+             
+             `,
+          OUTSIDE_DefaultTimeout
+        );
+
+        TOURNAMENTFINAL.max_players = Math.pow(2, parseInt(selectedNumberPhases)) * __playersPerTeamNeeded;
+      }
+    );
+
 
     dialog.AddStep("Ingresa la ventana de juego del torneo (el tiempo que tendrá cada jugador para realizar su partido): (En días, por ejemplo: 1, 2 ó 6 días, no se permite 0 ni negativos)", async (specificChat) => {
       const _daysNumber = await chat.AskForSpecificText(
@@ -247,7 +272,6 @@ export default class CreateTournamentCommand implements ICommand {
       await chat.SendTxt(`El torneo se ha creado con éxito!. Fin`);
 
     } catch (e) {
-      KlLogger.error(`Error creando torneo: ${JSON.stringify(e, null, 0)}`);
       Msg_DefaultHandleError(bot, args.chatId, e);
       if (OUTSIDE_storedImg) {
         try {

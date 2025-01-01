@@ -1,25 +1,25 @@
 import { ReadJson } from "../../src/utils/filesystem";
 
-export interface JsonTournament {
-   id?: number;
-   name?: string;
-   description?: string;
-   creationDate?: string;
-   beginDate?: any;
-   matchPeriodTime?: number;
-   endDate?: string;
-   cover_img_name?: string;
-   tournament_type?: string;
-   max_players?: number;
-   match_format?: string;
-   custom_players_per_team?: number;
-   TournamentType?: TournamentType;
-   MatchFormat?: MatchFormat;
-   Tournament_Player_Subscriptions?: TournamentPlayerSubscriptions[];
-}
-
 export const Tournaments = ReadJson<JsonTournament[]>('./test/db/tournaments.json');
 export const Players = ReadJson<JsonPlayer[]>('./test/db/players.json')
+
+export interface JsonTournament {
+   id: number;
+   name: string;
+   description: string;
+   creationDate: BigInt;
+   beginDate: BigInt;
+   matchPeriodTime: number;
+   endDate: BigInt;
+   cover_img_name: string;
+   tournament_type: string;
+   max_players: number;
+   match_format: string;
+   custom_players_per_team: number;
+   TournamentType: TournamentType;
+   MatchFormat: MatchFormat;
+   Tournament_Player_Subscriptions: TournamentPlayerSubscriptions[];
+}
 
 export interface TournamentType {
    id?: string;
@@ -41,16 +41,16 @@ export interface TournamentPlayerSubscriptions {
 
 
 export interface JsonPlayer {
-   id?: number;
-   username?: string;
-   profilePicturePath?: string;
-   actualRank?: string;
-   phoneNumber?: string;
-   whatsappNickName?: string;
-   role?: string;
-   joined_date?: string;
-   tournamentId?: any;
-   Rank?: Rank;
+   id: number;
+   username: string;
+   profilePicturePath: string;
+   actualRank: string;
+   phoneNumber: string;
+   whatsappNickName: string;
+   role: string;
+   joined_date: BigInt;
+   tournamentId?: string;
+   Rank: Rank;
    Role?: Role;
 }
 

@@ -1,4 +1,4 @@
-import { KlTournamentEnhanced, ParticipantInfo } from '../types/db';
+import { KlTournamentEnhanced, KlSubscriptionEnhanced } from '../types/db';
 import { GenericTournament } from "./GenericTournament";
 import { ScheduledMatchWindow } from "../types/tournament";
 

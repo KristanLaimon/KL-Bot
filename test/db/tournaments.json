@@ -98,5 +98,55 @@
         }
       }
     ]
+  },
+  {
+    "id": 2,
+    "name": "sadf",
+    "description": "asdf",
+    "creationDate": "1735753549585",
+    "beginDate": null,
+    "matchPeriodTime": 1,
+    "endDate": null,
+    "cover_img_name": "sadf-1735753549585.png",
+    "tournament_type": "SE",
+    "max_players": 2,
+    "match_format": "1S",
+    "custom_players_per_team": -1,
+    "TournamentType": {
+      "id": "SE",
+      "name": "Eliminación Simple"
+    },
+    "MatchFormat": {
+      "id": "1S",
+      "name": "Duelo",
+      "players_per_team": 1
+    },
+    "Tournament_Player_Subscriptions": [
+      {
+        "tournament_id": 2,
+        "player_id": 8,
+        "subscription_date": "1735753661716",
+        "Player": {
+          "id": 8,
+          "username": "KL Sr.Krz",
+          "profilePicturePath": "AD-KL Sr.Krz-1733264029415-profile-picture",
+          "actualRank": "GC",
+          "phoneNumber": "5216121407908",
+          "whatsappNickName": "Kristan Ruiz",
+          "role": "AD",
+          "joined_date": "1730008800000",
+          "tournamentId": null,
+          "Rank": {
+            "id": "GC",
+            "name": "Gran Campeón",
+            "logoImagePath": "./db/ranks/gran_campeon.png"
+          },
+          "Role": {
+            "id": "AD",
+            "name": "Administrador"
+          }
+        }
+      }
+    ]
   }
 ]

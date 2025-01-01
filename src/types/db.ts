@@ -59,7 +59,7 @@ export enum TeamColor {
   Blue = 'BLU',
   Orange = 'ORA'
 }
-export type ParticipantInfo =
+export type KlSubscriptionEnhanced =
   KlGetTableType<typeof Kldb.tournament_Player_Subscriptions.findFirst> & {
     Player: KlPlayer
   }

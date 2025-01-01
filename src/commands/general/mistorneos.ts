@@ -18,12 +18,13 @@ export default class SeeMySubscribedTournamentsCommand implements ICommand {
     examples: [{ text: "mistorneos", isOk: true }, { text: "mistorneos someotherargument", isOk: false }],
     notes: "Muestra los torneos en los que estás inscrito actualmente, sin importar el estado del torneo a excepción de si ya ha finalizado"
   }
+
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
     try {
       const playerInfo = await Members_GetMemberInfoFromPhone(Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg).number);
       const allSubscribedTournamentByPlayer = await Kldb.tournament_Player_Subscriptions.findMany({
-        where: { AND: { player_id: playerInfo.id, Tournament: { endDate: { not: null, gte: Date.now() } } } },
+        where: { AND: { player_id: playerInfo.id, Tournament: { endDate: { equals: null }, beginDate: { equals: null} } } },
         include: { Tournament: { include: { TournamentType: true, MatchFormat: true, Tournament_Player_Subscriptions: true } } },
       });
 
@@ -41,7 +42,7 @@ export default class SeeMySubscribedTournamentsCommand implements ICommand {
              - 🎮 *Tipo:* ${tournament.TournamentType.name}  
              - 🕹️ *Formato:* ${tournament.MatchFormat.name}  
              - 👥 *Inscritos:* ${tournament.Tournament_Player_Subscriptions.length}/${tournament.max_players} jugadores
-             - 📅 *Inicio:* ${Dates_GetFormatedDurationTimeFrom(tournament.beginDate, { includingSeconds: true })}
+             - 📅 *Inicio:* ${tournament.beginDate ? Dates_GetFormatedDurationTimeFrom(tournament.beginDate, { includingSeconds: true }) : "No ha iniciado"}
              - ⌛ *Días por fase:* ${tournament.matchPeriodTime} días
         `).join("\n")}
       `)

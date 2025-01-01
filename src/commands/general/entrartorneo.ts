@@ -2,7 +2,7 @@ import Bot from "../../bot";
 import { SpecificChat } from "../../bot/SpecificChat";
 import { BotCommandArgs } from "../../types/bot";
 import { CommandAccessibleRoles, CommandHelpInfo, CommandScopeType, ICommand } from "../../types/commands";
-import { Dates_GetFormatedDurationTimeFrom } from "../../utils/dates";
+import { Dates_GetFormatedDateSimple, Dates_GetFormatedDurationTimeFrom } from "../../utils/dates";
 import {
   Db_GetStandardInfoPlayerFromMention,
   Db_GetStandardInfoPlayerFromRawMsg,
@@ -13,6 +13,8 @@ import { Msg_DefaultHandleError } from "../../utils/rawmsgs";
 import { PrismaClient } from "@prisma/client";
 import { Response_isAfirmativeAnswer } from "../../utils/responses";
 import Kldb from "../../utils/kldb";
+import GlobalCache from "../../bot/cache/GlobalCache";
+import moment from "moment";
 
 export default class EnterToTournamentCommand implements ICommand {
   commandName: string = "entrartorneo";
@@ -132,7 +134,12 @@ export default class EnterToTournamentCommand implements ICommand {
       }
 
       //Admitted!
-      await Db_InsertNewTournamentSubscription(Date.now(), mentionedPlayer.id, selectedTournament.id);
+      const {tournamentIsFull, wasCorrectSub} = await Db_InsertNewTournamentSubscription(Date.now(), mentionedPlayer.id, selectedTournament.id);
+
+      if(!wasCorrectSub){
+        await chat.SendTxt("Hubo un error en la inscripción... fin");
+        return;
+      }
 
       const updatedPlayerSubscriptions = await Kldb.tournament_Player_Subscriptions.findMany({
         where: { tournament_id: selectedTournament.id },
@@ -154,8 +161,26 @@ export default class EnterToTournamentCommand implements ICommand {
         - 🔄 Lugares restantes: ${selectedTournament.max_players - updatedPlayerSubscriptions.length}
 
         👥 *Jugadores inscritos:*
-        ${updatedPlayersText.trim()}
-      `);
+        ${new Array(selectedTournament.max_players)
+        .fill('💠')
+        .map((icon, i) => 
+        `${icon} ${updatedPlayerSubscriptions.at(i) ? updatedPlayerSubscriptions.at(i).Player.username : '----'}`)
+        .join("\n")}
+        `);
+
+      if(tournamentIsFull){
+        for (const registeredGroups of GlobalCache.SemiAuto_AllowedWhatsappGroups) {
+          //Announce to all registered groups that this tournament is full and has begun
+          await chat.SendTournamentInfoFormatted(selectedTournament, (originalMsg, tournamentInfo) =>`
+            === Anuncio ===
+            Se ha terminado de llenar los cupos del siguiente torneo:
+            ${originalMsg}
+            Los jugadores enlistados anteriormente ya pueden comenzar a realizar sus torneos.
+            Tiempo para jugar esta fase: ${Dates_GetFormatedDurationTimeFrom(tournamentInfo.endDate, { includingHours: true })}
+            Fecha exacta: ${Dates_GetFormatedDateSimple(tournamentInfo.endDate)}
+          `);
+        }
+      }
 
     } catch (e) {
       Msg_DefaultHandleError(bot, args.chatId, e);

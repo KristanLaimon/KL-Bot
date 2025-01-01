@@ -85,6 +85,11 @@ export function Dates_GetFormatedDurationTimeFrom(pastDate: bigint | number, opt
   }
 }
 
+export function Dates_GetFormatedDateSimple(date: BigInt | number){
+  if(typeof date === "bigint") date = Number(date);
+  return moment(Number(date)).format("DD/MM/YYYY HH:mm")
+}
+
 /**
  * Converts a string with a date in the format "YYYY/MMMM/DD" or "YYYY/MMMM/dd" to a Moment object.
  * The month MMMM must be a month in spanish (e.g. "enero", "febrero", etc.). And returns the moment

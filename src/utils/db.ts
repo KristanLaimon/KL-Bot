@@ -3,7 +3,7 @@ import path from "path";
 import KlLogger from "../bot/logger";
 import { Dates_GetFormatedDurationTimeFrom } from "./dates";
 import { Str_NormalizeLiteralString, Str_StringifyObj } from "./strings";
-import { KlPlayer, KlScheduledMatch_Player, KlTournamentEnhanced, ParticipantInfo, TeamColor } from "../types/db";
+import { KlPlayer, KlScheduledMatch_Player, KlTournamentEnhanced, KlSubscriptionEnhanced, TeamColor } from "../types/db";
 import { GenericTournament } from "../logic/GenericTournament";
 import { WAMessage } from "@whiskeysockets/baileys";
 import { Phone_GetFullPhoneInfoFromRawmsg, Phone_GetPhoneNumberFromMention } from "./phonenumbers";
@@ -42,7 +42,6 @@ export async function Db_DeleteTournamentById(tournamentId: number): Promise<boo
       fs.unlinkSync(path.join('db/tournaments_covers', tournament.cover_img_name));
     } catch (error) {
       KlLogger.error(`Failed to delete tournament cover: ${error}`);
-      return false;
     }
   }
 
@@ -55,7 +54,7 @@ export async function Db_DeleteTournamentById(tournamentId: number): Promise<boo
   }
 }
 
-export async function Db_GetTournamentFormattedInfo(tournamentId: number): Promise<string> {
+export async function Db_GetTournamentFormattedInfoStr(tournamentId: number): Promise<string> {
   try {
     const selectedTournament = await Kldb.tournament.findFirstOrThrow({
       where: { id: tournamentId },
@@ -98,7 +97,10 @@ export async function Db_GetTournamentFormattedInfo(tournamentId: number): Promi
       🔖 Inscritos: 
       ${playersSubscribed.length === 0
         ? "😔 Nadie todavía"
-        : playersSubscribed.map(s => `🔹 ${s.Player.username} (${s.Player.Rank.name})`).join("\n")}
+        : new Array(selectedTournament.max_players)
+          .fill(null)
+          .map((_, i) => (i < playersSubscribed.length ? `🔹 ${playersSubscribed[i].Player.username} (${playersSubscribed[i].Player.Rank.name})` : "🔹 -----"))
+          .join("\n")}
     `;
 
     return Str_NormalizeLiteralString(imgCaptionInfo);
@@ -108,7 +110,7 @@ export async function Db_GetTournamentFormattedInfo(tournamentId: number): Promi
 }
 
 
-export async function Db_InsertNewTournamentSubscription(subscriptionDateTimeUNIX: number, playerId: number, tournamentId: number): Promise<boolean> {
+export async function Db_InsertNewTournamentSubscription(subscriptionDateTimeUNIX: number, playerId: number, tournamentId: number): Promise<{wasCorrectSub:boolean, tournamentIsFull:boolean}> {
   try {
     await Kldb.tournament_Player_Subscriptions.create({
       data: {
@@ -121,19 +123,20 @@ export async function Db_InsertNewTournamentSubscription(subscriptionDateTimeUNI
     const tournamentInfo: KlTournamentEnhanced = await Kldb.tournament.findFirstOrThrow({ where: { id: tournamentId }, include: { Tournament_Player_Subscriptions: true, TournamentType: true, MatchFormat: true } });
 
     if (tournamentInfo.Tournament_Player_Subscriptions.length >= tournamentInfo.max_players) {
-      return await Db_InsertNewPhaseTournamentPlanning(tournamentInfo);
+      const wasCorrectSub =  await Db_InsertNewPhaseTournamentPlanning(tournamentInfo);
+      return {wasCorrectSub, tournamentIsFull: true};
     }
 
-    return true;
+    return {wasCorrectSub: true, tournamentIsFull: false};
   } catch (e) {
     KlLogger.error(`Failed to insert new tournament subscription inside Db_InsertNewTournamentSubscription: ${Str_StringifyObj(e)}`);
-    return false;
+    return {wasCorrectSub: false, tournamentIsFull: false};
   }
 }
 
 export async function Db_InsertNewPhaseTournamentPlanning(tournamentInfo: KlTournamentEnhanced): Promise<boolean> {
   try {
-    const participants: ParticipantInfo[] = await Kldb.tournament_Player_Subscriptions.findMany({
+    const participants: KlSubscriptionEnhanced[] = await Kldb.tournament_Player_Subscriptions.findMany({
       where: { tournament_id: tournamentInfo.id },
       include: { Player: { include: { Rank: true, Role: true } } }
     });
@@ -144,6 +147,7 @@ export async function Db_InsertNewPhaseTournamentPlanning(tournamentInfo: KlTour
     await Kldb.tournament.update({
       where: { id: tournamentInfo.id },
       data: {
+        beginDate: phasePlanning.StartDate,
         endDate: phasePlanning.EndDate
       }
     });
@@ -201,12 +205,6 @@ export async function Db_InsertNewPhaseTournamentPlanning(tournamentInfo: KlTour
   }
 }
 
-/**
- * TODO:
- * Terminar cachetournamentstarts
- * terminar inserttournamentplanngin into db
- *    terminar de actualizar el cache de los timers cuando se inserte en db
- * organizar este archivo dios santo!
- */
+
 
 
