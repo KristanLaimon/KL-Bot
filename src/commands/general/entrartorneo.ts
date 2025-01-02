@@ -5,7 +5,7 @@ import { CommandAccessibleRoles, CommandHelpInfo, CommandScopeType, ICommand } f
 import { Dates_GetFormatedDateSimple, Dates_GetFormatedDurationTimeFrom } from "../../utils/dates";
 import {
   Db_GetStandardInfoPlayerFromMention,
-  Db_GetStandardInfoPlayerFromRawMsg,
+  Db_GetStandardInfoPlayerFromRawMsg, Db_GetStandardTournamentEnhancedInfo,
   Db_InsertNewTournamentSubscription
 } from "../../utils/db";
 import { Phone_IsAMentionNumber } from "../../utils/phonenumbers";
@@ -15,6 +15,8 @@ import { Response_isAfirmativeAnswer } from "../../utils/responses";
 import Kldb from "../../utils/kldb";
 import GlobalCache from "../../bot/cache/GlobalCache";
 import moment from "moment";
+import { KlPlayer, KlTournamentEnhanced } from "../../types/db";
+import { Str_CenterText } from "../../utils/strings";
 
 export default class EnterToTournamentCommand implements ICommand {
   commandName: string = "entrartorneo";
@@ -168,24 +170,82 @@ export default class EnterToTournamentCommand implements ICommand {
         .join("\n")}
         `);
 
-      if(tournamentIsFull){
+      if (tournamentIsFull) {
+        const planningMatchesStr = await FormatStrPlanningMatches(selectedTournament.id);
+
         for (const registeredGroups of GlobalCache.SemiAuto_AllowedWhatsappGroups) {
-          //Announce to all registered groups that this tournament is full and has begun
-          await chat.SendTournamentInfoFormatted(selectedTournament, (originalMsg, tournamentInfo) =>`
-            === Anuncio ===
-            Se ha terminado de llenar los cupos del siguiente torneo:
-            ${originalMsg}
-            Los jugadores enlistados anteriormente ya pueden comenzar a realizar sus torneos.
-            Tiempo para jugar esta fase: ${Dates_GetFormatedDurationTimeFrom(tournamentInfo.endDate, { includingHours: true })}
-            Fecha exacta: ${Dates_GetFormatedDateSimple(tournamentInfo.endDate)}
-          `);
+          // Announce to all registered groups that this tournament is full and has begun
+          const groupChat = new SpecificChat(bot, args, registeredGroups.chat_id)
+          await groupChat.SendTournamentInfoFormatted(selectedTournament, (originalMsg, tournamentInfo) => `
+            🎉 *¡El Torneo ${tournamentInfo.name} está oficialmente lleno!* 🎉
+            
+            ⏰ *Hora de inicio:* Ahora mismo ${Dates_GetFormatedDateSimple(selectedTournament.beginDate)}
+            
+            📅 *Duración:* ${tournamentInfo.matchPeriodTime === 1 ? "1 día" : `${tournamentInfo.matchPeriodTime} días`} 
+            (Hasta: ${Dates_GetFormatedDateSimple(moment().add(tournamentInfo.matchPeriodTime, 'days').unix() * 1000)})
+            
+            🔥 *Próximos pasos:* 
+            Aquí está la planificación de los primeros partidos:
+            ${planningMatchesStr}
+            
+            Suerte a todos ⚔️
+        `);
         }
       }
+
 
     } catch (e) {
       Msg_DefaultHandleError(bot, args.chatId, e);
     }
   }
+}
+
+async function FormatStrPlanningMatches(tournamentId:number): Promise<string>{
+  const tournamentInfo :KlTournamentEnhanced|null = await Db_GetStandardTournamentEnhancedInfo(tournamentId);
+  if(tournamentInfo === null) return "No se encontró información de los planes del torneo";
+
+  const info = await Kldb.scheduledMatchWindow.findFirst({
+    where: { tournament_id: tournamentInfo.id },
+    include: {
+      ScheduledMatches: {
+        include: {
+          MatchType: true,
+          ScheduledMatch_Players: {
+            include: {
+              TeamColor: true,
+              Player: {
+                include: {
+                  Rank: true,
+                  Role: true }}}}}}},
+  });
+
+  const finalPlayersMsgToShowArray:string[] = [];
+  const isCustomTournament = tournamentInfo.custom_players_per_team !== -1;
+  const playersPerTeam = isCustomTournament ? tournamentInfo.custom_players_per_team : tournamentInfo.MatchFormat.players_per_team;
+
+  for(const match of info.ScheduledMatches){
+    const blueTeam:KlPlayer[] = [];
+    const orangeTeam:KlPlayer[] = [];
+
+    for(const playerInfo of match.ScheduledMatch_Players)
+      playerInfo.team_color_id === 'BLU' ? blueTeam.push(playerInfo.Player) : orangeTeam.push(playerInfo.Player);
+
+    if(playersPerTeam <= 0) throw new Error("Custom players per team not correctly implemented ??? " + playersPerTeam + "players per team found");
+    if(playersPerTeam === 1){
+      finalPlayersMsgToShowArray.push(`${blueTeam.at(0).username} Vs ${orangeTeam.at(0).username}`)
+    }
+    if(playersPerTeam === 2){
+      finalPlayersMsgToShowArray.push(`${blueTeam.join(', ')}`)
+      finalPlayersMsgToShowArray.push("________ Vs _________");
+      finalPlayersMsgToShowArray.push(`${orangeTeam.join(', ')}`)
+    }
+    if(playersPerTeam >= 3){
+      finalPlayersMsgToShowArray.push(`${blueTeam.join('\n')}`)
+      finalPlayersMsgToShowArray.push("________ Vs _________");
+      finalPlayersMsgToShowArray.push(`${orangeTeam.join('\n')}`)
+    }
+  }
+  return Str_CenterText(finalPlayersMsgToShowArray, "auto", "|", 2);
 }
 
 // let mentionedPlayerInfo: KlPlayer | null = null;

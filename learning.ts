@@ -1,2 +1,8 @@
+import { Str_CenterText } from "./src/utils/strings";
 
-console.log(Math.log2(5))
+const text = `
+   Hola Mundo
+   No entiendo nada
+`;
+
+console.log(Str_CenterText(text, "auto", "|", 3));

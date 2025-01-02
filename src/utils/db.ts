@@ -32,6 +32,17 @@ export async function Db_GetStandardInfoPlayerFromNumber(number:string):Promise<
   }
 }
 
+export async function Db_GetStandardTournamentEnhancedInfo(tournamentId: number):Promise<KlTournamentEnhanced|null>{
+  try{
+    return await Kldb.tournament.findFirstOrThrow({
+      where:{id:tournamentId},
+      include: { TournamentType: true, MatchFormat: true, Tournament_Player_Subscriptions: { include: { Player: { include: { Rank: true, Role: true } } } } }
+    })
+  }catch(e){
+    return null;
+  }
+}
+
 // ============================ TOURNAMENTS =============================
 export async function Db_DeleteTournamentById(tournamentId: number): Promise<boolean> {
   const tournament = await Kldb.tournament.findFirst({ where: { id: tournamentId } });

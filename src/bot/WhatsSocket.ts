@@ -29,7 +29,7 @@ export class Delegate<functType extends (...args: any[]) => any> {
 
 export default class WhatsSocket {
   private socket: BaileysWASocket; //It's initialized in "initializeSelf"
-  public onReconnect: Delegate<() => void> = new Delegate();
+  public onReconnect: Delegate<() => Promise<void>> = new Delegate();
   public onIncommingMessage: Delegate<(chatId: string, rawMsg: WAMessage, type: MsgType, senderType: SenderType) => void> = new Delegate();
   public onEnteringGroup: Delegate<(groupInfo: GroupMetadata) => void> = new Delegate();
 
