@@ -32,7 +32,7 @@ export default class WhatsSocketMsgQueue {
 
     return new Promise((resolve, reject) => {
       this.queue.push({ chatId, content, misc, resolve, reject });
-      this.ProcessQueue(); //I don't need to wait, do i?
+      this.ProcessQueue(); //I don't need to wait, do I?
 
       if (!this.isProcessing) {
         this.isProcessing = true;

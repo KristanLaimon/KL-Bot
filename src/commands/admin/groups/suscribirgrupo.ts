@@ -2,7 +2,7 @@ import Bot from '../../../bot';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
 import { CommandAccessibleRoles, ICommand, MsgType, CommandScopeType, SenderType, CommandHelpInfo } from '../../../types/commands';
-import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
+import { Msg_DefaultHandleError, Msg_IsBotWaitMessageError } from "../../../utils/rawmsgs";
 import SecretAdminPassword from '../../../../db/secretAdminPassword';
 import { Members_GetMemberInfoFromPhone } from '../../../utils/members';
 import { Phone_GetFullPhoneInfoFromRawmsg } from '../../../utils/phonenumbers';
@@ -30,20 +30,20 @@ export default class SubscribeGroupCommand implements ICommand {
     const chatUser = new SpecificChat(bot, args, args.userIdOrChatUserId);
 
     if (args.senderType === SenderType.Individual) {
-      await groupChat.SendTxt("No tiene sentido usar este comando en un chat privado, intentalo en un grupo...");
+      await groupChat.SendTxt("No tiene sentido usar este comando en un chat privado, intentalo en un grupo...", true, { quoted: args.originalMsg});
       return;
     }
 
     const alreadyExists = GlobalCache.SemiAuto_AllowedWhatsappGroups.find(allowedGroupObj => allowedGroupObj.chat_id === args.chatId);
     if (alreadyExists) {
-      await groupChat.SendTxt("Este grupo ya está registrado en este bot, no es necesario volver a hacerlo");
+      await groupChat.SendTxt("Este grupo ya está registrado en este bot, no es necesario volver a hacerlo", true, { quoted: args.originalMsg});
       return;
     }
 
     try {
       const info = await bot.Receive.GetGroupMetadata(args.chatId)!;
 
-      await groupChat.SendTxt("Checa el chat privado para continuar con esta operación");
+      await groupChat.SendTxt("Checa el chat privado para continuar con esta operación",  true, { quoted: args.originalMsg});
 
       await chatUser.SendTxt(`Estás intentando registrar el grupo ${info?.subject} en este bot, ¿Verdad?`);
       await chatUser.SendTxt("Introduce la contraseña de superadministrador para continuar con el proceso....")
@@ -71,17 +71,10 @@ export default class SubscribeGroupCommand implements ICommand {
       /// 🦊 fin 🦊 ///
     `);
       await GlobalCache.UpdateCache();
+      await groupChat.SendReactionToOriginalMsg("✅");
 
     } catch (e) {
-      if (Msg_IsBotWaitMessageError(e)) {
-        if (e.wasAbortedByUser) await groupChat.SendTxt("Se ha cancelado la operación");
-        else await groupChat.SendTxt("Te has tardado mucho en contestar...");
-      }
-      else {
-        await groupChat.SendTxt("Ha ocurrido un error extraño... toma una captura de esto y mandalo al creador del bot por favor para arreglarlo");
-        await groupChat.SendTxt("Error en cuestión:")
-        await groupChat.SendTxt(JSON.stringify(e));
-      }
+      Msg_DefaultHandleError(bot, args, e);
     }
   }
 }

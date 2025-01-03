@@ -13,29 +13,15 @@ export default class TestCommand implements ICommand {
   maxScope: CommandScopeType = "Group"
 
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
-    const d = new SpecificDialog(bot, args, { withNumeratedSteps: true });
-    const armable: Partial<KlTournament> = {}
-
-    d.AddStep<void, boolean>("Hola, espero que me respondas con un hola también ", async (chat)  => {
-      const response = await chat.AskText(60);
-      armable.custom_players_per_team = 3;
-      return response.includes("hola");
-    })
-
-    d.AddStep<boolean, boolean>('Ahora toca checar si me dijiste hola', async (chat, wasHola) => {
-      const toSend = wasHola ? "Si!!" : "No..";
-      armable.matchPeriodTime = 3;
-      chat.SendTxt(toSend);
-
-      return wasHola;
-    } )
-
+    const chat = new SpecificChat(bot, args);
     try {
-    const finalResult = await d.StartConversation<boolean>();
-    const result = 3;
-
+      await chat.SendTxt("Envía cualquier mensaje que quieras:", true, {quoted: args.originalMsg});
+      const response = await chat.AskText(60);
+      await chat.SendTxt(`Has respondido: ${response}`);
+      await chat.SendReactionToOriginalMsg("✅");
     } catch (e) {
-      Msg_DefaultHandleError(bot, args.chatId, e);
+      Msg_DefaultHandleError(bot, args, e);
+
     }
   }
 }

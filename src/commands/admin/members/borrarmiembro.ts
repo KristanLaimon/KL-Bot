@@ -2,7 +2,7 @@ import Bot from '../../../bot';
 import { CommandAccessibleRoles, ICommand, CommandScopeType, CommandHelpInfo } from '../../../types/commands';
 import { BotCommandArgs } from '../../../types/bot';
 import { SpecificChat } from '../../../bot/SpecificChat';
-import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
+import { Msg_DefaultHandleError, Msg_IsBotWaitMessageError } from "../../../utils/rawmsgs";
 import Kldb from "../../../utils/kldb";
 
 
@@ -23,7 +23,7 @@ export default class DeleteMemberCommand implements ICommand {
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
 
-    await chat.SendTxt("Eliminado de un miembro");
+    await chat.SendTxt("Eliminado de un miembro",  true, { quoted: args.originalMsg});
     try {
       const allMembers = await Kldb.player.findMany({ include: { Role: true, Rank: true } });
       let selectedMember = await chat.DialogWaitAnOptionFromListObj(
@@ -39,13 +39,10 @@ export default class DeleteMemberCommand implements ICommand {
       if (deletedPlayer) await chat.SendTxt(`Se ha borrado correctamente los datos del usuario: *${deletedPlayer.username}*`);
       else await chat.SendTxt(`Ha ocurrido un error raro, pero no ha sido borrado`);
 
-      await chat.SendTxt("=================== Finalizado ===============")
+      await chat.SendTxt("================ Finalizado ===================")
+      await chat.SendReactionToOriginalMsg("✅");
     } catch (e) {
-      if (Msg_IsBotWaitMessageError(e)) {
-        if (e.wasAbortedByUser) await chat.SendTxt("Se ha cancelado el borrado del miembro");
-        else await chat.SendTxt("Te has tardado mucho en contestar...")
-      } else
-        await chat.SendTxt(`Ha ocurrido un error extraño... \n${JSON.stringify(e)}`)
+      Msg_DefaultHandleError(bot, args, e);
     }
   }
 }

@@ -34,7 +34,7 @@ export default class CreateTournamentCommand implements ICommand {
     let   OUTSIDE_storedImg: string | null = null;
     const TOURNAMENTFINAL: Partial<KlTournament> = {};
 
-    await chat.SendTxt(`====== Creación de un torneo =====`);
+    await chat.SendTxt(`====== Creación de un torneo =====`, true, {quoted: args.originalMsg});
 
     dialog.AddStep("Ingresa el tipo de torneo", async (chat) => {
       const _typesAvailable = await Kldb.tournamentType.findMany();
@@ -257,6 +257,7 @@ export default class CreateTournamentCommand implements ICommand {
         catch (e) {
           KlLogger.error(`Error deleting tournament cover on abort tournament creation: ${e}`);
         }
+        await chat.SendReactionToOriginalMsg("❌");
       }
 
       const fullTournamentInfo = await Kldb.tournament.create({ data: (TOURNAMENTFINAL as KlTournament) });
@@ -270,9 +271,10 @@ export default class CreateTournamentCommand implements ICommand {
         })
       }
       await chat.SendTxt(`El torneo se ha creado con éxito!. Fin`);
+      await chat.SendReactionToOriginalMsg("✅");
 
     } catch (e) {
-      Msg_DefaultHandleError(bot, args.chatId, e);
+      Msg_DefaultHandleError(bot, args, e);
       if (OUTSIDE_storedImg) {
         try {
           fs.unlinkSync(`db/tournaments_covers/${OUTSIDE_storedImg}`);

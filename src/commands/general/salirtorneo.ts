@@ -41,7 +41,7 @@ export default class ExitATournamentCommand implements ICommand {
       });
 
       if (allSubscribedTournamentByPlayer.length === 0) {
-        await chat.SendTxt("No hay ninguna suscripción a ningún torneo activo de momento");
+        await chat.SendTxt("No hay ninguna suscripción a ningún torneo activo de momento", true, { quoted: args.originalMsg});
         return;
       }
 
@@ -56,9 +56,10 @@ export default class ExitATournamentCommand implements ICommand {
           ${index + 1}. 🏆 *${tournament.name}*  
             - 🎮 *Tipo:* ${tournament.TournamentType.name}  
             - 📅 *Creado hace:* ${Dates_GetFormatedDurationTimeFrom(tournament.creationDate, { includingSeconds: true })}
-            .
           `.trim(),
-        60
+        60,
+        {withDoubleSeparationOptions: true},
+        {quoted: args.originalMsg}
       );
 
       await chat.SendTournamentInfoFormatted(selectedTournament);
@@ -85,8 +86,9 @@ export default class ExitATournamentCommand implements ICommand {
       } else {
         await chat.SendTxt("Se ha cancelado, aquí no ha pasado nada...")
       }
+      await chat.SendReactionToOriginalMsg("✅");
     } catch (e) {
-      Msg_DefaultHandleError(bot, args.chatId, e);
+      Msg_DefaultHandleError(bot, args, e);
     }
   }
 }

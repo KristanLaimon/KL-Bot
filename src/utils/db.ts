@@ -2,12 +2,13 @@ import fs from "fs";
 import path from "path";
 import KlLogger from "../bot/logger";
 import { Dates_GetFormatedDurationTimeFrom } from "./dates";
-import { Str_NormalizeLiteralString, Str_StringifyObj } from "./strings";
+import { Str_CenterText, Str_NormalizeLiteralString, Str_StringifyObj } from "./strings";
 import { KlPlayer, KlScheduledMatch_Player, KlTournamentEnhanced, KlSubscriptionEnhanced, TeamColor } from "../types/db";
 import { GenericTournament } from "../logic/GenericTournament";
 import { WAMessage } from "@whiskeysockets/baileys";
 import { Phone_GetFullPhoneInfoFromRawmsg, Phone_GetPhoneNumberFromMention } from "./phonenumbers";
 import Kldb from "./kldb";
+import moment from "moment";
 
 //------------------- Db Utils ------------------
 // ============================ PLAYERS =============================
@@ -85,9 +86,14 @@ export async function Db_GetTournamentFormattedInfoStr(tournamentId: number): Pr
     const playersSubscribed = selectedTournament.Tournament_Player_Subscriptions;
     const admittedRanks = selectedTournament.Tournament_Rank_RanksAdmitteds;
 
+    const actualState:string =
+      playersSubscribed.length < selectedTournament.max_players ? "✅ Abierto a inscripciones"
+        : selectedTournament.endDate && moment().isBefore(moment(Number(selectedTournament.endDate))) ? "⏳ En curso"
+        : "⛔ Finalizado";
+
     const imgCaptionInfo = `
       =🌟 *${selectedTournament.name.toUpperCase()}* 🌟=
-      ${playersSubscribed.length < selectedTournament.max_players ? "✅ Abierto a inscripciones" : "❌ Cerrado"}
+      ${actualState}
       ${selectedTournament.description}
 
       📊 Capacidad: ${playersSubscribed.length}/${selectedTournament.max_players}
@@ -118,6 +124,61 @@ export async function Db_GetTournamentFormattedInfoStr(tournamentId: number): Pr
   } catch (e) {
     return "No se pudo obtener la información del torneo...";
   }
+}
+
+
+export async function Db_FormatStrPlanningMatches(tournamentId:number): Promise<string>{
+  const tournamentInfo :KlTournamentEnhanced|null = await Db_GetStandardTournamentEnhancedInfo(tournamentId);
+  if(tournamentInfo === null) return "No se encontró información de los planes del torneo";
+
+  const info = await Kldb.scheduledMatchWindow.findFirst({
+    where: { tournament_id: tournamentInfo.id },
+    include: {
+      ScheduledMatches: {
+        include: {
+          MatchType: true,
+          ScheduledMatch_Players: {
+            include: {
+              TeamColor: true,
+              Player: {
+                include: {
+                  Rank: true,
+                  Role: true }}}}}}},
+  });
+
+  const finalPlayersMsgToShowArray:string[] = [];
+  const isCustomTournament = tournamentInfo.custom_players_per_team !== -1;
+  const playersPerTeam = isCustomTournament ? tournamentInfo.custom_players_per_team : tournamentInfo.MatchFormat.players_per_team;
+  const formatPlayer  = (player:KlPlayer) => `${player.username}`;
+  const addFormatNumber  = () => finalPlayersMsgToShowArray.push(`#${++counter}`);
+
+  let counter = 0;
+  for(const match of info.ScheduledMatches){
+    const blueTeam:KlPlayer[] = [];
+    const orangeTeam:KlPlayer[] = [];
+
+    for(const playerInfo of match.ScheduledMatch_Players)
+      playerInfo.team_color_id === 'BLU' ? blueTeam.push(playerInfo.Player) : orangeTeam.push(playerInfo.Player);
+
+    if(playersPerTeam <= 0) throw new Error("Custom players per team not correctly implemented ??? " + playersPerTeam + "players per team found");
+    if(playersPerTeam === 1){
+      addFormatNumber()
+      finalPlayersMsgToShowArray.push(`${formatPlayer(blueTeam.at(0))} Vs ${formatPlayer(orangeTeam.at(0))}`)
+    }
+    if(playersPerTeam === 2){
+      addFormatNumber()
+      finalPlayersMsgToShowArray.push(`${blueTeam.map(formatPlayer) .join(', ')}`)
+      finalPlayersMsgToShowArray.push("----------- Vs ------------");
+      finalPlayersMsgToShowArray.push(`${orangeTeam.map(formatPlayer).join(', ')}`)
+    }
+    if(playersPerTeam >= 3){
+      addFormatNumber()
+      finalPlayersMsgToShowArray.push(`${blueTeam.map(formatPlayer) .join('\n')}`)
+      finalPlayersMsgToShowArray.push("----------- Vs ------------");
+      finalPlayersMsgToShowArray.push(`${orangeTeam.map(formatPlayer).join('\n')}`)
+    }
+  }
+  return Str_CenterText(finalPlayersMsgToShowArray, "auto", "", 2);
 }
 
 
@@ -205,7 +266,11 @@ export async function Db_InsertNewPhaseTournamentPlanning(tournamentInfo: KlTour
       }
 
       await Kldb.scheduledMatch_Player.createMany({
-        data: scheduledMatch_PlayersToInsert
+        data: scheduledMatch_PlayersToInsert.map<KlScheduledMatch_Player>(info => ({
+          scheduled_match_id: info.scheduled_match_id,
+          player_id:  info.player_id,
+          team_color_id:  info.team_color_id,
+        }))
       });
     }
 

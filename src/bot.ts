@@ -11,6 +11,7 @@ import { Members_GetMemberInfoFromPhone } from './utils/members';
 import { Phone_GetFullPhoneInfoFromRawmsg } from './utils/phonenumbers';
 import { Msg_GetTextFromRawMsg } from './utils/rawmsgs';
 import GlobalCache from './bot/cache/GlobalCache';
+import stringSimilarity from 'string-similarity';
 
 type BotArgs = {
   prefix?: string;
@@ -114,8 +115,13 @@ export default class Bot {
       const args = words.slice(1);
 
       //Check if command exists
-      if (!this.CommandsHandler.Exists(commandNameText)) return;
-      //TODO: Make a try to guess what the user tried really to type and give feedback
+      if (!this.CommandsHandler.Exists(commandNameText)){
+        const validCommands = this.CommandsHandler.Commands.map(command => command[0]);
+        const matches = stringSimilarity.findBestMatch(commandNameText, validCommands);
+        if(matches.bestMatch.rating > 0.32)
+          await this.Send.Text(chatId, `¿No quisiste decir "${this.config.prefix}${matches.bestMatch.target}"?`);
+        return;
+      }
 
       //Check sender phone number
       const phoneNumber = Phone_GetFullPhoneInfoFromRawmsg(rawMsg)!.number;

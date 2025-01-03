@@ -1,4 +1,4 @@
-import { BotWaitMessageError } from '../types/bot';
+import { BotCommandArgs, BotWaitMessageError } from "../types/bot";
 import { WAMessage } from '@whiskeysockets/baileys';
 import { ICommand, MsgType, SenderType } from "../types/commands";
 import Bot from '../bot';
@@ -21,20 +21,21 @@ export function Msg_GetTextFromRawMsg(rawMsg: WAMessage): string {
  * BotWaitMessageError, we send a message to the chat with the error message.
  * @param originalCommand originalCommand to provide more error context
  */
-export function Msg_DefaultHandleError(bot: Bot, chatId: string, errorGeneric: any, originalCommand?:ICommand) {
+export function Msg_DefaultHandleError(bot: Bot, args: BotCommandArgs, errorGeneric: any, originalCommand?:ICommand) {
   if (Msg_IsBotWaitMessageError(errorGeneric)) {
     if (errorGeneric.wasAbortedByUser) {
-      bot.Send.Text(chatId, "Se ha cancelado el comando...");
+      bot.Send.Text(args.chatId, "Se ha cancelado el comando...");
       KlLogger.error(`Command ${originalCommand?.commandName} was aborted by user`);
     }else{
-     bot.Send.Text(chatId, "Te has tardado mucho en contestar...");
+     bot.Send.Text(args.chatId, "Te has tardado mucho en contestar...");
      KlLogger.error(`Command ${originalCommand?.commandName} timeout`);
     }
   }
   else {
-    bot.Send.Text(chatId, 'Ocurrió un error al ejecutar el comando... \n' + JSON.stringify(errorGeneric, null, 4));
+    bot.Send.Text(args.chatId, 'Ocurrió un error al ejecutar el comando... \n' + JSON.stringify(errorGeneric, null, 4));
     KlLogger.error(`Command ${originalCommand?.commandName} error: ${JSON.stringify(errorGeneric, null, 4)}`);
   }
+  bot.Send.ReactEmojiTo(args.chatId, args.originalMsg, "❌");
 }
 
 export function Msg_IsBotWaitMessageError(error: unknown): error is BotWaitMessageError {

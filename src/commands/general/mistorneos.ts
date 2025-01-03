@@ -29,7 +29,8 @@ export default class SeeMySubscribedTournamentsCommand implements ICommand {
       });
 
       if (allSubscribedTournamentByPlayer.length === 0) {
-        await chat.SendTxt("No estás inscrito en ninguno de los torneos activos");
+        await chat.SendTxt("No estás inscrito en ninguno de los torneos activos", true, { quoted: args.originalMsg});
+        await chat.SendReactionToOriginalMsg("❌")
         return;
       }
 
@@ -45,10 +46,10 @@ export default class SeeMySubscribedTournamentsCommand implements ICommand {
              - 📅 *Inicio:* ${tournament.beginDate ? Dates_GetFormatedDurationTimeFrom(tournament.beginDate, { includingSeconds: true }) : "No ha iniciado"}
              - ⌛ *Días por fase:* ${tournament.matchPeriodTime} días
         `).join("\n")}
-      `)
-
+      `, true, { quoted: args.originalMsg});
+      await chat.SendReactionToOriginalMsg("✅");
     } catch (e) {
-      Msg_DefaultHandleError(bot, args.chatId, e);
+      Msg_DefaultHandleError(bot, args, e);
     }
   }
 }

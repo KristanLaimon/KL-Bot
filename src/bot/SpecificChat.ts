@@ -6,6 +6,7 @@ import { Str_NormalizeLiteralString, Str_StringifyObj } from "../utils/strings";
 import { Db_GetTournamentFormattedInfoStr } from "../utils/db";
 import { KlTournament } from "../types/db";
 import KlLogger from "./logger";
+import { MiscMessageGenerationOptions, WAMessage } from "@whiskeysockets/baileys";
 
 export class SpecificChat {
   private readonly bot: Bot;
@@ -23,10 +24,12 @@ export class SpecificChat {
    *
    * @param msg - The text message to be sent.
    *
+   * @param sanitizeText
+   * @param misc
    * @returns A promise that resolves when the text message has been sent successfully.
    */
-  async SendTxt(msg: string): Promise<void> {
-    await this.bot.Send.Text(this.args.chatId, msg);
+  async SendTxt(msg: string, sanitizeText:boolean = true, misc?: MiscMessageGenerationOptions): Promise<void> {
+    await this.bot.Send.Text(this.args.chatId, msg, sanitizeText, misc);
   }
 
   /**
@@ -34,11 +37,20 @@ export class SpecificChat {
    *
    * @param imgPath - The file path of the image to be sent.
    * @param caption - Optional. The caption for the image.
-   *
+   * @param sanitizeCaption
+   * @param misc
    * @returns A promise that resolves when the image has been sent successfully.
    */
-  async SendImg(imgPath: string, caption?: string): Promise<void> {
-    await this.bot.Send.Img(this.args.chatId, imgPath, caption);
+  async SendImg(imgPath: string, caption?: string, sanitizeCaption:boolean = true, misc?: MiscMessageGenerationOptions): Promise<void> {
+    await this.bot.Send.Img(this.args.chatId, imgPath, caption, sanitizeCaption, misc);
+  }
+
+  async SendReaction(originalRawMsg:WAMessage, emojiStr:string){
+    await this.bot.Send.ReactEmojiTo(this.args.chatId, originalRawMsg, emojiStr);
+  }
+
+  async SendReactionToOriginalMsg(emojiStr:"✅" | "❌" | "⌛" | string){
+    await this.SendReaction(this.args.originalMsg, emojiStr);
   }
 
   async SendTournamentInfoFormatted(tournamentInfo:KlTournament, personalizeMsg?: (alreadyMsg:string, tournamentInfo?:KlTournament) => string):Promise<boolean>{
@@ -120,23 +132,24 @@ export class SpecificChat {
    * @param {string} errorMsg - The message to display if the user makes an invalid selection.
    * @param {(element: string, index: number) => string} formatEachElementCallback - A function that formats how each option is displayed to the user.
    * @param {number} [timeout] - Optional timeout in seconds for user response.
+   * @param options
+   * @param misc
    * @returns {Promise<string>} A promise that resolves with the selected option.
    * @throws {Error} Throws an error if no matching option is found (which should not happen under normal circumstances).
    */
-  async DialogWaitAnOptionFromList(possibleResults: string[], startMsg: string, errorMsg: string, formatEachElementCallback: (element: string, index: number) => string, timeout?: number, options?:{withDoubleSeparationOptions?:boolean}): Promise<string> {
+  async DialogWaitAnOptionFromList(possibleResults: string[], startMsg: string, errorMsg: string, formatEachElementCallback: (element: string, index: number) => string, timeout?: number, options?:{withDoubleSeparationOptions?:boolean}, misc?: MiscMessageGenerationOptions): Promise<string> {
     const possibleResultsRegex = new RegExp(`^(${possibleResults.join("|")})$`);
     let fullMsg: string = errorMsg;
     let optionsTxt: string = possibleResults.map(formatEachElementCallback).join(options && options.withDoubleSeparationOptions ? "\n\n" : "\n");
     fullMsg += "\n";
     fullMsg += optionsTxt;
-    await this.bot.Send.Text(this.args.chatId, startMsg + "\n\n" + optionsTxt);
-    const toReturn = await WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(this.bot, this.args.chatId, this.args.userIdOrChatUserId, possibleResultsRegex, fullMsg, timeout);
-    return toReturn;
+    await this.bot.Send.Text(this.args.chatId, startMsg + "\n\n" + optionsTxt, true, misc);
+    return await WaitTryAndTryUntilGetNextExpectedTxtMsgFromId(this.bot, this.args.chatId, this.args.userIdOrChatUserId, possibleResultsRegex, fullMsg, timeout);
   }
 
   /**
    * Presents a list of options to the user and waits for them to select one.
-   * 
+   *
    * @template T - The type of objects in the options list.
    * @param {T[]} allOptionsObj - An array of all available options.
    * @param {function(T, number): string} selectPropCallback - A function that selects a property from each option object to use as the selectable value.
@@ -144,6 +157,8 @@ export class SpecificChat {
    * @param {string} errorMsg - The message to display if the user makes an invalid selection.
    * @param {function(T, number): string} formatElementCallBack - A function that formats how each option is displayed to the user.
    * @param {number} [timeout] - Optional timeout in seconds for user response.
+   * @param options
+   * @param misc
    * @returns {Promise<T>} A promise that resolves with the selected option object.
    * @throws {Error} Throws an error if no matching object is found (which should not happen under normal circumstances).
    */
@@ -153,7 +168,9 @@ export class SpecificChat {
     startingMsg: string,
     errorMsg: string,
     formatElementCallBack: (element: T, index: number) => string,
-    timeout?: number
+    timeout?: number,
+    options?:{withDoubleSeparationOptions?:boolean},
+    misc?: MiscMessageGenerationOptions
   ): Promise<T> {
     const selectedProps = allOptionsObj.map(selectPropCallback);
     const selectedByUser = await this.DialogWaitAnOptionFromList(
@@ -161,7 +178,9 @@ export class SpecificChat {
       Str_NormalizeLiteralString(startingMsg),
       Str_NormalizeLiteralString(errorMsg),
       (elementStr, index) => Str_NormalizeLiteralString(formatElementCallBack(allOptionsObj[index], index)),
-      timeout
+      timeout,
+      options,
+      misc
     );
     const selectedObj = allOptionsObj.find((optionObj, index) => selectPropCallback(optionObj, index) === selectedByUser);
     if (!selectedObj) throw new Error("This shouln't have happened");

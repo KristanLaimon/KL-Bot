@@ -10,16 +10,18 @@ export default class ReceiveImgCommand implements ICommand {
   minimumRequiredPrivileges: HelperRoleName = "Administrador"
   maxScope: CommandScopeType = "Group"
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
-    await bot.Send.Text(args.chatId, "Envia una imagen y la guardaré en mis archivos...");
-
+    await bot.Send.Text(args.chatId, "Envia una imagen y la guardaré en mis archivos...", true, { quoted: args.originalMsg});
     try {
       const message = await bot.Receive.WaitNextRawMsgFromId(args.chatId, args.userIdOrChatUserId, MsgType.image, 30);
 
-      if (await FileSystem_TryToDownloadMedia(message, `${message.pushName}-${Date.now()}`, "jpg", "db/players"))
+      if (await FileSystem_TryToDownloadMedia(message, `${message.pushName}-${Date.now()}`, "jpg", "db/players")){
         await bot.Send.Text(args.chatId, `Imagen guardada exitosamente!`);
-      else
+        await bot.Send.ReactEmojiTo(args.chatId, args.originalMsg, "✅");
+      }
+      else{
         await bot.Send.Text(args.chatId, `Error al guardar la imagen`);
-
+        await bot.Send.ReactEmojiTo(args.chatId, args.originalMsg, "❌");
+      }
     } catch (error) {
       if (Msg_IsBotWaitMessageError(error)) {
         await bot.Send.Text(args.chatId, "Nunca mandaste la imagen...");

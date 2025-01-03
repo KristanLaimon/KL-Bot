@@ -27,7 +27,8 @@ export default class GetProfileInfoCommand implements ICommand {
 
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     if (args.commandArgs.length > 1) {
-      await bot.Send.Text(args.chatId, "Debes etiquetar al miembro al que quieres consultar con el @ o si no mandas nada, se te desplegará tu propia información");
+      await bot.Send.Text(args.chatId, "Debes etiquetar al miembro al que quieres consultar con el @ o si no mandas nada, se te desplegará tu propia información", true, { quoted: args.originalMsg});
+      await bot.Send.ReactEmojiTo(args.chatId, args.originalMsg, "❌");
       return;
     }
 
@@ -39,22 +40,24 @@ export default class GetProfileInfoCommand implements ICommand {
       Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg);
 
     if (whatsNumberInfo == null) {
-      await chat.SendTxt("No etiquetaste a nadie o el etiquetado es inválido (?)");
+      await chat.SendTxt("No etiquetaste a nadie o el etiquetado es inválido (?)", true, { quoted: args.originalMsg});
+      await bot.Send.ReactEmojiTo(args.chatId, args.originalMsg, "❌");
       return;
     }
 
     const member = await Members_GetMemberInfoFromPhone(whatsNumberInfo.number);
     if (member === null) {
-      await bot.Send.Text(args.chatId, "La persona etiquetada todavía no está registrado en este bot del clan");
+      await bot.Send.Text(args.chatId, "La persona etiquetada todavía no está registrado en este bot del clan", true, { quoted: args.originalMsg});
+      await bot.Send.ReactEmojiTo(args.chatId, args.originalMsg, "❌");
       return;
     }
-    await chat.SendTxt(`
+    const msgToSend = `
       ======== Perfil =======
       Username: ${member?.username}
       Rango: ${member?.Rank.name}
       Rol: ${member.Role.name}
-      Antiguedad: ${Dates_GetFormatedDurationTimeFrom(member.joined_date, { includingSeconds: false })}
-    `);
-    await chat.SendImg(FileSystem_GetPlayerImagePath(member.username)!);
+      Antigüedad: ${Dates_GetFormatedDurationTimeFrom(member.joined_date, { includingSeconds: false })}
+    `;
+    await chat.SendImg(FileSystem_GetPlayerImagePath(member.username)!, msgToSend, true, { quoted: args.originalMsg });
   }
 }

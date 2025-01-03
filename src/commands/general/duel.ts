@@ -32,7 +32,7 @@ export default class DuelCommand implements ICommand {
       const challengerNumber = Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number;
       const challengerInfo = await Members_GetMemberInfoFromPhone(challengerNumber);
       if (challengerInfo === null) {
-        await chat.SendTxt("Por alguna razón todavía no estás registrado como miembro, contacta a un admin para que te registre\nAdmins actuales:");
+        await chat.SendTxt("Por alguna razón todavía no estás registrado como miembro, contacta a un admin para que te registre\nAdmins actuales:", true, {quoted: args.originalMsg});
         //It assumes there's at least an admin registered
         const adminsAvailable =
           (await Kldb.player.findMany({ where: { role: "AD" } }))
@@ -40,12 +40,14 @@ export default class DuelCommand implements ICommand {
               `🐺 ${ad.username}`
             ).join("\n");
         await chat.SendTxt(adminsAvailable);
+        await chat.SendReactionToOriginalMsg("✅");
         return;
       }
 
       //Validates the user actually dueled someone
       if (!Phone_IsAMentionNumber(args.commandArgs.at(0) || '')) {
-        await chat.SendTxt("No etiquetaste a nadie, prueba de nuevo");
+        await chat.SendTxt("No etiquetaste a nadie, prueba de nuevo", true, { quoted: args.originalMsg});
+        await chat.SendReactionToOriginalMsg("❌");
         return;
       }
 
@@ -53,7 +55,7 @@ export default class DuelCommand implements ICommand {
       const challengedNumber = Phone_GetPhoneNumberFromMention(args.commandArgs.at(0)!)!.number;
       const challengedInfo = await Members_GetMemberInfoFromPhone(challengedNumber);
       if (challengedInfo === null) {
-        await chat.SendTxt("Por alguna razón todavía no está registrado como miembro el usuario etiquetado, contacta a un admin para que te registre\nAdmins actuales:");
+        await chat.SendTxt("Por alguna razón todavía no está registrado como miembro el usuario etiquetado, contacta a un admin para que te registre\nAdmins actuales:", true, { quoted: args.originalMsg});
         //It assumes there's at least an admin registered
         const adminsAvailable =
           (await Kldb.player.findMany({ where: { role: "AD" } }))
@@ -61,12 +63,14 @@ export default class DuelCommand implements ICommand {
               `🐺 ${ad.username}`
             ).join("\n");
         await chat.SendTxt(adminsAvailable);
+        await chat.SendReactionToOriginalMsg("❌");
         return;
       }
 
       //Validates they aren't the same person
       if (challengerNumber === challengedNumber) {
-        await chat.SendTxt("Te estás haciendo duelo a ti mismo?, no puedes hacer eso! 🦊");
+        await chat.SendTxt("Te estás haciendo duelo a ti mismo?, no puedes hacer eso! 🦊", true, { quoted: args.originalMsg});
+        await chat.SendReactionToOriginalMsg("❌");
         return;
       }
 
@@ -82,13 +86,15 @@ export default class DuelCommand implements ICommand {
         ${challengerInfo.username}, si ya tuviste miedo, escribe *cancelar*.
 
         ⚔️ ¡El destino del duelo está en tus manos! 🔥
-      `);
+      `, true, { quoted: args.originalMsg });
+      await chat.SendReactionToOriginalMsg("⌛");
 
       const thatPersonRawMsg = await bot.Receive.WaitNextRawMsgFromPhone(args.chatId, args.userIdOrChatUserId, challengedNumber, MsgType.text, 60);
       const thatPersonTxt = Msg_GetTextFromRawMsg(thatPersonRawMsg).toLowerCase();
 
       //Other used has responded!
       if (thatPersonTxt.includes("aceptar") || thatPersonTxt.includes("si")) {
+        await chat.SendReactionToOriginalMsg("🫸🏼");
         //Both users are ready to duel, lets get the duel info
         await chat.SendTxt(`
           🎮⚔️ ¡Duelo en curso! ⚔️🎮
@@ -111,6 +117,7 @@ export default class DuelCommand implements ICommand {
               El duelo entre *${challengerInfo.username}* y *${challengedInfo.username}* no se completó a tiempo.  
               ⚠️ **El duelo ya no está pendiente.** ¡Inténtenlo de nuevo cuando estén listos! 🚀
             `);
+            chat.SendReactionToOriginalMsg("❌");
           }
         }, 1000 * 60 * 20 /* 20 minutes */);
 
@@ -122,6 +129,7 @@ export default class DuelCommand implements ICommand {
         })
       }
     } catch (e) {
+      await chat.SendReactionToOriginalMsg("❌");
       if (Msg_IsBotWaitMessageError(e)) {
         if (!e.wasAbortedByUser) {
           await chat.SendTxt("⏳ **No se recibió una respuesta de la persona esperada.**\nParece que no contestó a tiempo.");
@@ -132,8 +140,6 @@ export default class DuelCommand implements ICommand {
       } else {
         await chat.SendTxt("⚠️ **Algo salió mal** con el sistema o la base de datos.\nPor favor, intenta nuevamente o contacta con soporte.\nDetalles: " + JSON.stringify(e));
       }
-
     }
   }
-
 }

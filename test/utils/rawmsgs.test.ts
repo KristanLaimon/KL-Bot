@@ -41,28 +41,28 @@ describe('Handling default try catch error for commands in general', () => {
 
   it('should send correct message for BotWaitMessageError with wasAbortedByUser true', () => {
     const error = { wasAbortedByUser: true, errorMessage: 'test error' };
-    Msg_DefaultHandleError(bot as any, chatId, error);
+    Msg_DefaultHandleError(bot as any, {chatId} as any, error);
     expect(bot.Send.Text).toHaveBeenCalledTimes(1);
     expect(bot.Send.Text).toHaveBeenCalledWith(chatId, 'Se ha cancelado el comando...');
   });
 
   it('should send correct message for BotWaitMessageError with wasAbortedByUser false', () => {
     const error = { wasAbortedByUser: false, errorMessage: 'test error' };
-    Msg_DefaultHandleError(bot as any, chatId, error);
+    Msg_DefaultHandleError(bot as any, {chatId} as any, error);
     expect(bot.Send.Text).toHaveBeenCalledTimes(1);
     expect(bot.Send.Text).toHaveBeenCalledWith(chatId, 'Te has tardado mucho en contestar...');
   });
 
   it('should send correct message for non-BotWaitMessageError', () => {
     const error = { message: 'test error' };
-    Msg_DefaultHandleError(bot as any, chatId, error);
+    Msg_DefaultHandleError(bot as any, {chatId} as any, error);
     expect(bot.Send.Text).toHaveBeenCalledTimes(1);
-    expect(bot.Send.Text).toHaveBeenCalledWith(chatId, 'Ocurrio un error al ejecutar el comando... \n' + JSON.stringify(error, null, 4));
+    expect(bot.Send.Text).toHaveBeenCalledWith(chatId, 'Ocurrió un error al ejecutar el comando... \n' + JSON.stringify(error, null, 4));
   });
 
   it('should call bot.Send.Text with correct arguments', () => {
     const error = { wasAbortedByUser: true, errorMessage: 'test error' };
-    Msg_DefaultHandleError(bot as any, chatId, error);
+    Msg_DefaultHandleError(bot as any, {chatId} as any, error);
     expect(bot.Send.Text).toHaveBeenCalledTimes(1);
     expect(bot.Send.Text).toHaveBeenCalledWith(chatId, expect.any(String));
   });

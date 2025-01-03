@@ -3,6 +3,7 @@ import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand, CommandScopeType, CommandHelpInfo } from '../../types/commands';
 import Kldb from "../../utils/kldb";
+import { Msg_DefaultHandleError } from "../../utils/rawmsgs";
 
 export default class VerMiembrosCommand implements ICommand {
   commandName: string = "miembros";
@@ -18,14 +19,16 @@ export default class VerMiembrosCommand implements ICommand {
     const chat = new SpecificChat(bot, args)
     try {
       const allMembers = await Kldb.player.findMany({ include: { Rank: true, Role: true } });
-      await chat.SendTxt("========= Miembros Registrados ========");
-      const txt = allMembers
+      const beginning = "========= Miembros Registrados ========";
+      let txt = allMembers
         .map((info, i) =>
           `${i + 1}. *${info.Role.name}* ${info.Rank.id} | ${info.username}`
-        ).join("\n");
-      await chat.SendTxt(txt);
+        )//.join("\n");
+      txt = [beginning, ...txt];
+      await chat.SendTxt(txt.join("\n"), true, { quoted: args.originalMsg});
+      await chat.SendReactionToOriginalMsg("✅");
     } catch (e) {
-      await chat.SendTxt("Ocurrió un error con la base de datos por alguna razón...");
+      Msg_DefaultHandleError(bot, args, e);
     }
   }
 }

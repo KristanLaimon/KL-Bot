@@ -20,13 +20,14 @@ export default class Help_GroupCommand implements ICommand {
     notes: "No tiene mucho chiste, es solo el comando de ayuda, como se te ocurrió pedir ayuda de esto (!?) 🦊"
   }
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
+    const chat = new SpecificChat(bot, args);
     // Si hay argumentos
     if (args.commandArgs.length > 0) {
-      const chat = new SpecificChat(bot, args);
       if (args.commandArgs.length > 1) {
         await chat.SendTxt(
           "Para ver la ayuda de un comando, usa solo un argumento: el nombre del comando. Ejemplo: !help miembros"
         );
+        await chat.SendReactionToOriginalMsg("✅");
         return;
       }
 
@@ -113,7 +114,7 @@ export default class Help_GroupCommand implements ICommand {
     strs.push(separator, "🦊 Tip: Usa `!help [nombrecomando]` para detalles.");
 
     // Enviar mensaje formateado
-    await bot.Send.Text(args.chatId, strs.join("\n"));
+    await bot.Send.Text(args.chatId, strs.join("\n"), true, { quoted: args.originalMsg});
+    await chat.SendReactionToOriginalMsg("✅");
   }
-
 }

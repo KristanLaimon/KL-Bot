@@ -23,8 +23,8 @@ export default class DeleteTournamentCommand implements ICommand {
   }
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
-    const hasFinalized = (milisecondsDate: number | null) => milisecondsDate !== null && Date.now() <= milisecondsDate;
-    const isPending = (milisecondsDate: number | null) => milisecondsDate === null || Date.now() >= milisecondsDate;
+    const hasFinalized = (milisecondsDate: number | null) => milisecondsDate !== null && Date.now() >= milisecondsDate;
+    const isPending = (milisecondsDate: number | null) => milisecondsDate === null || Date.now() <= milisecondsDate;
 
     try {
       const allTournaments = await Kldb.tournament.findMany({
@@ -44,12 +44,13 @@ export default class DeleteTournamentCommand implements ICommand {
       await chat.SendTxt(`
         ====== 🏆 Torneos Registrados 🏆 =======
         ${allTournamentsTxt}
-      `)
+      `, true, { quoted: args.originalMsg})
 
       const nonFinishedTournaments = allTournaments.filter(tournament => isPending(Number(tournament.endDate)));
 
       if (nonFinishedTournaments.length === 0) {
         await chat.SendTxt("No hay torneos pendientes todavía para borrar");
+        await chat.SendReactionToOriginalMsg("✅");
         return;
       }
 
@@ -76,9 +77,9 @@ export default class DeleteTournamentCommand implements ICommand {
       } else {
         await chat.SendTxt("Se ha cancelado el borrado del torneo, no ha pasado nada aquí...🐺");
       }
-
+      await chat.SendReactionToOriginalMsg("✅");
     } catch (e) {
-      Msg_DefaultHandleError(bot, args.chatId, e);
+      Msg_DefaultHandleError(bot, args, e);
     }
   }
 }

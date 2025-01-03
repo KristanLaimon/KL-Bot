@@ -16,7 +16,7 @@ import {
   Phone_GetPhoneNumberFromMention as Phone_GetFullPhoneNumberInfoFromMention,
   Phone_MentionNumberRegexStr
 } from "../../../utils/phonenumbers";
-import { Msg_IsBotWaitMessageError } from "../../../utils/rawmsgs";
+import { Msg_DefaultHandleError, Msg_IsBotWaitMessageError } from "../../../utils/rawmsgs";
 import { Str_CapitalizeStr } from "../../../utils/strings";
 import Kldb from "../../../utils/kldb";
 
@@ -44,7 +44,7 @@ export default class AddMemberCommand implements ICommand {
       await chat.SendTxt(`
         ${separator}
         Añadiendo un nuevo miembro
-        ${separator}`
+        ${separator}`,  true, { quoted: args.originalMsg}
       );
 
       // MEMBER ROLE
@@ -159,16 +159,9 @@ export default class AddMemberCommand implements ICommand {
       await chat.SendTxt(m.join("\n"));
 
       await chat.SendTxt("===========Terminado==============");
+      await chat.SendReactionToOriginalMsg("✅");
     } catch (e) {
-      if (Msg_IsBotWaitMessageError(e)) {
-        if (e.wasAbortedByUser) await chat.SendTxt("Se ha cancelado el proceso de creación del miembro");
-        else await chat.SendTxt("Te has tardado demasiado en contestar.. vuelve a intentarlo");
-      }
-      else {
-        await chat.SendTxt("Ha ocurrido un error extraño... toma una captura de esto y mandalo al creador del bot por favor para arreglarlo");
-        await chat.SendTxt("Error en cuestión:")
-        await chat.SendTxt(JSON.stringify(e));
-      }
+      Msg_DefaultHandleError(bot, args, e);
       if (thereWasImgStored !== "") {
         fs.unlinkSync(path.join("db", "players", thereWasImgStored + ".png"))
         await chat.SendTxt("Imagen no cargada debido a que se abortó el proceso");

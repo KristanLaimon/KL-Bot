@@ -3,7 +3,7 @@ import GlobalCache from '../../../bot/cache/GlobalCache';
 import { SpecificChat } from '../../../bot/SpecificChat';
 import { BotCommandArgs } from '../../../types/bot';
 import { ICommand, CommandAccessibleRoles, CommandScopeType, SenderType, CommandHelpInfo } from '../../../types/commands';
-import { Msg_IsBotWaitMessageError } from '../../../utils/rawmsgs';
+import { Msg_DefaultHandleError, Msg_IsBotWaitMessageError } from "../../../utils/rawmsgs";
 import Kldb from "../../../utils/kldb";
 
 export default class UnsubscribeGroupCommand implements ICommand {
@@ -24,12 +24,14 @@ export default class UnsubscribeGroupCommand implements ICommand {
     const chat = new SpecificChat(bot, args);
 
     if (args.senderType !== SenderType.Group) {
-      await chat.SendTxt("No puedes usar este comando en un chat individual");
+      await chat.SendTxt("No puedes usar este comando en un chat individual", true, { quoted: args.originalMsg });
+      await chat.SendReactionToOriginalMsg("❌");
       return;
     }
 
     if (GlobalCache.SemiAuto_AllowedWhatsappGroups.length === 0) {
-      await chat.SendTxt("No hay grupos que borrar...(?), esto no debería pasar");
+      await chat.SendTxt("No hay grupos que borrar...(?), esto no debería pasar", true, { quoted: args.originalMsg });
+      await chat.SendReactionToOriginalMsg("❌")
       return;
     }
 
@@ -39,7 +41,7 @@ export default class UnsubscribeGroupCommand implements ICommand {
       ¿Estás seguro de que deseas continuar? (s/n)
 
       Nota: Esto eliminará el grupo de la lista de grupos permitidos para este bot. 
-    `);
+    `, true, { quoted: args.originalMsg });
     try {
       const confirmResponse = await chat.AskText(10);
       if (confirmResponse.includes("s")) {
@@ -53,14 +55,10 @@ export default class UnsubscribeGroupCommand implements ICommand {
       }
       else {
         await chat.SendTxt("La desuscripción ha sido cancelada");
-        return;
       }
+      await chat.SendReactionToOriginalMsg("✅");
     } catch (e) {
-      if (Msg_IsBotWaitMessageError(e)) {
-        if (!e.wasAbortedByUser) await chat.SendTxt("Se te acabó el tiempo");
-        else await chat.SendTxt("Has cancelado la desuscripción...");
-        return;
-      }
+      Msg_DefaultHandleError(bot, args, e);
     }
   }
 }

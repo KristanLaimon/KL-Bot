@@ -86,8 +86,8 @@ export function Dates_GetFormatedDurationTimeFrom(pastDate: bigint | number, opt
 }
 
 export function Dates_GetFormatedDateSimple(date: BigInt | number){
-  if(typeof date === "bigint") date = Number(date);
-  return moment(Number(date)).format("DD/MM/YYYY HH:mm")
+  if (typeof date === "bigint") date = Number(date);
+  return moment(Number(date)).format("dddd DD [de] MMMM [del] YYYY h:mm a");
 }
 
 /**

@@ -132,13 +132,14 @@ model ScheduledMatchWindow {
 
 // Its relation M:N with player table
 model ScheduledMatch_Player {
-  scheduled_match_id Int    @id
+  scheduled_match_id Int
   player_id          Int
   team_color_id      String
+  Player             Player         @relation(fields: [player_id], references: [id])
+  ScheduledMatch     ScheduledMatch @relation(fields: [scheduled_match_id], references: [scheduled_match_window_id], onDelete: Cascade)
+  TeamColor          TeamColor      @relation(fields: [team_color_id], references: [id])
 
-  Player         Player         @relation(fields: [player_id], references: [id])
-  ScheduledMatch ScheduledMatch @relation(fields: [scheduled_match_id], references: [scheduled_match_window_id], onDelete: Cascade)
-  TeamColor      TeamColor      @relation(fields: [team_color_id], references: [id])
+  @@id([scheduled_match_id, player_id])
 }
 
 // Inheritance (Copying attributes) from abstract "Match"

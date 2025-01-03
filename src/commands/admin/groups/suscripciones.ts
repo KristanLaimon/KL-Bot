@@ -19,7 +19,8 @@ export default class RegisteredGroupsCommand implements ICommand {
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
     if (GlobalCache.SemiAuto_AllowedWhatsappGroups.length === 0) {
-      await chat.SendTxt("No hay grupos registrados todavía...");
+      await chat.SendTxt("No hay grupos registrados todavía...",  true, { quoted: args.originalMsg});
+      await chat.SendReactionToOriginalMsg("✅");
       return
     }
     const msgToSend = GlobalCache.SemiAuto_AllowedWhatsappGroups
@@ -27,6 +28,7 @@ export default class RegisteredGroupsCommand implements ICommand {
         `${i + 1}. ${info.group_name} | Registrado en: ${moment(Number(info.date_registered)).format('dddd, MMMM Do YYYY, h:mm A')}`)
 
     let finalMsg = ['===== Grupos Suscritos actualmente ======', ...msgToSend].join("\n");
-    await chat.SendTxt(finalMsg);
+    await chat.SendTxt(finalMsg,  true, { quoted: args.originalMsg});
+    await chat.SendReactionToOriginalMsg("✅");
   }
 }
