@@ -2,9 +2,10 @@ import { WAMessage } from '@whiskeysockets/baileys';
 
 export type WhatsNumber = {
   countryCode: string;
-  numberWithNoCountryCode: string;
-  number: string;
+  numberCleanedWithNoCountryCode: string;
+  numberCleaned: string;
   whatsappId: string;
+  mentionFormatted: string
 }
 
 export const Phone_MentionNumberRegex = /^@\d{13}$/;
@@ -29,22 +30,26 @@ export const Phone_UserIdRegexStr = "\\d{13}@s.whatsapp.net";
  * //   countryCode: '123',
  * //   number: '1234567890123',
  * //   numberWithNoCountryCode: '4567890123',
- * //   whatsappId: '4567890123@s.whatsapp.net'
+ * //   whatsappId: '5214567890123@s.whatsapp.net'
  * // }
  */
-
-export function Phone_GetFullPhoneInfoFromRawmsg(rawMsg: WAMessage): WhatsNumber {
+export function Phone_GetFullPhoneInfoFromRawMsg(rawMsg: WAMessage): WhatsNumber {
   //Let's check if comes from private msg or group
   let number = rawMsg.key.participant || rawMsg.key.remoteJid || undefined;
-  if (!number) throw new Error("This shouln't happen, library never gives both participant and remoteJid as undefined, only one of them");
-  if (!Phone_IsValidNumberStr(number)) throw new Error("???, Phone number must be alway valid, just a small validation");
+  if (!number) throw new Error("This shouldn't happen, library never gives both participant and remoteJid as undefined, only one of them");
+  if (!Phone_IsValidNumberStr(number)) throw new Error("???, Phone number must be always valid, just a small validation");
+  return Phone_GetFullPhoneInfoFromId(number);
 
-  const numberCleaned = number.slice(0, number.indexOf("@"));
-  return {
+}
+
+export function Phone_GetFullPhoneInfoFromId(fullIdStr:string):WhatsNumber {
+   const numberCleaned = fullIdStr.slice(0, fullIdStr.indexOf("@"));
+   return {
     countryCode: numberCleaned.slice(0, 3),
-    number: numberCleaned,
-    numberWithNoCountryCode: numberCleaned.slice(3),
-    whatsappId: `${numberCleaned.slice(3)}@s.whatsapp.net`
+    numberCleaned: numberCleaned,
+    numberCleanedWithNoCountryCode: numberCleaned.slice(3),
+    whatsappId: fullIdStr,
+    mentionFormatted: `@${numberCleaned}`
   }
 }
 
@@ -53,9 +58,10 @@ export function Phone_GetPhoneNumberFromMention(numberStr: string): WhatsNumber 
   let number = numberStr.slice(1);
   return {
     countryCode: number.slice(0, 3),
-    number: number,
-    numberWithNoCountryCode: number.slice(3),
-    whatsappId: `${number}@s.whatsapp.net`
+    numberCleaned: number,
+    numberCleanedWithNoCountryCode: number.slice(3),
+    whatsappId: `${number}@s.whatsapp.net`,
+    mentionFormatted: numberStr
   }
 }
 

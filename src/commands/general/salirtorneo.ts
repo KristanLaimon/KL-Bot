@@ -32,7 +32,7 @@ export default class ExitATournamentCommand implements ICommand {
 
       if(isAdmin && hasMentionedSomeone){
         playerInfo = await Db_GetStandardInfoPlayerFromMention(args.commandArgs.at(0));
-        await chat.SendTxt("Se te ha dado privilegio de administrador de este comando, se utilizará la persona etiquetada en lugar de a ti para este proceso y se mostrarán su lista de torneos inscritos");
+        await chat.SendText("Se te ha dado privilegio de administrador de este comando, se utilizará la persona etiquetada en lugar de a ti para este proceso y se mostrarán su lista de torneos inscritos");
       }
 
       const allSubscribedTournamentByPlayer = await Kldb.tournament_Player_Subscriptions.findMany({
@@ -41,7 +41,7 @@ export default class ExitATournamentCommand implements ICommand {
       });
 
       if (allSubscribedTournamentByPlayer.length === 0) {
-        await chat.SendTxt("No hay ninguna suscripción a ningún torneo activo de momento", true, { quoted: args.originalMsg});
+        await chat.SendText("No hay ninguna suscripción a ningún torneo activo de momento", true, { quoted: args.originalMsg});
         return;
       }
 
@@ -64,7 +64,7 @@ export default class ExitATournamentCommand implements ICommand {
 
       await chat.SendTournamentInfoFormatted(selectedTournament);
 
-      await chat.SendTxt("¿Estás seguro de salir de ese torneo?");
+      await chat.SendText("¿Estás seguro de salir de ese torneo?");
       if (Response_isAfirmativeAnswer(await chat.AskText(60))) {
         await Kldb.tournament_Player_Subscriptions.delete({
           where: {
@@ -75,7 +75,7 @@ export default class ExitATournamentCommand implements ICommand {
           }
         })
 
-        await chat.SendTxt(`
+        await chat.SendText(`
           === 🎉 Te has salido con éxito ===
           🏆 *Torneo:* ${selectedTournament.name}
           
@@ -84,7 +84,7 @@ export default class ExitATournamentCommand implements ICommand {
           - 📉 *Lugares restantes:* ${selectedTournament.max_players - (selectedTournament.Tournament_Player_Subscriptions.length - 1)}
         `);
       } else {
-        await chat.SendTxt("Se ha cancelado, aquí no ha pasado nada...")
+        await chat.SendText("Se ha cancelado, aquí no ha pasado nada...")
       }
       await chat.SendReactionToOriginalMsg("✅");
     } catch (e) {

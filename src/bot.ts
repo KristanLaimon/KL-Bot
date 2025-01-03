@@ -7,8 +7,8 @@ import { WhatsMsgSender } from './bot/WhatsMsgSender';
 import WhatsSocket from './bot/WhatsSocket';
 import { BotCommandArgs } from './types/bot';
 import { HelperRoleName, ICommand, MsgType, SenderType } from './types/commands';
-import { Members_GetMemberInfoFromPhone } from './utils/members';
-import { Phone_GetFullPhoneInfoFromRawmsg } from './utils/phonenumbers';
+import { Members_GetMemberInfoFromWhatsappId } from './utils/members';
+import { Phone_GetFullPhoneInfoFromRawMsg } from './utils/phonenumbers';
 import { Msg_GetTextFromRawMsg } from './utils/rawmsgs';
 import GlobalCache from './bot/cache/GlobalCache';
 import stringSimilarity from 'string-similarity';
@@ -124,10 +124,10 @@ export default class Bot {
       }
 
       //Check sender phone number
-      const phoneNumber = Phone_GetFullPhoneInfoFromRawmsg(rawMsg)!.number;
+      const whatsIdFound = Phone_GetFullPhoneInfoFromRawMsg(rawMsg)!.whatsappId;
 
       //Check sender premissions
-      const foundMemberInfo = await Members_GetMemberInfoFromPhone(phoneNumber);
+      const foundMemberInfo = await Members_GetMemberInfoFromWhatsappId(whatsIdFound);
       let actualRoleSender: HelperRoleName;
       if (foundMemberInfo === null) actualRoleSender = "Cualquiera";
       else {
@@ -171,8 +171,8 @@ export default class Bot {
         event: 'CommandExecution',
         command: commandNameText,
         user: rawMsg.pushName,
-        role: foundMemberInfo?.Role.name || 'Unregistered',
-        phone: phoneNumber,
+        role: foundMemberInfo?.role || 'Unregistered',
+        phone: whatsIdFound,
         chatId,
         chatType: senderType === SenderType.Group ? 'Group' : 'Individual',
         args,

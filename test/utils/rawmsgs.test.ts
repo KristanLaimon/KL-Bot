@@ -32,7 +32,7 @@ describe('Getting text content from raw msg', () => {
 
 
 describe('Handling default try catch error for commands in general', () => {
-  const bot = { Send: { Text: jest.fn() } };
+  const bot = { Send: { Text: jest.fn(), ReactEmojiTo: jest.fn() } };
   const chatId = '12345';
 
   beforeEach(() => {

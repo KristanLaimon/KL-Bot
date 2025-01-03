@@ -23,7 +23,7 @@ export default class DeleteMemberCommand implements ICommand {
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
 
-    await chat.SendTxt("Eliminado de un miembro",  true, { quoted: args.originalMsg});
+    await chat.SendText("Eliminado de un miembro",  true, { quoted: args.originalMsg});
     try {
       const allMembers = await Kldb.player.findMany({ include: { Role: true, Rank: true } });
       let selectedMember = await chat.DialogWaitAnOptionFromListObj(
@@ -36,10 +36,10 @@ export default class DeleteMemberCommand implements ICommand {
       );
       const deletedPlayer = await Kldb.player.delete({ where: { username: selectedMember.username } });
 
-      if (deletedPlayer) await chat.SendTxt(`Se ha borrado correctamente los datos del usuario: *${deletedPlayer.username}*`);
-      else await chat.SendTxt(`Ha ocurrido un error raro, pero no ha sido borrado`);
+      if (deletedPlayer) await chat.SendText(`Se ha borrado correctamente los datos del usuario: *${deletedPlayer.username}*`);
+      else await chat.SendText(`Ha ocurrido un error raro, pero no ha sido borrado`);
 
-      await chat.SendTxt("================ Finalizado ===================")
+      await chat.SendText("================ Finalizado ===================")
       await chat.SendReactionToOriginalMsg("✅");
     } catch (e) {
       Msg_DefaultHandleError(bot, args, e);

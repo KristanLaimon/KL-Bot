@@ -5,7 +5,7 @@ import { BotWaitMessageError } from '../types/bot';
 import { MsgType, SenderType } from '../types/commands';
 import WhatsSocket from './WhatsSocket';
 import { Msg_GetTextFromRawMsg, Msg_IsBotWaitMessageError, Msg_MsgTypeToString } from '../utils/rawmsgs';
-import { Phone_GetFullPhoneInfoFromRawmsg } from '../utils/phonenumbers';
+import { Phone_GetFullPhoneInfoFromRawMsg } from '../utils/phonenumbers';
 
 type SuccessConditionCallback = (chatId: string, incomingRawMsg: WAMessage, incomingMsgType: MsgType, incomingSenderType: SenderType) => boolean;
 
@@ -15,7 +15,6 @@ export class WhatsMsgReceiver {
   constructor(socket: WhatsSocket) {
     this._whatsSocket = socket;
   }
-
 
   private _waitNextMsg(successConditionCallback: SuccessConditionCallback, chatSenderId: string, userSenderId: string, expectedMsgType: MsgType, timeout: number = 30, wrongTypeMsgFeedback?: string): Promise<WAMessage> {
     if (!wrongTypeMsgFeedback)
@@ -76,21 +75,21 @@ export class WhatsMsgReceiver {
     return await this._waitNextMsg(cb, chatSenderId, userSenderId, expectedMsgType, timeout, wrongTypeMsgFeedback);
   }
 
-  public async WaitNextRawMsgFromPhone(chatSenderId: string, userSenderId: string, expectedCleanedPhoneNumber: string, expectedMsgType: MsgType, timeout?: number, wrongTypeMsgFeedback?: string): Promise<WAMessage> {
+  public async WaitNextRawMsgFromWhatsId(chatSenderId: string, userSenderId: string, expectedWhatsId: string, expectedMsgType: MsgType, timeout?: number, wrongTypeMsgFeedback?: string): Promise<WAMessage> {
 
     const cb: SuccessConditionCallback = (chatId, msg, msgType, senderType) => {
-      const phoneNumber = Phone_GetFullPhoneInfoFromRawmsg(msg)!.number;
-      return phoneNumber === expectedCleanedPhoneNumber;
+      const actualWhatsId = Phone_GetFullPhoneInfoFromRawMsg(msg)!.whatsappId;
+      return actualWhatsId === expectedWhatsId;
     }
     return await this._waitNextMsg(cb, chatSenderId, userSenderId, expectedMsgType, timeout, wrongTypeMsgFeedback);
   }
 
-  public async WaitUntilRawTxtMsgFromPhone(chatSenderId: string, userSenderId: string, expectedCleanedPhoneNumber: string, regexExpected: RegExp, timeout?: number, wrongTypeMsgFeedback?: string): Promise<WAMessage> {
+  public async WaitUntilRawTxtMsgFromWhatsId(chatSenderId: string, userSenderId: string, expectedCleanedWhatsappId: string, regexExpected: RegExp, timeout?: number, wrongTypeMsgFeedback?: string): Promise<WAMessage> {
     const cb: SuccessConditionCallback = (chatId, msg, msgType, senderType) => {
       if (msgType !== MsgType.text) return false;
-      const phoneNumber = Phone_GetFullPhoneInfoFromRawmsg(msg)!.number;
+      const actualWhatsId = Phone_GetFullPhoneInfoFromRawMsg(msg)!.whatsappId;
       const msgTxt = Msg_GetTextFromRawMsg(msg);
-      const isFromExpectedPhoneUser = phoneNumber === expectedCleanedPhoneNumber;
+      const isFromExpectedPhoneUser = actualWhatsId === expectedCleanedWhatsappId;
       const isMsgFormatExpected = regexExpected.test(msgTxt);
       return isFromExpectedPhoneUser && isMsgFormatExpected;
     }

@@ -34,7 +34,7 @@ export default class CreateTournamentCommand implements ICommand {
     let   OUTSIDE_storedImg: string | null = null;
     const TOURNAMENTFINAL: Partial<KlTournament> = {};
 
-    await chat.SendTxt(`====== Creación de un torneo =====`, true, {quoted: args.originalMsg});
+    await chat.SendText(`====== Creación de un torneo =====`, true, {quoted: args.originalMsg});
 
     dialog.AddStep("Ingresa el tipo de torneo", async (chat) => {
       const _typesAvailable = await Kldb.tournamentType.findMany();
@@ -58,7 +58,7 @@ export default class CreateTournamentCommand implements ICommand {
         if(!allExistingTournamentNames.some((existingTournament) => existingTournament.name.toLowerCase() === name.toLowerCase())) {
           break;
         }else{
-          await chat.SendTxt("Ya existe un torneo con ese nombre, prueba de nuevo");
+          await chat.SendText("Ya existe un torneo con ese nombre, prueba de nuevo");
         }
       }
 
@@ -93,7 +93,7 @@ export default class CreateTournamentCommand implements ICommand {
         );
         _gameTypeSelected.id = __gameTypeSelectedAgain.id
 
-        await chat.SendTxt(`Has elegido ${__gameTypeSelectedAgain.name}, indica el número de jugadores por equipo personalizado: (Ejemplo: '2' para 2 jugadores por equipo)`);
+        await chat.SendText(`Has elegido ${__gameTypeSelectedAgain.name}, indica el número de jugadores por equipo personalizado: (Ejemplo: '2' para 2 jugadores por equipo)`);
         const _customMaxPlayersPerTeam = await chat.AskForSpecificText(
           /^\d{1}$/,
           "No has ingresado un número valido, recuerda que el formato debe ser un 'número de jugadores', por ejemplo: '2' pero no más de '10', prueba de nuevo: ",
@@ -180,7 +180,7 @@ export default class CreateTournamentCommand implements ICommand {
           OUTSIDE_SelectedRanks.push(_thisIterationRankSelected);
           _ranksAvailable.splice(_ranksAvailable.indexOf(_thisIterationRankSelected), 1);
           // Feedback después de selección
-          await chat.SendTxt(`
+          await chat.SendText(`
             ✅ Has seleccionado el rango: *${_thisIterationRankSelected.name}*.
             
             ¿Te gustaría seleccionar otro rango? 
@@ -189,7 +189,7 @@ export default class CreateTournamentCommand implements ICommand {
           _userWantToContinueSelecting = Response_isAfirmativeAnswer(await chat.AskText(OUTSIDE_DefaultTimeout));
         } while (_userWantToContinueSelecting);
         // Resumen de los rangos seleccionados
-        await chat.SendTxt(`
+        await chat.SendText(`
           🏆 *Rangos Seleccionados:*
           ${OUTSIDE_SelectedRanks.map((rank, index) => `${index + 1}. *${rank.name}*`).join('\n')}
 
@@ -207,13 +207,13 @@ export default class CreateTournamentCommand implements ICommand {
       const _responseee = await chat.AskText(OUTSIDE_DefaultTimeout);
       if (Response_isAfirmativeAnswer(_responseee)) {
         let isCorrectImage = false;
-        await chat.SendTxt("Envía una imagen de portada para el torneo:")
+        await chat.SendText("Envía una imagen de portada para el torneo:")
         do {
           const __ImgMsg = await bot.Receive.WaitNextRawMsgFromId(args.chatId, args.userIdOrChatUserId, MsgType.image, OUTSIDE_DefaultTimeout, "Tienes que envíar una imagen para la portada, prueba de nuevo...");
           const __imgName = `${TOURNAMENTFINAL.name}-${CREATIONDATESELECTED}`;
           const __successStoring = await FileSystem_TryToDownloadMedia(__ImgMsg, __imgName, "png", "db/tournaments_covers");
           if (__successStoring) {
-            await chat.SendTxt("Imagen guardada exitosamente!");
+            await chat.SendText("Imagen guardada exitosamente!");
             isCorrectImage = true;
             COVERIMAGENAMESELECTED = __imgName + ".png";
             TOURNAMENTFINAL.cover_img_name = COVERIMAGENAMESELECTED
@@ -222,17 +222,17 @@ export default class CreateTournamentCommand implements ICommand {
             TOURNAMENTFINAL.endDate = null
           }
           else {
-            await chat.SendTxt("Error al guardar la imagen..., quieres seguir intentándolo?");
+            await chat.SendText("Error al guardar la imagen..., quieres seguir intentándolo?");
             isCorrectImage = Response_isAfirmativeAnswer(await chat.AskText(OUTSIDE_DefaultTimeout));
           }
         } while (!isCorrectImage);
       } else {
-        await chat.SendTxt("Omitiendo imagen de portada...");
+        await chat.SendText("Omitiendo imagen de portada...");
       }
       OUTSIDE_storedImg = COVERIMAGENAMESELECTED;
 
 
-      await chat.SendTxt(`
+      await chat.SendText(`
         Estás a nada de crear el torneo, este es el resumen de lo que se ha hecho hasta ahora:
         
         Información General:
@@ -250,7 +250,7 @@ export default class CreateTournamentCommand implements ICommand {
       await dialog.StartConversation();
 
       if (!Response_isAfirmativeAnswer(await chat.AskText(OUTSIDE_DefaultTimeout))) {
-        await chat.SendTxt("Cancelando creación del torneo...");
+        await chat.SendText("Cancelando creación del torneo...");
         try {
           fs.unlinkSync(`db/tournaments_covers/${OUTSIDE_storedImg}`);
         }
@@ -270,7 +270,7 @@ export default class CreateTournamentCommand implements ICommand {
           }
         })
       }
-      await chat.SendTxt(`El torneo se ha creado con éxito!. Fin`);
+      await chat.SendText(`El torneo se ha creado con éxito!. Fin`);
       await chat.SendReactionToOriginalMsg("✅");
 
     } catch (e) {

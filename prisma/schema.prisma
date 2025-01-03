@@ -13,16 +13,15 @@ model Player {
   username                        String                            @unique(map: "sqlite_autoindex_Player_1")
   profilePicturePath              String                            @unique(map: "sqlite_autoindex_Player_2")
   actualRank                      String
-  phoneNumber                     String                            @unique(map: "sqlite_autoindex_Player_3")
   whatsappNickName                String
+  whatsapp_id                     String                            @unique()
   role                            String
-  joined_date                     BigInt                            @default(-1)
+  joined_date                     BigInt
   Role                            Role                              @relation(fields: [role], references: [id], onDelete: NoAction, onUpdate: NoAction)
   Rank                            Rank                              @relation(fields: [actualRank], references: [id], onDelete: NoAction, onUpdate: NoAction)
   TournamentMatches               TournamentMatch[]
   TournamentPlayed_Players        MatchPlayed_Player[]
   ScheduledMatch_Players          ScheduledMatch_Player[]
-  tournamentId                    Int?
   Tournament_Player_Subscriptions Tournament_Player_Subscriptions[]
 }
 
@@ -135,6 +134,7 @@ model ScheduledMatch_Player {
   scheduled_match_id Int
   player_id          Int
   team_color_id      String
+  phase              Int
   Player             Player         @relation(fields: [player_id], references: [id])
   ScheduledMatch     ScheduledMatch @relation(fields: [scheduled_match_id], references: [scheduled_match_window_id], onDelete: Cascade)
   TeamColor          TeamColor      @relation(fields: [team_color_id], references: [id])

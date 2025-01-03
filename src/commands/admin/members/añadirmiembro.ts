@@ -12,7 +12,7 @@ import {
 } from "../../../utils/dates";
 import { FileSystem_TryToDownloadMedia } from "../../../utils/filesystem";
 import {
-  Phone_GetFullPhoneInfoFromRawmsg,
+  Phone_GetFullPhoneInfoFromRawMsg,
   Phone_GetPhoneNumberFromMention as Phone_GetFullPhoneNumberInfoFromMention,
   Phone_MentionNumberRegexStr
 } from "../../../utils/phonenumbers";
@@ -41,7 +41,7 @@ export default class AddMemberCommand implements ICommand {
     let thereWasImgStored: string = "";
 
     try {
-      await chat.SendTxt(`
+      await chat.SendText(`
         ${separator}
         Añadiendo un nuevo miembro
         ${separator}`,  true, { quoted: args.originalMsg}
@@ -61,7 +61,7 @@ export default class AddMemberCommand implements ICommand {
       if (!selectedRoleId) throw new Error("wtfffff");
 
       // MEMBER NAME
-      await chat.SendTxt("Brinda el nombre del nuevo miembro dentro del juego:")
+      await chat.SendText("Brinda el nombre del nuevo miembro dentro del juego:")
       const name = await chat.AskText(250);
 
       // MEMBER RANK
@@ -78,25 +78,25 @@ export default class AddMemberCommand implements ICommand {
       if (!selectedRankId) throw new Error("wtf");
 
       // MEMBER WHATSAPP NAME
-      await chat.SendTxt("Pasame el nombre de whatsapp del nuevo miembro:");
-      await chat.SendTxt("Si quieres que se registre tu nombre de usuario escribe:  *mio*");
+      await chat.SendText("Pasame el nombre de whatsapp del nuevo miembro:");
+      await chat.SendText("Si quieres que se registre tu nombre de usuario escribe:  *mio*");
       let whatsappName = await chat.AskText(250);
       if (whatsappName.includes("mio")) whatsappName = args.originalMsg.pushName!
-      await chat.SendTxt(`Se ha seleccionado ${whatsappName}`);
+      await chat.SendText(`Se ha seleccionado ${whatsappName}`);
 
       // MEMBER NUMBER PHONE
-      await chat.SendTxt("Manda su número de whatsapp: (Puedes etiquetarlo con @) o poner *mio*");
-      let rawUserNumberAnswer = await chat.AskForSpecificText(
+      await chat.SendText("Manda su número (id) de whatsapp: (Puedes etiquetarlo con @) o poner *mio*");
+      let selectedUserWhatsappId = await chat.AskForSpecificText(
         new RegExp(`^(${Phone_MentionNumberRegexStr}|mio)$`),
         "No es un número válido, intenta de nuevo",
         250
       );
-      if (rawUserNumberAnswer.includes('mio')) rawUserNumberAnswer = Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number;
-      else rawUserNumberAnswer = Phone_GetFullPhoneNumberInfoFromMention(rawUserNumberAnswer)!.number;
-      await chat.SendTxt("Se ha registrado el número");
+      if (selectedUserWhatsappId.includes('mio')) selectedUserWhatsappId = Phone_GetFullPhoneInfoFromRawMsg(args.originalMsg)!.whatsappId;
+      else selectedUserWhatsappId = Phone_GetFullPhoneNumberInfoFromMention(selectedUserWhatsappId)!.whatsappId;
+      await chat.SendText("Se ha registrado el número");
 
       //MEMBER DATE JOINED
-      await chat.SendTxt(`
+      await chat.SendText(`
         Brinda la fecha en la que se unió el miembro en el formato:
         AÑO/MES/DIA. Ejemplo: 2024/octubre/24
         Si quieres que sea el día de hoy escribe:  *hoy*
@@ -110,10 +110,10 @@ export default class AddMemberCommand implements ICommand {
       const monthNumber = Dates_SpanishMonthToNumber(dateInputPartes.at(1)!)!;
       const dateParsed = dateInput.replace(dateInputPartes.at(1)!, monthNumber.toString());
       const dateInputMomentJs = moment(dateParsed); // Suponiendo que dateInput es válido
-      await chat.SendTxt(`Antiguedad detectada: ${Dates_GetFormatedDurationTimeFrom(dateInputMomentJs.valueOf())}`);
+      await chat.SendText(`Antiguedad detectada: ${Dates_GetFormatedDurationTimeFrom(dateInputMomentJs.valueOf())}`);
 
       //MEMBER PROFILE PHOTO
-      await chat.SendTxt("Brinda una captura/foto de su perfil dentro Rocket League Sideswipe:");
+      await chat.SendText("Brinda una captura/foto de su perfil dentro Rocket League Sideswipe:");
       let isValidImg = false;
       let imgName: string;
       do {
@@ -129,18 +129,18 @@ export default class AddMemberCommand implements ICommand {
           "png",
           "db/players"
         );
-        if (isValidImg) chat.SendTxt("Se ha recibido correctamente la imagen")
-        else chat.SendTxt("Imagen inválida, intenta de nuevo");
+        if (isValidImg) chat.SendText("Se ha recibido correctamente la imagen")
+        else chat.SendText("Imagen inválida, intenta de nuevo");
       } while (!isValidImg);
       thereWasImgStored = imgName;
 
 
       //FINISHING ==============================================================
-      await chat.SendTxt("Estoy guardando la información...");
+      await chat.SendText("Estoy guardando la información...");
       await Kldb.player.create({
         data: {
           actualRank: selectedRankId,
-          phoneNumber: rawUserNumberAnswer,
+          whatsapp_id: selectedUserWhatsappId,
           profilePicturePath: imgName,
           role: selectedRoleId,
           username: name,
@@ -156,15 +156,15 @@ export default class AddMemberCommand implements ICommand {
       m.push(`Rango: ${Str_CapitalizeStr(selectedRank)}`)
       m.push(`WhatsappNickName: ${whatsappName}`)
       m.push(`Antiguedad: ${Dates_GetFormatedDurationTimeFrom(dateInputMomentJs.valueOf())}`)
-      await chat.SendTxt(m.join("\n"));
+      await chat.SendText(m.join("\n"));
 
-      await chat.SendTxt("===========Terminado==============");
+      await chat.SendText("===========Terminado==============");
       await chat.SendReactionToOriginalMsg("✅");
     } catch (e) {
       Msg_DefaultHandleError(bot, args, e);
       if (thereWasImgStored !== "") {
         fs.unlinkSync(path.join("db", "players", thereWasImgStored + ".png"))
-        await chat.SendTxt("Imagen no cargada debido a que se abortó el proceso");
+        await chat.SendText("Imagen no cargada debido a que se abortó el proceso");
       }
     }
   }

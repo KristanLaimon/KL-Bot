@@ -1,8 +1,8 @@
 import { HelperRoleName, ICommand, CommandScopeType, CommandHelpInfo } from '../../types/commands';
 import Bot from '../../bot';
 import { BotCommandArgs } from '../../types/bot';
-import { Members_GetMemberInfoFromPhone } from '../../utils/members';
-import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
+import { Members_GetMemberInfoFromWhatsappId } from '../../utils/members';
+import { Phone_GetFullPhoneInfoFromRawMsg } from '../../utils/phonenumbers';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { Str_CapitalizeStr, Str_NormalizeLiteralString } from '../../utils/strings';
 
@@ -21,10 +21,11 @@ export default class Help_GroupCommand implements ICommand {
   }
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
+    chat.SendReactionToOriginalMsg("⌛");
     // Si hay argumentos
     if (args.commandArgs.length > 0) {
       if (args.commandArgs.length > 1) {
-        await chat.SendTxt(
+        await chat.SendText(
           "Para ver la ayuda de un comando, usa solo un argumento: el nombre del comando. Ejemplo: !help miembros"
         );
         await chat.SendReactionToOriginalMsg("✅");
@@ -38,7 +39,7 @@ export default class Help_GroupCommand implements ICommand {
 
       if (command) {
         if (!command[1].helpMessage) {
-          await chat.SendTxt("No hay ayuda disponible para este comando. Intenta con otro.");
+          await chat.SendText("No hay ayuda disponible para este comando. Intenta con otro.");
         } else {
           const helpMessage = `
             === 🌟 Ayuda: ${Str_CapitalizeStr(command[0])} 🌟 ===
@@ -56,10 +57,10 @@ export default class Help_GroupCommand implements ICommand {
             ${command[1].helpMessage.notes && "ℹ️ *Información adicional:*"}
             ${Str_NormalizeLiteralString(command[1].helpMessage.notes)}
           `;
-          await chat.SendTxt(helpMessage.trim());
+          await chat.SendText(helpMessage.trim());
         }
       } else {
-        await chat.SendTxt(
+        await chat.SendText(
           "Ese comando no existe. Consulta los comandos disponibles con !help."
         );
       }
@@ -85,8 +86,8 @@ export default class Help_GroupCommand implements ICommand {
     }
 
     // Verificar si es miembro o admin
-    const memberInfo = await Members_GetMemberInfoFromPhone(
-      Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number
+    const memberInfo = await Members_GetMemberInfoFromWhatsappId(
+      Phone_GetFullPhoneInfoFromRawMsg(args.originalMsg)!.whatsappId
     );
 
     if (memberInfo) {

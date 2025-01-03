@@ -58,12 +58,12 @@ export default class SpecificDialog {
     if(this.options && this.options.withNumeratedSteps){
       const formatedStep = this.GenerateInstructionSteps(this.steps.map(step => step.InitialMsg));
       for (const step of this.steps) {
-        await this.specificChat.SendTxt(formatedStep());
+        await this.specificChat.SendText(formatedStep());
         previousValue = await step.Logic(this.specificChat, previousValue);
       }
     }else{
       for (const stepObjInfo of this.steps) {
-        await this.specificChat.SendTxt(stepObjInfo.InitialMsg);
+        await this.specificChat.SendText(stepObjInfo.InitialMsg);
         previousValue = await stepObjInfo.Logic(this.specificChat, previousValue);
       }
     }

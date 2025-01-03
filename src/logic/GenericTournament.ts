@@ -3,14 +3,7 @@ import moment from "moment/moment";
 import { ScheduledMatch, ScheduledMatchWindow } from "../types/tournament";
 import KlLogger from "../bot/logger";
 
-function shuffle<T>(array: T[]): T[] {
-  const toReturn = structuredClone(array);
-  for (let i = toReturn.length - 1; i > 0; i--) {
-    let j = Math.floor(Math.random() * (i + 1));
-    [toReturn[i], toReturn[j]] = [toReturn[j], toReturn[i]];
-  }
-  return toReturn;
-}
+
 
 /**
  * Abstract class that represents a type of tournament.
@@ -18,7 +11,6 @@ function shuffle<T>(array: T[]): T[] {
 export abstract class GenericTournament {
 
   public static PlanNextPhaseMatches(fullTournamentInfo: KlTournamentEnhanced, participants: KlSubscriptionEnhanced[]): ScheduledMatchWindow {
-    //Check if it's a custom match or a normal one
     let playersPerTeam = fullTournamentInfo.custom_players_per_team !== -1 ? fullTournamentInfo.custom_players_per_team : fullTournamentInfo.MatchFormat.players_per_team;
     if (playersPerTeam === -1) throw new Error("Custom players per team not correctly implemented");
     const numTeams = Math.floor(participants.length / playersPerTeam);
@@ -57,6 +49,15 @@ export abstract class GenericTournament {
       ScheduledMatches: toReturn
     }
   }
+}
+
+function shuffle<T>(array: T[]): T[] {
+  const toReturn = structuredClone(array);
+  for (let i = toReturn.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1));
+    [toReturn[i], toReturn[j]] = [toReturn[j], toReturn[i]];
+  }
+  return toReturn;
 }
 
 function GetRemindedCountByLogTwo(num: number) {

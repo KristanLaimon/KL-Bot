@@ -38,8 +38,8 @@ export default class ExternalHelp_AyudaCommand implements ICommand {
 
     // Enviar mensaje formateado al chat
     const chat = new SpecificChat(bot, args);
-    await chat.SendTxt('🤖 Estás interactuando con un bot en un grupo no registrado. Aquí tienes la ayuda:');
-    await chat.SendTxt(strs.join('\n'));
+    await chat.SendText('🤖 Estás interactuando con un bot en un grupo no registrado. Aquí tienes la ayuda:');
+    await chat.SendText(strs.join('\n'));
   }
 
 }

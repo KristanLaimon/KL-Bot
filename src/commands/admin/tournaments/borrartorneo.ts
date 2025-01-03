@@ -41,7 +41,7 @@ export default class DeleteTournamentCommand implements ICommand {
         })
         .join("\n");
 
-      await chat.SendTxt(`
+      await chat.SendText(`
         ====== 🏆 Torneos Registrados 🏆 =======
         ${allTournamentsTxt}
       `, true, { quoted: args.originalMsg})
@@ -49,7 +49,7 @@ export default class DeleteTournamentCommand implements ICommand {
       const nonFinishedTournaments = allTournaments.filter(tournament => isPending(Number(tournament.endDate)));
 
       if (nonFinishedTournaments.length === 0) {
-        await chat.SendTxt("No hay torneos pendientes todavía para borrar");
+        await chat.SendText("No hay torneos pendientes todavía para borrar");
         await chat.SendReactionToOriginalMsg("✅");
         return;
       }
@@ -62,7 +62,7 @@ export default class DeleteTournamentCommand implements ICommand {
         (tournament, index) => `${index + 1}. ${tournament.name} | ${tournament.TournamentType.name} | Creado hace: ${Dates_GetFormatedDurationTimeFrom(tournament.creationDate)}`,
       )
 
-      await chat.SendTxt(`
+      await chat.SendText(`
         Estás a punto de borrar toda la información del torneo, incluyendo:
         - Partidas planeadas
         - Partidas ya jugadas (Registro de los jugadores en el torneo)
@@ -73,9 +73,9 @@ export default class DeleteTournamentCommand implements ICommand {
       const confirmation = Response_isAfirmativeAnswer(await chat.AskText(60));
       if (confirmation) {
         await Db_DeleteTournamentById(selectedToDelete.id);
-        await chat.SendTxt(`Torneo, todas sus partidas planeadas y partidas jugadas de este torneo exitosamente borrado: ${selectedToDelete.name}`);
+        await chat.SendText(`Torneo, todas sus partidas planeadas y partidas jugadas de este torneo exitosamente borrado: ${selectedToDelete.name}`);
       } else {
-        await chat.SendTxt("Se ha cancelado el borrado del torneo, no ha pasado nada aquí...🐺");
+        await chat.SendText("Se ha cancelado el borrado del torneo, no ha pasado nada aquí...🐺");
       }
       await chat.SendReactionToOriginalMsg("✅");
     } catch (e) {

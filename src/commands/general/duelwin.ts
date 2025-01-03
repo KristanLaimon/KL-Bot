@@ -3,7 +3,7 @@ import GlobalCache from '../../bot/cache/GlobalCache';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
 import { CommandAccessibleRoles, ICommand, CommandScopeType, CommandHelpInfo } from '../../types/commands';
-import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
+import { Phone_GetFullPhoneInfoFromRawMsg } from '../../utils/phonenumbers';
 import { Msg_DefaultHandleError, Msg_IsBotWaitMessageError } from "../../utils/rawmsgs";
 import Kldb from "../../utils/kldb";
 
@@ -32,21 +32,21 @@ export default class DuelWinCommand implements ICommand {
     const chat = new SpecificChat(bot, args);
 
     //Check if sender is on a pending duel
-    const numberSender = Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg)!.number;
-    const pendingMatchFoundIndex = GlobalCache.Auto_PendingMatches.findIndex(a => a.challenger.phoneNumber === numberSender || a.challenged.phoneNumber === numberSender);
+    const whatsIdSender = Phone_GetFullPhoneInfoFromRawMsg(args.originalMsg)!.whatsappId;
+    const pendingMatchFoundIndex = GlobalCache.Auto_PendingMatches.findIndex(a => a.challenger.whatsapp_id === whatsIdSender || a.challenged.whatsapp_id === whatsIdSender);
     if (pendingMatchFoundIndex === -1) {
-      await chat.SendTxt("❌ *No tienes un duelo pendiente con nadie.*\nPara iniciar uno, usa *!duel @persona* y retar a alguien", true, {quoted: args.originalMsg});
+      await chat.SendText("❌ *No tienes un duelo pendiente con nadie.*\nPara iniciar uno, usa *!duel @persona* y retar a alguien", true, {quoted: args.originalMsg});
       return;
     }
 
     //Check if theres the argument of scoreboard
     if (!/^\d{1,2}(\-|\||_)\d{1,2}$/.test(args.commandArgs.at(0) || "")) {
-      await chat.SendTxt("⚠️ *Formato incorrecto del resultado.*\nRecuerda que el marcador debe ser en el formato adecuado. \nEjemplo: *!duelwin 2-3 (azul ó naranja ó a ó n)* (con el *'-'* o *'|'* entre los números).\n❌ *Evita poner resultados como 100-12, ¡es imposible!* 🐺\nIntenta de nuevo.", true, {quoted: args.originalMsg});
+      await chat.SendText("⚠️ *Formato incorrecto del resultado.*\nRecuerda que el marcador debe ser en el formato adecuado. \nEjemplo: *!duelwin 2-3 (azul ó naranja ó a ó n)* (con el *'-'* o *'|'* entre los números).\n❌ *Evita poner resultados como 100-12, ¡es imposible!* 🐺\nIntenta de nuevo.", true, {quoted: args.originalMsg});
       return;
     }
 
     if (!/^(a|azul|n|naranja)$/.test(args.commandArgs.at(1) || '')) {
-      await chat.SendTxt("⚠️ *Formato incorrecto de tu color de equipo.*\nPuede ser: *a* ó *azul* ó *n* ó *naranja*\nEjemplo: *!duelwin 2-3 n* (con el *'-'** o *'|'* entre los números y el equipo al final, separado por espacios).\n❌🐺\nIntenta de nuevo.", true, {quoted: args.originalMsg});
+      await chat.SendText("⚠️ *Formato incorrecto de tu color de equipo.*\nPuede ser: *a* ó *azul* ó *n* ó *naranja*\nEjemplo: *!duelwin 2-3 n* (con el *'-'** o *'|'* entre los números y el equipo al final, separado por espacios).\n❌🐺\nIntenta de nuevo.", true, {quoted: args.originalMsg});
       return;
     }
 
@@ -58,14 +58,14 @@ export default class DuelWinCommand implements ICommand {
     const loserScore = Math.min(...score);
 
     if (winnerScore === loserScore) {
-      await chat.SendTxt("Empate?, eso no es posible, probablemente te equivocaste al poner la puntuación, intenta de nuevo", true, {quoted: args.originalMsg});
+      await chat.SendText("Empate?, eso no es posible, probablemente te equivocaste al poner la puntuación, intenta de nuevo", true, {quoted: args.originalMsg});
       return;
     }
 
     let winnerTeamColor = args.commandArgs.at(1)!.toLowerCase();
     winnerTeamColor = winnerTeamColor === "a" || winnerTeamColor === "azul" ? "BLU" : "ORA";
-    const winnerPlayer = pendingMatch.challenger.phoneNumber === numberSender ? pendingMatch.challenger : pendingMatch.challenged;
-    const loserPlayer = !(pendingMatch.challenger.phoneNumber == numberSender) ? pendingMatch.challenger : pendingMatch.challenged;
+    const winnerPlayer = pendingMatch.challenger.whatsapp_id === whatsIdSender ? pendingMatch.challenger : pendingMatch.challenged;
+    const loserPlayer = !(pendingMatch.challenger.whatsapp_id == whatsIdSender) ? pendingMatch.challenger : pendingMatch.challenged;
 
     //This is already handled so, lets remove his countdown
     clearTimeout(pendingMatch.countDownTimer);
@@ -73,7 +73,7 @@ export default class DuelWinCommand implements ICommand {
     GlobalCache.Auto_PendingMatches.splice(pendingMatchFoundIndex, 1);
 
     try {
-      await chat.SendTxt("Todo el proceso ocurrió exitosamente");
+      await chat.SendText("Todo el proceso ocurrió exitosamente");
       //1. Store match in db
       await Kldb.matchPlayed.create({
         data: {
@@ -102,7 +102,7 @@ export default class DuelWinCommand implements ICommand {
         ]
       })
 
-      chat.SendTxt(`
+      chat.SendText(`
         🎮 **Resultado del duelo:**
 
         - **Puntuación:** ${score[0]}-${score[1]}.

@@ -1,4 +1,4 @@
-import { Phone_GetFullPhoneInfoFromRawmsg } from './phonenumbers';
+import { Phone_GetFullPhoneInfoFromRawMsg } from './phonenumbers';
 import { WAMessage } from '@whiskeysockets/baileys';
 import Kldb from "./kldb";
 
@@ -17,8 +17,8 @@ import Kldb from "./kldb";
 export async function Members_IsAdminSender(rawMsg: WAMessage): Promise<boolean> {
   let senderIsAnAdminAsWell: boolean;
   try {
-    const phoneNumber = Phone_GetFullPhoneInfoFromRawmsg(rawMsg)!.number;
-    senderIsAnAdminAsWell = !!(await Kldb.player.findFirst({ where: { phoneNumber, role: "AD" } }));
+    const whatsIdFound = Phone_GetFullPhoneInfoFromRawMsg(rawMsg)!.whatsappId;
+    senderIsAnAdminAsWell = !!(await Kldb.player.findFirst({ where: { whatsapp_id: whatsIdFound, role: "AD" } }));
   } catch (e) {
     senderIsAnAdminAsWell = false;
   }
@@ -29,7 +29,6 @@ export async function Members_IsAdminSender(rawMsg: WAMessage): Promise<boolean>
 /**
  * Retrieves member information from the database based on the provided phone number.
  *
- * @param cleanedPhoneNumber - The cleaned phone number to search for in the database.
  * @returns A promise that resolves to the member information if found, or `null` if not found.
  *
  * @remarks
@@ -37,10 +36,11 @@ export async function Members_IsAdminSender(rawMsg: WAMessage): Promise<boolean>
  * If a player is found, the function includes the associated `Rank` and `Role` entities in the result.
  * If no player is found, the function resolves to `null`.
  * If an error occurs during the database query, the function resolves to `null`.
+ * @param whatsappId
  */
-export async function Members_GetMemberInfoFromPhone(cleanedPhoneNumber: string) {
+export async function Members_GetMemberInfoFromWhatsappId(whatsappId:string) {
   try {
-    return await Kldb.player.findFirst({ where: { phoneNumber: cleanedPhoneNumber }, include: { Rank: true, Role: true } });
+    return await Kldb.player.findFirst({ where: { whatsapp_id: whatsappId }, include: { Rank: true, Role: true } });
   } catch (e) {
     return null
   }

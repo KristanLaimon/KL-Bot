@@ -5,35 +5,13 @@ import { MsgType, SenderType } from '../types/commands';
 import { Msg_GetMsgTypeFromRawMsg } from '../utils/rawmsgs';
 import KlLogger from './logger';
 import moment from 'moment';
-
-export class Delegate<functType extends (...args: any[]) => any> {
-  private functions: functType[] = [];
-
-  public get Length(): number {
-    return this.functions.length;
-  }
-
-  public Subscribe(funct: functType): void {
-    this.functions.push(funct);
-  }
-  public Unsubsribe(funct: functType): boolean {
-    const foundFunctIndex = this.functions.findIndex(f => f === funct);
-    if (foundFunctIndex === -1) return false;
-    this.functions.splice(foundFunctIndex, 1);
-    return true;
-  }
-  public CallAll(...args: Parameters<functType>) {
-    this.functions.forEach(f => f(...args));
-  }
-}
+import { Delegate } from "../lib/Delegate";
 
 export default class WhatsSocket {
   private socket: BaileysWASocket; //It's initialized in "initializeSelf"
   public onReconnect: Delegate<() => Promise<void>> = new Delegate();
   public onIncommingMessage: Delegate<(chatId: string, rawMsg: WAMessage, type: MsgType, senderType: SenderType) => void> = new Delegate();
   public onEnteringGroup: Delegate<(groupInfo: GroupMetadata) => void> = new Delegate();
-
-  constructor() { }
 
   public async Init() {
     await this.InitializeSelf();

@@ -3,8 +3,8 @@ import Bot from '../../bot';
 import { CommandAccessibleRoles, ICommand, CommandScopeType, CommandHelpInfo } from '../../types/commands';
 import { Dates_GetFormatedDurationTimeFrom, Dates_HumanizeDatesUntilDays } from '../../utils/dates';
 import { BotCommandArgs } from '../../types/bot';
-import { Phone_GetFullPhoneInfoFromRawmsg, Phone_GetPhoneNumberFromMention } from '../../utils/phonenumbers';
-import { Members_GetMemberInfoFromPhone } from '../../utils/members';
+import { Phone_GetFullPhoneInfoFromRawMsg, Phone_GetPhoneNumberFromMention } from '../../utils/phonenumbers';
+import { Members_GetMemberInfoFromWhatsappId } from '../../utils/members';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { FileSystem_GetPlayerImagePath } from '../../utils/filesystem';
 import moment from 'moment';
@@ -37,15 +37,15 @@ export default class GetProfileInfoCommand implements ICommand {
     const wasSomeoneTagged: boolean = args.commandArgs.length == 1;
     const whatsNumberInfo = wasSomeoneTagged ?
       Phone_GetPhoneNumberFromMention(args.commandArgs[0]) :
-      Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg);
+      Phone_GetFullPhoneInfoFromRawMsg(args.originalMsg);
 
     if (whatsNumberInfo == null) {
-      await chat.SendTxt("No etiquetaste a nadie o el etiquetado es inválido (?)", true, { quoted: args.originalMsg});
+      await chat.SendText("No etiquetaste a nadie o el etiquetado es inválido (?)", true, { quoted: args.originalMsg});
       await bot.Send.ReactEmojiTo(args.chatId, args.originalMsg, "❌");
       return;
     }
 
-    const member = await Members_GetMemberInfoFromPhone(whatsNumberInfo.number);
+    const member = await Members_GetMemberInfoFromWhatsappId(whatsNumberInfo.whatsappId);
     if (member === null) {
       await bot.Send.Text(args.chatId, "La persona etiquetada todavía no está registrado en este bot del clan", true, { quoted: args.originalMsg});
       await bot.Send.ReactEmojiTo(args.chatId, args.originalMsg, "❌");

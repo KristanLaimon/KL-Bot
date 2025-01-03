@@ -3,8 +3,8 @@ import { SpecificChat } from '../../bot/SpecificChat';
 import { BotCommandArgs } from '../../types/bot';
 import { ICommand, CommandScopeType, CommandAccessibleRoles, CommandHelpInfo } from '../../types/commands';
 import { Dates_GetFormatedDurationTimeFrom } from '../../utils/dates';
-import { Members_GetMemberInfoFromPhone } from '../../utils/members';
-import { Phone_GetFullPhoneInfoFromRawmsg } from '../../utils/phonenumbers';
+import { Members_GetMemberInfoFromWhatsappId } from '../../utils/members';
+import { Phone_GetFullPhoneInfoFromRawMsg } from '../../utils/phonenumbers';
 import { Msg_DefaultHandleError } from '../../utils/rawmsgs';
 import Kldb from "../../utils/kldb";
 
@@ -22,21 +22,21 @@ export default class SeeMySubscribedTournamentsCommand implements ICommand {
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
     try {
-      const playerInfo = await Members_GetMemberInfoFromPhone(Phone_GetFullPhoneInfoFromRawmsg(args.originalMsg).number);
+      const playerInfo = await Members_GetMemberInfoFromWhatsappId(Phone_GetFullPhoneInfoFromRawMsg(args.originalMsg).whatsappId);
       const allSubscribedTournamentByPlayer = await Kldb.tournament_Player_Subscriptions.findMany({
         where: { AND: { player_id: playerInfo.id, Tournament: { endDate: { equals: null }, beginDate: { equals: null} } } },
         include: { Tournament: { include: { TournamentType: true, MatchFormat: true, Tournament_Player_Subscriptions: true } } },
       });
 
       if (allSubscribedTournamentByPlayer.length === 0) {
-        await chat.SendTxt("No estás inscrito en ninguno de los torneos activos", true, { quoted: args.originalMsg});
+        await chat.SendText("No estás inscrito en ninguno de los torneos activos", true, { quoted: args.originalMsg});
         await chat.SendReactionToOriginalMsg("❌")
         return;
       }
 
       const tournamentsSubscribed = allSubscribedTournamentByPlayer.map(subscribedTournament => subscribedTournament.Tournament);
 
-      await chat.SendTxt(`
+      await chat.SendText(`
         🌟 *Torneos activos en los que estás inscrito* 🌟
         ${tournamentsSubscribed.map((tournament, index) => `
           ${index + 1}. 🏆 *${tournament.name}*  

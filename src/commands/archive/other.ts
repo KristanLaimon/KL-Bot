@@ -15,10 +15,10 @@ export default class OtherCommand implements ICommand {
       await bot.Send.Text(args.chatId, "No etiquetaste a nadie, prueba de nuevo");
       return;
     }
-    const targetNumber = Phone_GetPhoneNumberFromMention(args.commandArgs.at(0)!)!.number;
+    const targetWhatsId = Phone_GetPhoneNumberFromMention(args.commandArgs.at(0)!)!.whatsappId;
     await bot.Send.Text(args.chatId, "Ahora se está esperando que conteste....");
     try {
-      const thatPerson = await bot.Receive.WaitNextRawMsgFromPhone(args.chatId, args.userIdOrChatUserId, targetNumber, MsgType.text, 60);
+      const thatPerson = await bot.Receive.WaitNextRawMsgFromWhatsId(args.chatId, args.userIdOrChatUserId, targetWhatsId, MsgType.text, 60);
       const msgFromThatPerson = Msg_GetTextFromRawMsg(thatPerson);
       await bot.Send.Text(args.chatId, "Se ha recibido el mensaje de esa persona!");
       await bot.Send.Text(args.chatId, msgFromThatPerson);

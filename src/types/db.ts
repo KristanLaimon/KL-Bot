@@ -37,7 +37,7 @@ export type KlPlayer = {
   username: string;
   profilePicturePath: string;
   actualRank: string;
-  phoneNumber: string;
+  whatsapp_id: string;
   whatsappNickName: string;
   role: string;
   joined_date: bigint;
@@ -45,7 +45,7 @@ export type KlPlayer = {
 
 export type KlGetTableType<T extends (...args: any[]) => any> = NonNullable<Awaited<ReturnType<T>>>;
 
-export type KlTournament = KlGetTableType<typeof Kldb.tournament.findFirst>;
+
 
 export type KlScheduledMatchWindow = KlGetTableType<typeof Kldb.scheduledMatchWindow.findFirst>;
 export type KlScheduledMatch = KlGetTableType<typeof Kldb.scheduledMatch.findFirst>;
@@ -59,10 +59,12 @@ export enum TeamColor {
   Blue = 'BLU',
   Orange = 'ORA'
 }
-export type KlSubscriptionEnhanced =
-  KlGetTableType<typeof Kldb.tournament_Player_Subscriptions.findFirst> & {
-    Player: KlPlayer
-  }
+
+export type KlTournament = KlGetTableType<typeof Kldb.tournament.findFirst>;
+export type KlTournamentSimple = KlTournament & {
+  TournamentType: KlGetTableType<typeof Kldb.tournamentType.findFirst>
+  MatchFormat: KlGetTableType<typeof Kldb.matchType.findFirst>
+}
 
 export type KlTournamentEnhanced = KlTournament & {
   TournamentType: KlTournamentType;
@@ -70,6 +72,10 @@ export type KlTournamentEnhanced = KlTournament & {
   MatchFormat: KlMatchType
 }
 
+export type KlSubscriptionEnhanced =
+  KlGetTableType<typeof Kldb.tournament_Player_Subscriptions.findFirst> & {
+    Player: KlPlayer
+  }
 export type KlTournamentDoubleEnhanced = KlTournamentEnhanced & {
   Tournament_Rank_RanksAdmitteds: KlTournament_Ranks_Admitted[]
 }

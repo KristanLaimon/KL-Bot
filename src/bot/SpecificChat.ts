@@ -3,7 +3,7 @@ import { BotCommandArgs } from "../types/bot";
 import { MsgType } from "../types/commands";
 import { Msg_GetTextFromRawMsg } from "../utils/rawmsgs";
 import { Str_NormalizeLiteralString, Str_StringifyObj } from "../utils/strings";
-import { Db_GetTournamentFormattedInfoStr } from "../utils/db";
+import { Db_Info_Str_GeneralTournament } from "../utils/db";
 import { KlTournament } from "../types/db";
 import KlLogger from "./logger";
 import { MiscMessageGenerationOptions, WAMessage } from "@whiskeysockets/baileys";
@@ -26,10 +26,11 @@ export class SpecificChat {
    *
    * @param sanitizeText
    * @param misc
+   * @param mentionsIds
    * @returns A promise that resolves when the text message has been sent successfully.
    */
-  async SendTxt(msg: string, sanitizeText:boolean = true, misc?: MiscMessageGenerationOptions): Promise<void> {
-    await this.bot.Send.Text(this.args.chatId, msg, sanitizeText, misc);
+  async SendText(msg: string, sanitizeText:boolean = true, misc?: MiscMessageGenerationOptions, mentionsIds?: string[]): Promise<void> {
+    await this.bot.Send.Text(this.args.chatId, msg, sanitizeText, misc, mentionsIds);
   }
 
   /**
@@ -39,10 +40,11 @@ export class SpecificChat {
    * @param caption - Optional. The caption for the image.
    * @param sanitizeCaption
    * @param misc
+   * @param mentionIds
    * @returns A promise that resolves when the image has been sent successfully.
    */
-  async SendImg(imgPath: string, caption?: string, sanitizeCaption:boolean = true, misc?: MiscMessageGenerationOptions): Promise<void> {
-    await this.bot.Send.Img(this.args.chatId, imgPath, caption, sanitizeCaption, misc);
+  async SendImg(imgPath: string, caption?: string, sanitizeCaption:boolean = true, misc?: MiscMessageGenerationOptions, mentionIds?:string[]): Promise<void> {
+    await this.bot.Send.Img(this.args.chatId, imgPath, caption, sanitizeCaption, misc, mentionIds);
   }
 
   async SendReaction(originalRawMsg:WAMessage, emojiStr:string){
@@ -53,21 +55,25 @@ export class SpecificChat {
     await this.SendReaction(this.args.originalMsg, emojiStr);
   }
 
-  async SendTournamentInfoFormatted(tournamentInfo:KlTournament, personalizeMsg?: (alreadyMsg:string, tournamentInfo?:KlTournament) => string):Promise<boolean>{
+  async SendTournamentInfoFormatted(tournamentInfo:KlTournament, personalizeMsg?: (alreadyMsg:string, tournamentInfo?:KlTournament) => string, normalizeString:boolean = true):Promise<boolean>{
     try{
-      let fullTournamentInfo = await Db_GetTournamentFormattedInfoStr(tournamentInfo.id);
-      if(personalizeMsg) fullTournamentInfo = Str_NormalizeLiteralString(personalizeMsg(fullTournamentInfo, tournamentInfo));
+      let fullTournamentInfo = await Db_Info_Str_GeneralTournament(tournamentInfo.id);
+      if(personalizeMsg) {
+        const customFormatted = personalizeMsg(fullTournamentInfo, tournamentInfo);
+        fullTournamentInfo = normalizeString ? Str_NormalizeLiteralString(customFormatted) : customFormatted;
+      }
       if (tournamentInfo.cover_img_name !== null)
         await this.SendImg(`db/tournaments_covers/${tournamentInfo.cover_img_name}`, fullTournamentInfo);
       else
-        await this.SendTxt(fullTournamentInfo);
+        await this.SendText(fullTournamentInfo);
       return true;
     }catch(e){
       KlLogger.error(`Failed to send tournament info: ${Str_StringifyObj(e)}`);
       return false;
     }
-
   }
+
+
 
   //================== Receiving (Basic) =====================
   /**
@@ -96,7 +102,7 @@ export class SpecificChat {
    * @throws {BotWaitMessageError} If the user cancels the operation or if the timeout is reached.
    */
   async WaitNextTxtMsgFromPhone(phoneNumberCleaned: string, timeout?: number, wrongMsg?: string): Promise<string> {
-    const rawMsg = await this.bot.Receive.WaitNextRawMsgFromPhone(this.args.chatId, this.args.userIdOrChatUserId, phoneNumberCleaned, MsgType.text, timeout, wrongMsg);
+    const rawMsg = await this.bot.Receive.WaitNextRawMsgFromWhatsId(this.args.chatId, this.args.userIdOrChatUserId, phoneNumberCleaned, MsgType.text, timeout, wrongMsg);
     return Msg_GetTextFromRawMsg(rawMsg);
   }
 

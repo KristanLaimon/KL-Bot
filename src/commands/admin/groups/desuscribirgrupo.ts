@@ -24,19 +24,19 @@ export default class UnsubscribeGroupCommand implements ICommand {
     const chat = new SpecificChat(bot, args);
 
     if (args.senderType !== SenderType.Group) {
-      await chat.SendTxt("No puedes usar este comando en un chat individual", true, { quoted: args.originalMsg });
+      await chat.SendText("No puedes usar este comando en un chat individual", true, { quoted: args.originalMsg });
       await chat.SendReactionToOriginalMsg("❌");
       return;
     }
 
     if (GlobalCache.SemiAuto_AllowedWhatsappGroups.length === 0) {
-      await chat.SendTxt("No hay grupos que borrar...(?), esto no debería pasar", true, { quoted: args.originalMsg });
+      await chat.SendText("No hay grupos que borrar...(?), esto no debería pasar", true, { quoted: args.originalMsg });
       await chat.SendReactionToOriginalMsg("❌")
       return;
     }
 
     const thisChatInfo = await bot.Receive.GetGroupMetadata(args.chatId);
-    await chat.SendTxt(`
+    await chat.SendText(`
       Estás a punto de desuscribir este grupo ${thisChatInfo?.subject} 
       ¿Estás seguro de que deseas continuar? (s/n)
 
@@ -51,10 +51,10 @@ export default class UnsubscribeGroupCommand implements ICommand {
           }
         })
         await GlobalCache.UpdateCache();
-        await chat.SendTxt("El grupo ha sido desuscrito exitosamente!, adios 🦊🥲");
+        await chat.SendText("El grupo ha sido desuscrito exitosamente!, adios 🦊🥲");
       }
       else {
-        await chat.SendTxt("La desuscripción ha sido cancelada");
+        await chat.SendText("La desuscripción ha sido cancelada");
       }
       await chat.SendReactionToOriginalMsg("✅");
     } catch (e) {

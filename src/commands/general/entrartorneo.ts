@@ -4,7 +4,7 @@ import { BotCommandArgs } from "../../types/bot";
 import { CommandAccessibleRoles, CommandHelpInfo, CommandScopeType, ICommand } from "../../types/commands";
 import { Dates_GetFormatedDateSimple, Dates_GetFormatedDurationTimeFrom } from "../../utils/dates";
 import {
-  Db_FormatStrPlanningMatches,
+  Db_Info_Str_AllPhasePlanningMatches,
   Db_GetStandardInfoPlayerFromMention,
   Db_GetStandardInfoPlayerFromRawMsg, Db_GetStandardTournamentEnhancedInfo,
   Db_InsertNewTournamentSubscription
@@ -45,9 +45,9 @@ export default class EnterToTournamentCommand implements ICommand {
       const isAdmin = mentionedPlayer.role === "AD";
       const argumentIsMention = args.commandArgs.length === 1 && Phone_IsAMentionNumber(args.commandArgs[0]);
       const isAdminMode = isAdmin && argumentIsMention;
-
+        await chat.SendReactionToOriginalMsg("⌛");
       if(isAdminMode){
-        await chat.SendTxt("Se ha detectado el uso de este comando con privilegios altos, se usará la persona etiquetada en lugar de a ti por el resto del proceso de este comando", true, {quoted: args.originalMsg});
+        await chat.SendText("Se ha detectado el uso de este comando con privilegios altos, se usará la persona etiquetada en lugar de a ti por el resto del proceso de este comando", true, {quoted: args.originalMsg});
       }
 
       const prisma = new PrismaClient();
@@ -78,7 +78,8 @@ export default class EnterToTournamentCommand implements ICommand {
 
       //Check if there are active tournaments
       if (INFO_ActiveTournaments.length === 0) {
-        await chat.SendTxt("No hay ningún torneo activo por el momento, intentalo después...", true, {quoted: args.originalMsg});
+        await chat.SendText("No hay ningún torneo activo por el momento, intentalo después...", true, {quoted: args.originalMsg});
+        await chat.SendReactionToOriginalMsg("✅");
         return;
       }
 
@@ -94,7 +95,7 @@ export default class EnterToTournamentCommand implements ICommand {
           `
             ${index + 1}. 🏆 *${tournament.name}*  
             - 🎮 *Tipo:* ${tournament.TournamentType.name}  
-            - 📅 *Fecha de inicio:* ${Dates_GetFormatedDurationTimeFrom(tournament.beginDate, { includingSeconds: true })}  
+            - 📅 *Fecha de inicio:* ${tournament.beginDate ? Dates_GetFormatedDurationTimeFrom(tournament.beginDate, { includingSeconds: true }): "No ha iniciado todavía"}  
             - 🏅 *Rangos admitidos:*  
               ${tournament.Tournament_Rank_RanksAdmitteds.map(rank => `• ${rank.Rank.name}`).join("\n     ")}
             - 👥 *Cupo actual:* ${tournament.Tournament_Player_Subscriptions.length}/${tournament.max_players}
@@ -105,7 +106,7 @@ export default class EnterToTournamentCommand implements ICommand {
       );
 
       if (selectedTournament.Tournament_Player_Subscriptions.length >= selectedTournament.max_players) {
-        await chat.SendTxt(`Ya hay suficientes jugadores inscritos en ${selectedTournament.name}, intentalo con otro torneo...`);
+        await chat.SendText(`Ya hay suficientes jugadores inscritos en ${selectedTournament.name}, intentalo con otro torneo...`);
         await chat.SendReactionToOriginalMsg("❌");
         return;
       }
@@ -119,16 +120,16 @@ export default class EnterToTournamentCommand implements ICommand {
       //Check if already subscribed
       const isAlreadySubscribed = selectedTournament.Tournament_Player_Subscriptions.find(info => info.player_id === mentionedPlayer.id);
       if (isAlreadySubscribed) {
-        await chat.SendTxt(`Ya hay una suscripción para ${selectedTournament.name}, no se puede volver a inscribir...`);
+        await chat.SendText(`Ya hay una suscripción para ${selectedTournament.name}, no se puede volver a inscribir...`);
         await chat.SendReactionToOriginalMsg("❌");
         return;
       }
 
       await chat.SendTournamentInfoFormatted(selectedTournament);
-      await chat.SendTxt(`¿Seguro que deseas entrar a ${selectedTournament.name}? (si|ok) para aceptar o cualquier otro mensaje para cancelar`);
+      await chat.SendText(`¿Seguro que deseas entrar a ${selectedTournament.name}? (si|ok) para aceptar o cualquier otro mensaje para cancelar`);
 
       if (!Response_isAfirmativeAnswer(await chat.AskText(60))) {
-        await chat.SendTxt("Se ha cancelado, no te preocupes, puedes volver a intentarlo cuando quieras. Fin");
+        await chat.SendText("Se ha cancelado, no te preocupes, puedes volver a intentarlo cuando quieras. Fin");
         await chat.SendReactionToOriginalMsg("✅");
         return;
       }
@@ -136,7 +137,7 @@ export default class EnterToTournamentCommand implements ICommand {
       const playerRank = mentionedPlayer.actualRank;
       const isRankAdmitted = selectedTournament.Tournament_Rank_RanksAdmitteds.find(info => info.rank_id === playerRank);
       if (!isRankAdmitted) {
-        await chat.SendTxt(`No tienes el rango necesario para participar en ${selectedTournament.name}, mejora de nivel y/o intentalo con otro torneo...`);
+        await chat.SendText(`No tienes el rango necesario para participar en ${selectedTournament.name}, mejora de nivel y/o intentalo con otro torneo...`);
         await chat.SendReactionToOriginalMsg("❌");
         return;
       }
@@ -145,7 +146,7 @@ export default class EnterToTournamentCommand implements ICommand {
       const {tournamentIsFull, wasCorrectSub} = await Db_InsertNewTournamentSubscription(Date.now(), mentionedPlayer.id, selectedTournament.id);
 
       if(!wasCorrectSub){
-        await chat.SendTxt("Hubo un error en la inscripción... fin");
+        await chat.SendText("Hubo un error en la inscripción... fin");
         await chat.SendReactionToOriginalMsg("❌");
         return;
       }
@@ -158,7 +159,7 @@ export default class EnterToTournamentCommand implements ICommand {
       const updatedPlayersText = updatedPlayerSubscriptions.map((info, i) =>
         `${i + 1}. ${info.Player.username} | *${info.Player.Role.name}* | ${info.Player.Rank.name}`).join("\n");
 
-      await chat.SendTxt(`
+      await chat.SendText(`
         🎉 *Registro completado* 🎉
 
         📌 *Torneo:* ${selectedTournament.name}
@@ -177,8 +178,9 @@ export default class EnterToTournamentCommand implements ICommand {
         .join("\n")}
         `);
       await chat.SendReactionToOriginalMsg("✅");
+
       if (tournamentIsFull) {
-        const planningMatchesStr = await Db_FormatStrPlanningMatches(selectedTournament.id);
+        const planningMatchesStr = await Db_Info_Str_AllPhasePlanningMatches(selectedTournament.id);
 
         for (const registeredGroups of GlobalCache.SemiAuto_AllowedWhatsappGroups) {
           // Announce to all registered groups that this tournament is full and has begun
