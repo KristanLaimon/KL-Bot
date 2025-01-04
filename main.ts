@@ -18,12 +18,13 @@ import SeeTournamentsCommand from './src/commands/general/torneos';
 import TestCommand from './src/commands/testing/prueba';
 import ExitATournamentCommand from './src/commands/general/salirtorneo';
 import SeeMySubscribedTournamentsCommand from './src/commands/general/mistorneos';
+import TipoChatCommand from "./src/commands/admin/groups/tipochat";
+import SavePartidaTournamentMatchCommand from "./src/commands/general/partida";
 
 //For some reason this bot stops working if a group has ( or ) in its name on production server ubuntu server!
 
 //Set moment library to spanish
 moment.locale("es");
-
 
 const klBot = new Bot({ prefix: "!", coolDownSecondsTime: 1, maxQueueMsgs: 5 });
 klBot.AddCommand(new HelpCommand());
@@ -44,5 +45,7 @@ klBot.AddCommand(new DeleteTournamentCommand());
 klBot.AddCommand(new EnterToTournamentCommand());
 klBot.AddCommand(new ExitATournamentCommand());
 klBot.AddCommand(new SeeMySubscribedTournamentsCommand());
+klBot.AddCommand(new TipoChatCommand());
+klBot.AddCommand(new SavePartidaTournamentMatchCommand());
 
 klBot.StartBot().then();

@@ -24,7 +24,7 @@ export default class SeeMySubscribedTournamentsCommand implements ICommand {
     try {
       const playerInfo = await Members_GetMemberInfoFromWhatsappId(Phone_GetFullPhoneInfoFromRawMsg(args.originalMsg).whatsappId);
       const allSubscribedTournamentByPlayer = await Kldb.tournament_Player_Subscriptions.findMany({
-        where: { AND: { player_id: playerInfo.id, Tournament: { endDate: { equals: null }, beginDate: { equals: null} } } },
+        where: { AND: { player_id: playerInfo.id, Tournament: {OR: [{endDate: null}, { endDate: {gt: Date.now()}}]} }},
         include: { Tournament: { include: { TournamentType: true, MatchFormat: true, Tournament_Player_Subscriptions: true } } },
       });
 
@@ -39,7 +39,7 @@ export default class SeeMySubscribedTournamentsCommand implements ICommand {
       await chat.SendText(`
         🌟 *Torneos activos en los que estás inscrito* 🌟
         ${tournamentsSubscribed.map((tournament, index) => `
-          ${index + 1}. 🏆 *${tournament.name}*  
+             🏆 *${tournament.name}*  
              - 🎮 *Tipo:* ${tournament.TournamentType.name}  
              - 🕹️ *Formato:* ${tournament.MatchFormat.name}  
              - 👥 *Inscritos:* ${tournament.Tournament_Player_Subscriptions.length}/${tournament.max_players} jugadores

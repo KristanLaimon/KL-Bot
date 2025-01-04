@@ -1,9 +1,10 @@
 //@ts-ignore
+
 export default class c implements ICommand {
   commandName: string = "";
   description: string = "";
   //@ts-ignore
-  maxScope: CommandScopeType = "Group";
+  scopes: CommandScopeType[] = ["General"];
   //@ts-ignore
   minimumRequiredPrivileges: CommandAccessibleRoles = "Cualquiera";
   //@ts-ignore

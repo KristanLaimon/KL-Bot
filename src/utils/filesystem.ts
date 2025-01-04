@@ -54,7 +54,7 @@ export async function FileSystem_TryToDownloadMedia(
 
 export async function FileSystem_SaveObjToJSON(data: any, filePath: string):Promise<boolean> {
   try {
-    const jsonData = toJSONSafe(data); // Convertimos BigInt antes de guardar
+    const jsonData = Fs_ToJSONSafe(data); // Convertimos BigInt antes de guardar
     fs.writeFileSync(filePath, jsonData, "utf-8");
     console.log(`File saved to ${filePath}`);
     return true;
@@ -63,7 +63,8 @@ export async function FileSystem_SaveObjToJSON(data: any, filePath: string):Prom
     return false;
   }
 }
-function toJSONSafe(object: any): string {
+
+export function Fs_ToJSONSafe(object: any): string {
   return JSON.stringify(object, (_, value) =>
     typeof value === "bigint" ? value.toString() : value, 2
   );

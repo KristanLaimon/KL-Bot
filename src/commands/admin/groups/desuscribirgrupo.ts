@@ -10,7 +10,7 @@ export default class UnsubscribeGroupCommand implements ICommand {
   commandName: string = "desuscribirgrupo";
   description: string = "Desuscribe el grupo actual y el bot ya no interactuará con este chat!";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Administrador"
-  scopes: CommandScopeType = "General";
+  scopes: CommandScopeType[] = ["General", "TournamentValidator"]
   helpMessage?: CommandHelpInfo = {
     structure: "desuscribirgrupo",
     examples: [

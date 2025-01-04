@@ -225,6 +225,15 @@ export async function Db_Info_TournamentPlanningMatchesByPhase(tournamentId: num
   }
 }
 
+export async function Db_Info_LocatePlayerMatch(tournamentId:number, currentPhase: number, playerId: number):Promise<ScheduledMatchInfo|null>{
+  const allMatches = await Db_Info_TournamentPlanningMatchesByPhase(tournamentId, currentPhase);
+  for (const match of allMatches) {
+    if(match.BlueTeam.find(player => player.id === playerId) !== undefined) return match;
+    if(match.OrangeTeam.find(player => player.id === playerId) !== undefined) return match;
+  }
+  return null
+}
+
 export async function Db_Info_TournamentParticipantTeams(tournamentId: number):Promise<KlPlayer[][]>{
   const matches = await Db_Info_TournamentPlanningMatchesByPhase(tournamentId, 1);
   if(matches === null) return null

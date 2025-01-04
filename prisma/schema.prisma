@@ -53,6 +53,7 @@ model Tournament {
   tournament_type String
   max_players     Int
   match_format    String
+  actual_phase    Int     @default(0)
 
   // I should normalize this...
   custom_players_per_team Int @default(-1)
