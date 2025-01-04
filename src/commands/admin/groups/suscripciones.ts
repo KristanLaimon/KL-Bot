@@ -9,7 +9,7 @@ export default class RegisteredGroupsCommand implements ICommand {
   commandName: string = "suscripciones";
   description: string = "Consulta todos los grupos en los que el bot está permitido interactuar";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Administrador"
-  maxScope: CommandScopeType = "Group";
+  scopes: CommandScopeType = "General";
   helpMessage: CommandHelpInfo = {
     structure: "suscripciones",
     examples: [{ text: "suscripciones", isOk: true }, { text: "suscripciones someotherargument", isOk: false }],

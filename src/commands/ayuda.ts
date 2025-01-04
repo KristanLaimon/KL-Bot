@@ -2,11 +2,12 @@ import Bot from '../bot';
 import { SpecificChat } from '../bot/SpecificChat';
 import { BotCommandArgs } from '../types/bot';
 import { ICommand, CommandAccessibleRoles, CommandScopeType } from '../types/commands';
+import CommandsHandler from "../bot/Commands";
 
 export default class ExternalHelp_AyudaCommand implements ICommand {
   commandName: string = "ayuda";
   description: string = "Obten ayuda en un grupo no registrado por este bot";
-  maxScope: CommandScopeType = "External";
+  scopes: CommandScopeType = "UnregisteredGroup";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Cualquiera";
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const strs: string[] = [];
@@ -18,7 +19,7 @@ export default class ExternalHelp_AyudaCommand implements ICommand {
     strs.push(separator);
 
     // Obtener comandos aplicables al contexto actual
-    const externalCommands = bot.Commands.filter(command => command[1].maxScope === "External");
+    const externalCommands = bot.Commands.filter(command => CommandsHandler.CommandHasScope(command[1], "UnregisteredGroup"));
     if (externalCommands.length === 0) {
       strs.push('⚠️ No hay comandos disponibles para este grupo.');
     } else {

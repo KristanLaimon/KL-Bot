@@ -12,7 +12,7 @@ import Kldb from "../../utils/kldb";
 export default class ExitATournamentCommand implements ICommand {
   commandName: string = "salirtorneo";
   description: string = "Permite salir de un torneo en el que estés registrado, solo podrás salir de torneos que no haya empezado todavía";
-  maxScope: CommandScopeType = "Group";
+  scopes: CommandScopeType = "General";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro";
   helpMessage?: CommandHelpInfo = {
     structure: "salirtorneo",

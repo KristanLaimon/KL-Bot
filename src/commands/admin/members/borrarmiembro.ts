@@ -10,7 +10,7 @@ export default class DeleteMemberCommand implements ICommand {
   commandName: string = 'borrarmiembro';
   description: string = "Elimina a un miembro existente en el clan"
   minimumRequiredPrivileges: CommandAccessibleRoles = "Secreto";
-  maxScope: CommandScopeType = "Group";
+  scopes: CommandScopeType = "General";
   helpMessage: CommandHelpInfo = {
     structure: "borrarmiembro",
     examples: [

@@ -11,7 +11,7 @@ import Kldb from "../../utils/kldb";
 export default class SeeMySubscribedTournamentsCommand implements ICommand {
   commandName: string = "mistorneos";
   description: string = "Ve los torneos en los que estás inscrito actualmente";
-  maxScope: CommandScopeType = "Group";
+  scopes: CommandScopeType = "General";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro";
   helpMessage?: CommandHelpInfo = {
     structure: "mistorneos",

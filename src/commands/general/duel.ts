@@ -12,7 +12,7 @@ export default class DuelCommand implements ICommand {
   commandName: string = "duel";
   description: string = 'Reta a un duelo 1vs1 a otra persona del clan'
   minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro";
-  maxScope: CommandScopeType = "Group";
+  scopes: CommandScopeType = "General";
   helpMessage?: CommandHelpInfo = {
     notes: "Para registrar un duelo se usaría !duel @alguien y para registrarlo es con !duelwin",
     examples: [

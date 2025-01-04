@@ -14,7 +14,7 @@ import Kldb from "../../utils/kldb";
 export default class SeeTournamentsCommand implements ICommand {
   commandName: string = "torneos";
   description: string = "Ver todos los torneos creados habidos y por haber con filtros";
-  maxScope: CommandScopeType = "Group";
+  scopes: CommandScopeType = "General";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro";
   helpMessage?: CommandHelpInfo = {
     structure: "torneos",

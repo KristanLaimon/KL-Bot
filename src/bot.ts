@@ -1,17 +1,17 @@
 import fs from "fs";
-import { GroupMetadata, WAMessage } from '@whiskeysockets/baileys';
-import CommandsHandler from './bot/Commands';
-import KlLogger, { KlCommandLogger, Log_LogRawMsg } from './bot/logger';
-import { WhatsMsgReceiver } from './bot/WhatsMsgReceiver';
-import { WhatsMsgSender } from './bot/WhatsMsgSender';
-import WhatsSocket from './bot/WhatsSocket';
-import { BotCommandArgs } from './types/bot';
-import { HelperRoleName, ICommand, MsgType, SenderType } from './types/commands';
-import { Members_GetMemberInfoFromWhatsappId } from './utils/members';
-import { Phone_GetFullPhoneInfoFromRawMsg } from './utils/phonenumbers';
-import { Msg_GetTextFromRawMsg } from './utils/rawmsgs';
-import GlobalCache from './bot/cache/GlobalCache';
-import stringSimilarity from 'string-similarity';
+import { GroupMetadata, WAMessage } from "@whiskeysockets/baileys";
+import CommandsHandler from "./bot/Commands";
+import KlLogger, { KlCommandLogger } from "./bot/logger";
+import { WhatsMsgReceiver } from "./bot/WhatsMsgReceiver";
+import { WhatsMsgSender } from "./bot/WhatsMsgSender";
+import WhatsSocket from "./bot/WhatsSocket";
+import { BotCommandArgs } from "./types/bot";
+import { CommandScopeType, HelperRoleName, ICommand, MsgType, SenderType } from "./types/commands";
+import { Members_GetMemberInfoFromWhatsappId } from "./utils/members";
+import { Phone_GetFullPhoneInfoFromRawMsg } from "./utils/phonenumbers";
+import { Msg_GetTextFromRawMsg } from "./utils/rawmsgs";
+import GlobalCache from "./bot/cache/GlobalCache";
+import stringSimilarity from "string-similarity";
 
 type BotArgs = {
   prefix?: string;
@@ -87,12 +87,13 @@ export default class Bot {
     console.log(rawMsg);
     // Log_LogRawMsg(rawMsg); //File its too big, i have enough messages
 
-    let msgComesFromRegisteredGroup = true;
+    let msgComesFromRegisteredGroup = false;
+    let foundChatGroup: { chat_id: string; group_name: string; date_registered: bigint; group_type: string; };
     if (senderType === SenderType.Group) {
-      const foundChatGroup = GlobalCache.SemiAuto_AllowedWhatsappGroups.find(groupInfo => groupInfo.chat_id === chatId);
-      if (!foundChatGroup) msgComesFromRegisteredGroup = false
+      foundChatGroup = GlobalCache.SemiAuto_AllowedWhatsappGroups.find(groupInfo => groupInfo.chat_id === chatId);
+      if(foundChatGroup) msgComesFromRegisteredGroup = true;
     }
-    // If is individual chat doesn't matter, you want to have all bot capabilities when talking to him directly;
+    // If it is an individual chat doesn't matter, you want to have all bot capabilities when talking to him directly;
 
 
     if (type === MsgType.text) {
@@ -136,23 +137,34 @@ export default class Bot {
       }
 
       //Check Scope
-      if (msgComesFromRegisteredGroup) {
-        if (!this.CommandsHandler.HasCorrectScope(commandNameText, "Group")) {
-          if (senderType === SenderType.Group)
-            await this.Send.Text(chatId, 'No puedes usar un comando externo en un grupo registrado...');
-          if (senderType === SenderType.Individual)
-            await this.Send.Text(chatId, 'No puedes usar un comando para chats no registrados en un chat individual...')
-          return;
+      let callingScope: CommandScopeType;
+      if(senderType === SenderType.Group){
+        if(msgComesFromRegisteredGroup){
+          if (foundChatGroup.group_type === "GN") {
+            if (!this.CommandsHandler.HasCorrectScope(commandNameText, "General")) {
+              await this.Send.Text(chatId, 'No puedes usar ese comando en un grupo general...');
+              return;
+            }else{callingScope = "General"}
+          }
+          if (foundChatGroup.group_type === "TV") {
+            if (!this.CommandsHandler.HasCorrectScope(commandNameText, "TournamentValidator")) {
+              await this.Send.Text(chatId, 'No puedes usar ese comando en un chat de torneos');
+              return;
+            }else{callingScope = "TournamentValidator"}
+          }
+        }else{
+          if ((!this.CommandsHandler.HasCorrectScope(commandNameText, "UnregisteredGroup"))) {
+            await this.Send.Text(chatId, 'No puedes usar ese comando en un grupo no registrado');
+            return;
+          }else{callingScope = "UnregisteredGroup"}
         }
-      } else {
-        if ((!this.CommandsHandler.HasCorrectScope(commandNameText, "External"))) {
-          //if enters here it means it could be a group or a private chat with someone
-          if (senderType === SenderType.Group)
-            await this.Send.Text(chatId, 'No puedes usar ese comando en un grupo no registrado por el bot...')
-          if (senderType === SenderType.Individual)
-            await this.Send.Text(chatId, 'No puedes usar ese comando de grupo en un chat individual (??)...');
+      }else if (senderType === SenderType.Individual){
+        if (!this.CommandsHandler.HasCorrectScope(commandNameText, "General")) {
+          await this.Send.Text(chatId, 'Solo se pueden usar comando de chat generales en chats privados');
           return;
-        }
+        }else{callingScope = "General"}
+      }else{
+        callingScope = "UnregisteredGroup";
       }
 
       //Check permissions
@@ -161,8 +173,7 @@ export default class Bot {
         return;
       }
 
-
-      const commandArgs: BotCommandArgs = { chatId, commandArgs: args, msgType: type, originalMsg: rawMsg, senderType, userIdOrChatUserId: userId }
+      const commandArgs: BotCommandArgs = { chatId, commandArgs: args, msgType: type, originalMsg: rawMsg, senderType, userIdOrChatUserId: userId, scopeCalled: callingScope };
 
       GlobalCache.Auto_IdUsersUsingCommands.push(userId);
       this.CommandsHandler.Execute(commandNameText, this, commandArgs).then(() => GlobalCache.RemoveIdUserUsingCommand(userId));

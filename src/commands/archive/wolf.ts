@@ -9,7 +9,7 @@ export default class WolfCommand implements ICommand {
   commandName: string = "wolf"
   minimumRequiredPrivileges: HelperRoleName = "Cualquiera";
   description: string = "Lobitosssss";
-  maxScope: CommandScopeType = "Group"
+  scopes: CommandScopeType = "General"
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
     await chat.SendImg('./resources/wolf.jpg', "Sexxx");

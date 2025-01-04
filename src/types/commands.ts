@@ -10,7 +10,7 @@ import { BotCommandArgs } from './bot';
  */
 export type HelperRoleName = "Administrador" | "Miembro" | "Cualquiera"
 export type CommandAccessibleRoles = HelperRoleName | "Secreto";
-export type CommandScopeType = "External" | "Group";
+export type CommandScopeType = "UnregisteredGroup" | "General" | "TournamentValidator";
 export type CommandHelpInfo = {
   /**
    * General info and notes
@@ -45,7 +45,7 @@ export interface ICommand {
   /**
    * The maximum scope in which this command can be used
    */
-  maxScope: CommandScopeType;
+  scopes: CommandScopeType | CommandScopeType[];
   /**
    * A help message to show to the user
    */

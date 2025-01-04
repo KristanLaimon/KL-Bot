@@ -4,7 +4,7 @@ import { BotCommandArgs } from "../types/bot";
 
 export type SpecificDialogStep = {
   InitialMsg: string;
-  Logic: (specificChat: SpecificChat, previousValue: any) => Promise<any>;
+  Logic: (specificChat: SpecificChat, previousValue: any, cancelCallBack: () => void) => Promise<any>;
 };
 
 export default class SpecificDialog {
@@ -41,9 +41,10 @@ export default class SpecificDialog {
    *   return chat.AskForText("Your age?", {withNumber: true, regex: /^\d+$/, withCancelOption: true});
    * });
    */
-  public AddStep<TInput = unknown, TOutput = void>(initialRawMsg:string, logic: (specificChat:SpecificChat, previousValue:TInput) => Promise<TOutput>) {
+  public AddStep<TInput = unknown, TOutput = void>(initialRawMsg:string, logic: (specificChat:SpecificChat, previousValue?:TInput, cancelDialog?:() => void) => Promise<TOutput>) {
     this.steps.push({InitialMsg: initialRawMsg, Logic: logic});
   }
+
 
   /**
    * Starts the conversation with the user.
@@ -55,16 +56,20 @@ export default class SpecificDialog {
   public async StartConversation<ExpectedReturn = undefined>(){
     let previousValue:ExpectedReturn;
 
+    let cancelDialog = false;
+    const cancelCallBack = () => cancelDialog = true;
     if(this.options && this.options.withNumeratedSteps){
       const formatedStep = this.GenerateInstructionSteps(this.steps.map(step => step.InitialMsg));
       for (const step of this.steps) {
         await this.specificChat.SendText(formatedStep());
-        previousValue = await step.Logic(this.specificChat, previousValue);
+        previousValue = await step.Logic(this.specificChat, previousValue, cancelCallBack);
+        if(cancelDialog)break;
       }
     }else{
       for (const stepObjInfo of this.steps) {
         await this.specificChat.SendText(stepObjInfo.InitialMsg);
-        previousValue = await stepObjInfo.Logic(this.specificChat, previousValue);
+        previousValue = await stepObjInfo.Logic(this.specificChat, previousValue, cancelCallBack);
+        if(cancelDialog) break;
       }
     }
 

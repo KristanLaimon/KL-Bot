@@ -195,9 +195,18 @@ model TeamColor {
 // OK
 // AloneTable
 model RegisteredWhatsappGroups {
-  chat_id         String @id @unique
+  chat_id         String                    @id @unique
   group_name      String
-  date_registered BigInt @unique
+  date_registered BigInt                    @unique
+  group_type      String                    @default("GN")
+  GroupType       RegistedWhatsappGroupType @relation(fields: [group_type], references: [id])
+}
+
+model RegistedWhatsappGroupType {
+  id   String @id @unique
+  name String @unique
+
+  RegisteredWhatsappGroups RegisteredWhatsappGroups[]
 }
 
 // OK

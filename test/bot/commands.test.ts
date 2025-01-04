@@ -10,21 +10,21 @@ const everyoneCommand: ICommand = {
   commandName: everyoneCommandName,
   description: "lowercase command",
   minimumRequiredPrivileges: 'Cualquiera',
-  maxScope: 'External',
+  scopes: 'UnregisteredGroup',
   onMsgReceived: jest.fn(),
 };
 const memberCommand: ICommand = {
   commandName: memberCommandName,
   description: "member command",
   minimumRequiredPrivileges: 'Miembro',
-  maxScope: 'Group',
+  scopes: 'General',
   onMsgReceived: jest.fn(),
 }
 const adminCommand: ICommand = {
   commandName: adminCommandName,
   description: "admin command",
   minimumRequiredPrivileges: 'Administrador',
-  maxScope: 'Group',
+  scopes: 'General',
   onMsgReceived: jest.fn(),
 }
 
@@ -46,7 +46,7 @@ describe("Adding a command", () => {
       commandName: 'lowercasecommand', // Existing command name
       description: "duplicate lowercase command",
       minimumRequiredPrivileges: 'Cualquiera',
-      maxScope: 'External',
+      scopes: 'UnregisteredGroup',
       onMsgReceived: jest.fn(),
     };
     expect(() => commandsHandler.AddCommand(duplicateCommand)).toThrow(Error);

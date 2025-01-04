@@ -9,7 +9,7 @@ export default class OtherCommand implements ICommand {
   commandName: string = "other";
   description: string = "Espera hasta que otra persona te responda"
   minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro";
-  maxScope: CommandScopeType = "Group";
+  scopes: CommandScopeType = "General";
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     if (!Phone_IsAMentionNumber(args.commandArgs.at(0) || '')) {
       await bot.Send.Text(args.chatId, "No etiquetaste a nadie, prueba de nuevo");

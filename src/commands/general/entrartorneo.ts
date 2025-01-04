@@ -22,7 +22,7 @@ import { Str_CenterText } from "../../utils/strings";
 export default class EnterToTournamentCommand implements ICommand {
   commandName: string = "entrartorneo";
   description: string = "Te permite entrar en algun torneo que esté abierto actualmente";
-  maxScope: CommandScopeType = "Group";
+  scopes: CommandScopeType = "General";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro";
   helpMessage?: CommandHelpInfo = {
     structure: "entrartorneo  ó  entrartorneo @etiquetaDeAlguien  [Solo para administradores]",

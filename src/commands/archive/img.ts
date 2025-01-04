@@ -8,7 +8,7 @@ export default class ReceiveImgCommand implements ICommand {
   commandName: string = "img";
   description: string = "Stores imgs test";
   minimumRequiredPrivileges: HelperRoleName = "Administrador"
-  maxScope: CommandScopeType = "Group"
+  scopes: CommandScopeType = "General"
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     await bot.Send.Text(args.chatId, "Envia una imagen y la guardaré en mis archivos...", true, { quoted: args.originalMsg});
     try {

@@ -11,7 +11,7 @@ export default class DuelWinCommand implements ICommand {
   commandName: string = "duelwin"
   description: string = "Para registrar un duelo pendiente realizado con !duel con otro miembro del clan"
   minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro"
-  maxScope: CommandScopeType = "Group"
+  scopes: CommandScopeType = "General"
   helpMessage?: CommandHelpInfo = {
     structure: "duelwin [@etiquetadealgunmiembro] [marcador] [equipo]\nMarcador: 0-0 | 1-3 | 10-3 | 2-0 | 9-0 | etc...\nEquipo: naranja | n | azul | a",
     examples: [

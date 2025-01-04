@@ -13,7 +13,7 @@ export default class GetProfileInfoCommand implements ICommand {
   commandName: string = "perfil"
   description: string = "Obten la información de cualquier miembro del clan etiquetandolo con @ después del comando"
   minimumRequiredPrivileges: CommandAccessibleRoles = "Miembro";
-  maxScope: CommandScopeType = "Group";
+  scopes: CommandScopeType = "General";
   helpMessage?: CommandHelpInfo = {
     structure: "perfil [@etiquetadealgunmiembro](Opcional)",
     examples: [

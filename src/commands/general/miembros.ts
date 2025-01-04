@@ -10,7 +10,7 @@ export default class VerMiembrosCommand implements ICommand {
   commandName: string = "miembros";
   description: string = "Checa todos los miembros actuales del clan";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Cualquiera";
-  maxScope: CommandScopeType = "Group"
+  scopes: CommandScopeType = "General"
   helpMessage?: CommandHelpInfo = {
     structure: "miembros",
     examples: [{ text: "miembros", isOk: true }, { text: "miembros some_other_argument", isOk: false }],

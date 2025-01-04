@@ -1,6 +1,6 @@
 import makeWASocket from "@whiskeysockets/baileys";
 import type { WAMessage } from "@whiskeysockets/baileys";
-import { MsgType, SenderType } from './commands';
+import { CommandScopeType, MsgType, SenderType } from "./commands";
 
 export type BaileysWASocket = ReturnType<typeof makeWASocket>;
 
@@ -20,7 +20,8 @@ export type BotCommandArgs = {
   userIdOrChatUserId: string,
   senderType: SenderType,
   msgType: MsgType,
-  commandArgs: string[]
+  commandArgs: string[],
+  scopeCalled: CommandScopeType
 }
 
 export type BotWaitMessageError = {

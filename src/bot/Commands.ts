@@ -70,8 +70,7 @@ export default class CommandsHandler {
     commandName = commandName.toLowerCase();
     if (!this.Exists(commandName)) return false;
     const foundCommand = this._commands[commandName];
-    if (foundCommand.maxScope !== scope) return false;
-    return true;
+    return CommandsHandler.CommandHasScope(foundCommand, scope);
   }
 
   /**
@@ -86,10 +85,15 @@ export default class CommandsHandler {
   public async Execute(commandName: string, bot: Bot, commandArgs: BotCommandArgs): Promise<boolean> {
     if (!this.Exists(commandName)) return false;
     const foundCommand = this._commands[commandName];
-
     await foundCommand.onMsgReceived(bot, commandArgs);
-
     return true;
   }
 
+  public static CommandHasScope(command:ICommand, scope:CommandScopeType):boolean{
+    if(command.scopes instanceof Array){
+      return command.scopes.includes(scope);
+    }else{
+      return command.scopes === scope;
+    }
+  }
 }

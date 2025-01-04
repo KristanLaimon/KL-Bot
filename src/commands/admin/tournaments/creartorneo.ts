@@ -16,7 +16,7 @@ import Kldb from "../../../utils/kldb";
 export default class CreateTournamentCommand implements ICommand {
   commandName: string = "creartorneo";
   description: string = "Crea un nuevo torneo en el servidor. Incluye opciones para especificar el nombre del torneo, descripción, fecha de inicio, ventana de juego, y rangos de participantes.";
-  maxScope: CommandScopeType = "Group";
+  scopes: CommandScopeType = "General";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Administrador";
   helpMessage: CommandHelpInfo = {
     structure: "creartorneo",

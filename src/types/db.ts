@@ -54,6 +54,7 @@ export type KlTournamentType = KlGetTableType<typeof Kldb.tournamentType.findFir
 export type KlTournament_Player_Subscription = KlGetTableType<typeof Kldb.tournament_Player_Subscriptions.findFirst>;
 export type KlMatchType = KlGetTableType<typeof Kldb.matchType.findFirst>;
 export type KlTournament_Ranks_Admitted = KlGetTableType<typeof Kldb.tournament_Rank_RanksAdmitted.findFirst>
+export type KlRegisteredWhatsappGroupType  = KlGetTableType<typeof Kldb.registedWhatsappGroupType.findFirst>
 
 export enum TeamColor {
   Blue = 'BLU',

@@ -5,12 +5,13 @@ import { Members_GetMemberInfoFromWhatsappId } from '../../utils/members';
 import { Phone_GetFullPhoneInfoFromRawMsg } from '../../utils/phonenumbers';
 import { SpecificChat } from '../../bot/SpecificChat';
 import { Str_CapitalizeStr, Str_NormalizeLiteralString } from '../../utils/strings';
+import CommandsHandler from "../../bot/Commands";
 
 export default class Help_GroupCommand implements ICommand {
   commandName: string = 'help';
   minimumRequiredPrivileges: HelperRoleName = "Cualquiera";
   description: string = 'Despliega esta pantalla de ayuda';
-  maxScope: CommandScopeType = "Group"
+  scopes: CommandScopeType[] = ["General", "TournamentValidator", "UnregisteredGroup"]
   helpMessage?: CommandHelpInfo = {
     structure: "help",
     examples: [
@@ -21,7 +22,7 @@ export default class Help_GroupCommand implements ICommand {
   }
   async onMsgReceived(bot: Bot, args: BotCommandArgs) {
     const chat = new SpecificChat(bot, args);
-    chat.SendReactionToOriginalMsg("⌛");
+    await chat.SendReactionToOriginalMsg("⌛");
     // Si hay argumentos
     if (args.commandArgs.length > 0) {
       if (args.commandArgs.length > 1) {
@@ -78,7 +79,7 @@ export default class Help_GroupCommand implements ICommand {
 
     // Comandos generales (todos)
     const everyoneCommands = bot.Commands.filter(
-      com => com[1].minimumRequiredPrivileges === "Cualquiera" && com[1].maxScope === "Group"
+      com => com[1].minimumRequiredPrivileges === "Cualquiera" && CommandsHandler.CommandHasScope(com[1], args.scopeCalled)
     );
     if (everyoneCommands.length > 0) {
       strs.push("*🔓 Comandos para todos:*");
@@ -93,7 +94,7 @@ export default class Help_GroupCommand implements ICommand {
     if (memberInfo) {
       // Comandos para miembros
       const memberCommands = bot.Commands.filter(
-        com => com[1].minimumRequiredPrivileges === "Miembro" && com[1].maxScope === "Group"
+        com => com[1].minimumRequiredPrivileges === "Miembro" && CommandsHandler.CommandHasScope(com[1], args.scopeCalled)
       );
       if (memberCommands.length > 0) {
         strs.push("\n*🛡️ Comandos para miembros:*");
@@ -103,7 +104,7 @@ export default class Help_GroupCommand implements ICommand {
       // Comandos para administradores
       if (memberInfo.role === "AD") {
         const adminCommands = bot.Commands.filter(
-          com => com[1].minimumRequiredPrivileges === "Administrador" && com[1].maxScope === "Group"
+          com => com[1].minimumRequiredPrivileges === "Administrador" && CommandsHandler.CommandHasScope(com[1], args.scopeCalled)
         );
         if (adminCommands.length > 0) {
           strs.push("\n*⚙️ Comandos de administrador:*");

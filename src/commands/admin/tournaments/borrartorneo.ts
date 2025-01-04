@@ -11,7 +11,7 @@ import Kldb from "../../../utils/kldb";
 export default class DeleteTournamentCommand implements ICommand {
   commandName: string = "borrartorneo";
   description: string = "Borra un torneo existente, no importa si ya ";
-  maxScope: CommandScopeType = "Group";
+  scopes: CommandScopeType = "General";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Administrador";
   helpMessage?: CommandHelpInfo = {
     structure: "borrartorneo",

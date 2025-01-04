@@ -24,7 +24,7 @@ export default class AddMemberCommand implements ICommand {
   commandName: string = "añadirmiembro";
   description: string = "Añade un nuevo miembro al bot";
   minimumRequiredPrivileges: CommandAccessibleRoles = "Administrador";
-  maxScope: CommandScopeType = "Group";
+  scopes: CommandScopeType = "General";
   helpMessage: CommandHelpInfo = {
     structure: "añadirmiembro",
     examples: [

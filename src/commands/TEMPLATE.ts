@@ -18,7 +18,7 @@ export default class c implements ICommand {
 
     } catch (e) {
       //@ts-ignore
-      Msg_DefaultHandleError(bot, args.chatId, e);
+      Msg_DefaultHandleError(bot, args, e);
     }
   }
 }
